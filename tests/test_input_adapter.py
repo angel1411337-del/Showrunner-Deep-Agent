@@ -194,6 +194,66 @@ class TestFileInputAdapter:
 
             assert result[0].raw_text == ""
 
+    def test_load_markdown_file(self) -> None:
+        """Markdown files are treated as plain text."""
+        with TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "chapter.md"
+            content = "# Title\nSome *markdown* content."
+            test_file.write_text(content, encoding="utf-8")
+
+            adapter = FileInputAdapter()
+            result = adapter.load(test_file)
+
+            assert result[0].raw_text == content
+            assert result[0].source_id == "chapter"
+
+    def test_load_markdown_extension_file(self) -> None:
+        """Markdown files with .markdown extension are supported."""
+        with TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "chapter.markdown"
+            content = "Some markdown content."
+            test_file.write_text(content, encoding="utf-8")
+
+            adapter = FileInputAdapter()
+            result = adapter.load(test_file)
+
+            assert result[0].raw_text == content
+            assert result[0].source_id == "chapter"
+
+    def test_load_docx_file_if_supported(self) -> None:
+        """DOCX files are supported when python-docx is installed."""
+        docx = pytest.importorskip("docx")
+
+        with TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "chapter.docx"
+            document = docx.Document()
+            document.add_paragraph("First line.")
+            document.add_paragraph("Second line.")
+            document.save(test_file)
+
+            adapter = FileInputAdapter()
+            result = adapter.load(test_file)
+
+            assert "First line." in result[0].raw_text
+            assert "Second line." in result[0].raw_text
+
+    def test_load_pdf_file_if_supported(self) -> None:
+        """PDF files are supported when pypdf is installed."""
+        pytest.importorskip("pypdf")
+        from pypdf import PdfWriter
+
+        with TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "chapter.pdf"
+            writer = PdfWriter()
+            writer.add_blank_page(width=72, height=72)
+            with test_file.open("wb") as f:
+                writer.write(f)
+
+            adapter = FileInputAdapter()
+            result = adapter.load(test_file)
+
+            assert result[0].raw_text.startswith("=== Page 1 ===")
+
 
 # =============================================================================
 # FolderInputAdapter Tests
@@ -267,7 +327,7 @@ class TestFolderInputAdapter:
             assert result[1].chapter_label == "chapter02_Catelyn"
 
     def test_load_folder_ignores_non_text_files(self) -> None:
-        """Only .txt files are loaded from the folder."""
+        """Unsupported files are ignored; supported extensions are loaded."""
         with TemporaryDirectory() as tmpdir:
             folder = Path(tmpdir)
             (folder / "chapter01.txt").write_text("Text file", encoding="utf-8")
@@ -277,8 +337,9 @@ class TestFolderInputAdapter:
             adapter = FolderInputAdapter()
             result = adapter.load(folder)
 
-            assert len(result) == 1
+            assert len(result) == 2
             assert result[0].source_id == "chapter01"
+            assert result[1].source_id == "notes"
 
     def test_load_folder_ignores_subdirectories(self) -> None:
         """Subdirectories are not traversed or loaded."""
@@ -296,10 +357,10 @@ class TestFolderInputAdapter:
             assert result[0].source_id == "chapter01"
 
     def test_load_folder_with_no_text_files_returns_empty_list(self) -> None:
-        """Empty folder or folder with no .txt files returns empty list."""
+        """Empty folder or folder with no supported files returns empty list."""
         with TemporaryDirectory() as tmpdir:
             folder = Path(tmpdir)
-            (folder / "readme.md").write_text("Not a txt", encoding="utf-8")
+            (folder / "readme.json").write_text("Not supported", encoding="utf-8")
 
             adapter = FolderInputAdapter()
             result = adapter.load(folder)

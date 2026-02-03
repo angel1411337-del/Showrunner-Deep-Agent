@@ -4,6 +4,7 @@ Provides unified interface for loading single files or folders of chapter files,
 normalizing both to the same DocumentUnit model for downstream processing.
 """
 
+import warnings
 from pathlib import Path
 from typing import Protocol
 
@@ -23,6 +24,51 @@ class InputAdapter(Protocol):
             List of DocumentUnit objects normalized from the source.
         """
         ...
+
+
+SUPPORTED_EXTENSIONS = {".txt", ".md", ".markdown", ".docx", ".pdf"}
+
+
+def _load_text_file(source: Path) -> str:
+    return source.read_text(encoding="utf-8")
+
+
+def _load_docx_file(source: Path) -> str:
+    try:
+        import docx  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError("python-docx is required to read .docx files") from exc
+
+    document = docx.Document(source)
+    return "\n".join(paragraph.text for paragraph in document.paragraphs)
+
+
+def _load_pdf_file(source: Path) -> str:
+    try:
+        from pypdf import PdfReader  # type: ignore
+    except ImportError:
+        try:
+            from PyPDF2 import PdfReader  # type: ignore
+        except ImportError as exc:
+            raise RuntimeError("pypdf is required to read .pdf files") from exc
+
+    reader = PdfReader(str(source))
+    parts: list[str] = []
+    for page_index, page in enumerate(reader.pages, start=1):
+        text = page.extract_text() or ""
+        parts.append(f"=== Page {page_index} ===\n{text}")
+    return "\n\n".join(parts)
+
+
+def _load_file_text(source: Path) -> str:
+    ext = source.suffix.lower()
+    if ext in {".txt", ".md", ".markdown"}:
+        return _load_text_file(source)
+    if ext == ".docx":
+        return _load_docx_file(source)
+    if ext == ".pdf":
+        return _load_pdf_file(source)
+    raise ValueError(f"Unsupported file type: {source.suffix}")
 
 
 def parse_filename_metadata(filename: str) -> tuple[str | None, str | None]:
@@ -59,7 +105,7 @@ def parse_filename_metadata(filename: str) -> tuple[str | None, str | None]:
 class FileInputAdapter:
     """Adapter for loading a single file input.
 
-    Loads a single text file and normalizes it to a DocumentUnit.
+    Loads a single file and normalizes it to a DocumentUnit.
     """
 
     def load(self, source: Path) -> list[DocumentUnit]:
@@ -81,7 +127,7 @@ class FileInputAdapter:
         if source.is_dir():
             raise ValueError(f"Path is not a file: {source}")
 
-        raw_text = source.read_text(encoding="utf-8")
+        raw_text = _load_file_text(source)
         book_label, chapter_label = parse_filename_metadata(source.name)
 
         doc = DocumentUnit(
@@ -99,7 +145,7 @@ class FileInputAdapter:
 class FolderInputAdapter:
     """Adapter for loading a folder of chapter files.
 
-    Loads all .txt files from a folder, sorted alphabetically by filename,
+    Loads supported files from a folder, sorted alphabetically by filename,
     and normalizes each to a DocumentUnit with deterministic ordering.
     """
 
@@ -123,16 +169,30 @@ class FolderInputAdapter:
         if source.is_file():
             raise ValueError(f"Path is not a directory: {source}")
 
-        # Collect all .txt files, sorted alphabetically
-        txt_files = sorted(
-            [f for f in source.iterdir() if f.is_file() and f.suffix == ".txt"],
-            key=lambda p: p.name,
-        )
+        all_files = [f for f in source.iterdir() if f.is_file()]
+        supported_files = []
+        for file_path in all_files:
+            if file_path.suffix.lower() in SUPPORTED_EXTENSIONS:
+                supported_files.append(file_path)
+            else:
+                warnings.warn(
+                    f"Unsupported file skipped: {file_path.name}",
+                    UserWarning,
+                )
+        supported_files = sorted(supported_files, key=lambda p: p.name)
 
         documents: list[DocumentUnit] = []
 
-        for order_hint, file_path in enumerate(txt_files):
-            raw_text = file_path.read_text(encoding="utf-8")
+        order_hint = 0
+        for file_path in supported_files:
+            try:
+                raw_text = _load_file_text(file_path)
+            except RuntimeError as exc:
+                warnings.warn(
+                    f"Skipping {file_path.name}: {exc}",
+                    UserWarning,
+                )
+                continue
             book_label, chapter_label = parse_filename_metadata(file_path.name)
 
             doc = DocumentUnit(
@@ -144,6 +204,7 @@ class FolderInputAdapter:
                 chapter_label=chapter_label,
             )
             documents.append(doc)
+            order_hint += 1
 
         return documents
 
