@@ -85,7 +85,7 @@
 
 ## Unit 5: Reveal Ledger (v0.3)
 **Agent:** tdd-oop
-**Status:** Not Started
+**Status:** Complete
 **Branch:** unit-5-reveal-ledger
 
 **Owns:**

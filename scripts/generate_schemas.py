@@ -11,6 +11,7 @@ from pathlib import Path
 from showrunner.contracts import (
     AliasEntry,
     Beat,
+    CandidateTruth,
     ConvergencePoint,
     DatasetManifest,
     DocumentUnit,
@@ -22,6 +23,7 @@ from showrunner.contracts import (
     Obligation,
     ObligationGraphEdge,
     OutlineSection,
+    RevealEntry,
     OverrideRule,
     PassageRecord,
     RunManifest,
@@ -49,8 +51,10 @@ def generate_schemas() -> None:
         RunManifest,
         DatasetManifest,
         Beat,
+        CandidateTruth,
         ConvergencePoint,
         OutlineSection,
+        RevealEntry,
     ]
 
     for model in models:
