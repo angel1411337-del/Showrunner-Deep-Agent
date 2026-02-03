@@ -10,8 +10,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-from langgraph.graph import END, StateGraph
-from langgraph.checkpoint.memory import MemorySaver
+try:
+    from langgraph.graph import END, StateGraph
+    from langgraph.checkpoint.memory import MemorySaver
+    _LANGGRAPH_AVAILABLE = True
+except ImportError:  # pragma: no cover - fallback when langgraph isn't installed
+    END = object()
+
+    class MemorySaver:  # minimal stub for tests
+        pass
+
+    StateGraph = None
+    _LANGGRAPH_AVAILABLE = False
 from pydantic import BaseModel, Field
 
 from showrunner.contracts import (
@@ -67,6 +77,19 @@ class PipelineState(dict):
 
     def __setattr__(self, key: str, value: object) -> None:
         self[key] = value
+
+
+class _FallbackGraph:
+    """Fallback graph runner when LangGraph is unavailable."""
+
+    def __init__(self, pipeline: "ShowrunnerPipeline") -> None:
+        self._pipeline = pipeline
+
+    def invoke(self, initial_state: PipelineState, config: dict | None = None) -> PipelineState:
+        return self._pipeline._run_sequential(initial_state)
+
+    def stream(self, initial_state: PipelineState, config: dict | None = None):
+        yield {"final": self.invoke(initial_state, config)}
 
 
 @dataclass
@@ -156,8 +179,7 @@ class ShowrunnerPipeline:
         if self._on_progress:
             self._on_progress(stage, progress)
 
-    def _build_graph(self) -> StateGraph:
-        builder = StateGraph(PipelineState)
+    def _build_graph(self) -> object:
         self._node_names = [
             "load_input",
             "index_canon",
@@ -170,6 +192,11 @@ class ShowrunnerPipeline:
         ]
         self._entry_point = "load_input"
         self._conditional_nodes = {"validate_gates"}
+        if not _LANGGRAPH_AVAILABLE:
+            self._graph = object()
+            return _FallbackGraph(self)
+
+        builder = StateGraph(PipelineState)
         builder.add_node("load_input", self._load_input)
         builder.add_node("index_canon", self._index_canon)
         builder.add_node("resolve_entities", self._resolve_entities)
@@ -202,6 +229,31 @@ class ShowrunnerPipeline:
     def _check_gates(self, state: PipelineState) -> str:
         return "pass" if state.get("gates_passed", False) else "fail"
 
+    def _run_sequential(self, initial_state: PipelineState) -> PipelineState:
+        """Fallback sequential execution when LangGraph is unavailable."""
+        state = PipelineState(initial_state)
+        for stage in (
+            self._load_input,
+            self._index_canon,
+            self._resolve_entities,
+            self._extract_obligations,
+            self._merge_duplicates,
+            self._validate_gates,
+        ):
+            update = stage(state)
+            state.update(update)
+            if stage is not self._validate_gates and state.get("error"):
+                state.update(self._handle_error(state))
+                return state
+        if state.get("error"):
+            state.update(self._handle_error(state))
+            return state
+        if state.get("gates_passed", False):
+            state.update(self._export_dossier(state))
+        else:
+            state.update(self._handle_error(state))
+        return state
+
     def _load_input(self, state: PipelineState) -> PipelineState:
         self._report_progress("load_input", 0.0)
         if "documents" in state:
@@ -228,7 +280,12 @@ class ShowrunnerPipeline:
             db_path.parent.mkdir(parents=True, exist_ok=True)
             indexer.index(documents, db_path)
             jsonl_path = self._config.output_dir / "canon" / "passages.jsonl"
-            indexer.write_passages_jsonl(all_passages, jsonl_path)
+            if hasattr(indexer, "write_passages_jsonl"):
+                indexer.write_passages_jsonl(all_passages, jsonl_path)
+            jsonl_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(jsonl_path, "w") as f:
+                for passage in all_passages:
+                    f.write(json.dumps(passage.model_dump(), default=str) + "\n")
             self._report_progress("index_canon", 1.0)
             return {"passages": all_passages}
         except Exception as e:
@@ -423,7 +480,9 @@ class ShowrunnerPipeline:
         else:
             documents = []
             for path in changed_files:
-                documents.extend(adapter.load(path))
+                from showrunner.adapters.input_adapter import create_adapter
+                file_adapter = create_adapter(path)
+                documents.extend(file_adapter.load(path))
         initial_state = PipelineState({"documents": documents})
         thread_id = f"incremental_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         state = self._execute_graph(initial_state, thread_id)
