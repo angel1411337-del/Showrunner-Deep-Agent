@@ -396,6 +396,28 @@ class TestMysteryExtraction:
         mystery_obls = [o for o in obligations if o.category == ObligationCategory.MYSTERY]
         assert len(mystery_obls) >= 1
 
+    def test_extract_dedupes_fragment_questions_when_full_question_present(
+        self,
+        extractor: ObligationExtractor,
+        sample_passage_mystery: PassageRecord,
+    ) -> None:
+        """Fragment question patterns should not duplicate full question matches."""
+        obligations, _ = extractor.extract([sample_passage_mystery], [])
+        question_descriptions = [
+            o.description
+            for o in obligations
+            if o.category == ObligationCategory.MYSTERY
+            and "unresolved question" in o.description.lower()
+        ]
+
+        who_had = [desc for desc in question_descriptions if "who had" in desc.lower()]
+        why_would = [desc for desc in question_descriptions if "why would" in desc.lower()]
+
+        assert len(who_had) == 1
+        assert len(why_would) == 1
+        assert "?" in who_had[0]
+        assert "?" in why_would[0]
+
     def test_extract_detects_why_would_question(
         self,
         extractor: ObligationExtractor,

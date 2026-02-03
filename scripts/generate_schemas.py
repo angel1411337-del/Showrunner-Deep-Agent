@@ -23,11 +23,11 @@ from showrunner.contracts import (
     Obligation,
     ObligationGraphEdge,
     OutlineSection,
-    RevealEntry,
     OverrideRule,
     PassageRecord,
-    TwistProposal,
+    RevealEntry,
     RunManifest,
+    TwistProposal,
 )
 
 SCHEMA_DIR = Path(__file__).parent.parent / "schemas"

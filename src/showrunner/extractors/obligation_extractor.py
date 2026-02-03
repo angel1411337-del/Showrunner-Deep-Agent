@@ -71,10 +71,13 @@ class ObligationExtractor:
     ]
 
     # --- Mystery Patterns ---
-    MYSTERY_QUESTIONS: list[Pattern[str]] = [
+    MYSTERY_QUESTION_PATTERNS: list[Pattern[str]] = [
         re.compile(r"\bwho had\b[^?]*\?", re.IGNORECASE),
         re.compile(r"\bwhy would\b[^?]*\?", re.IGNORECASE),
         re.compile(r"\bwhat was\b[^?]*\?", re.IGNORECASE),
+    ]
+
+    MYSTERY_FRAGMENT_PATTERNS: list[Pattern[str]] = [
         re.compile(r"\bwho had\b", re.IGNORECASE),  # Also match without question mark in narration
         re.compile(r"\bwhy would\b", re.IGNORECASE),
         re.compile(r"\bwhat was\b", re.IGNORECASE),
@@ -275,9 +278,32 @@ class ObligationExtractor:
         for passage in passages:
             text = passage.text
 
-            # Check question patterns
-            for pattern in self.MYSTERY_QUESTIONS:
+            # Check question patterns (full questions with punctuation)
+            question_matches = [
+                match
+                for pattern in self.MYSTERY_QUESTION_PATTERNS
+                for match in pattern.finditer(text)
+            ]
+            question_spans = [(match.start(), match.end()) for match in question_matches]
+
+            for match in question_matches:
+                obligation, anchor = self._create_obligation_with_anchor(
+                    passage=passage,
+                    match=match,
+                    category=ObligationCategory.MYSTERY,
+                    confidence=0.75,
+                    description=f"Unresolved question: '{match.group()}'",
+                )
+                results.append((obligation, anchor))
+
+            # Check fragment question patterns (avoid duplicating full questions)
+            for pattern in self.MYSTERY_FRAGMENT_PATTERNS:
                 for match in pattern.finditer(text):
+                    if any(
+                        span_start <= match.start() and match.end() <= span_end
+                        for span_start, span_end in question_spans
+                    ):
+                        continue
                     obligation, anchor = self._create_obligation_with_anchor(
                         passage=passage,
                         match=match,

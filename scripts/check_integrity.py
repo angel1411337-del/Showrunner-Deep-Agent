@@ -119,9 +119,7 @@ def check_references(
 
         if ref_value is None:
             if not optional:
-                report.error(
-                    f"{source_name} {record_id}: missing required field '{ref_field}'"
-                )
+                report.error(f"{source_name} {record_id}: missing required field '{ref_field}'")
             continue
 
         refs = ref_value if is_array else [ref_value]

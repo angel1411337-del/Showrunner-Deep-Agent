@@ -414,7 +414,24 @@ class CharacterVoice:
 
 ---
 
+## Future Spec (Post-V1, Non-binding): Interactive Visualization UI
+
+This is a placeholder spec to keep the idea visible without constraining post-V1 design choices.
+
+**Concept:** A separate GUI deliverable for non-technical users to explore obligations and canon links.
+
+**Possible capabilities (not commitments):**
+- Interactive graph view of entities, obligations, and evidence anchors
+- Per-entity ledger (oaths, promises, mysteries, setups) with timelines
+- Faceted filtering by entity type, obligation category, confidence, and source
+- Drill-down from dossier entries to the exact evidence excerpts
+- Exportable views (PNG/SVG/JSON) for reports and review
+
+---
+
 ## Implementation Priority Matrix
+
+Note: The interactive GUI deliverable is explicitly out of scope for V1 and is tracked only in the Future Spec section.
 
 | Phase | Component | Effort | Value | Priority |
 |-------|-----------|--------|-------|----------|

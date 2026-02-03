@@ -283,6 +283,8 @@ class ShowrunnerPipeline:
 '''
 
 if __name__ == "__main__":
-    output_path = Path(__file__).parent.parent / "src" / "showrunner" / "pipeline" / "orchestrator.py"
+    output_path = (
+        Path(__file__).parent.parent / "src" / "showrunner" / "pipeline" / "orchestrator.py"
+    )
     output_path.write_text(CODE)
     print(f"Written to {output_path}")
