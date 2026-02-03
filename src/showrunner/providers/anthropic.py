@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import inspect
 import os
-from typing import Any, TypeVar
+from collections.abc import Mapping, Sequence
+from typing import Any, TypeVar, cast
 
 from showrunner.providers.base import BaseLLMProvider
 
@@ -20,17 +21,20 @@ except Exception as exc:  # pragma: no cover - optional dependency
 T = TypeVar("T")
 
 
-def _stringify_content(content: Any) -> str:
+def _stringify_content(content: object) -> str:
     if isinstance(content, str):
         return content
-    if isinstance(content, list):
+    if isinstance(content, Sequence):
         parts: list[str] = []
-        for item in content:
+        for item in cast("Sequence[object]", content):
             if isinstance(item, str):
                 parts.append(item)
-            elif isinstance(item, dict):
-                text = item.get("text")
-                if text:
+            elif isinstance(item, Mapping):
+                mapping = cast("Mapping[str, object]", item)
+                text = mapping.get("text")
+                if isinstance(text, str):
+                    parts.append(text)
+                elif text is not None:
                     parts.append(str(text))
         return "".join(parts)
     return str(content)
@@ -97,5 +101,12 @@ class AnthropicProvider(BaseLLMProvider):
         if system_prompt:
             messages.append(SystemMessage(content=system_prompt))
         messages.append(HumanMessage(content=prompt))
-        structured = client.with_structured_output(response_model)
-        return structured.invoke(messages)
+        structured_builder = cast("Any", client).with_structured_output
+        structured = structured_builder(response_model)
+        result = structured.invoke(messages)
+        if isinstance(result, response_model):
+            return result
+        validator = getattr(response_model, "model_validate", None)
+        if callable(validator):
+            return cast("T", validator(result))
+        return cast("T", result)

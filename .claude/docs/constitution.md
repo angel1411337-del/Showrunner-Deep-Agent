@@ -8,6 +8,11 @@
 
 ## 1. Quality Standards
 
+### 1.0 Test-First Development
+**Rule:** Write tests before implementing production changes. Any `src/` change must be accompanied by `tests/` updates.
+**Rationale:** Keeps design driven by tests and prevents unverified changes.
+**Violation Response:** block
+
 ### 1.1 Tests Must Pass
 **Rule:** `pytest` must pass for all changes that touch production logic.
 **Rationale:** Prevents regressions and keeps the golden determinism suite stable.

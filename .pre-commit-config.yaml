@@ -27,6 +27,14 @@ repos:
   # Pyright - Static type checker
   - repo: local
     hooks:
+      - id: tests-first-guard
+        name: tests-first-guard
+        description: Block src/ changes without matching tests/ updates
+        entry: uv run python -m showrunner.guards.tests_first --staged
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
       - id: pyright
         name: pyright
         description: Run Pyright type checker

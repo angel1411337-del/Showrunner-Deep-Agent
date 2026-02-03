@@ -43,3 +43,14 @@
 **Decision:** Each file produces one DocumentUnit; paragraph segmentation remains in CanonIndexer.
 
 **Consequences:** Input adapters remain thin and deterministic; segmentation rules stay in indexers.
+
+---
+
+### 2026-02-03 - Tests-First Guard
+**Status:** Accepted
+
+**Context:** We need enforcement to ensure tests are written before implementation changes.
+
+**Decision:** Add a tests-first guard (pre-commit hook + CI step) that blocks `src/` changes without corresponding `tests/` updates. Document the rule in the constitution.
+
+**Consequences:** Commits that modify production code without tests will fail locally and in CI unless tests are added.

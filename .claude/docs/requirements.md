@@ -79,6 +79,10 @@
 **Description:** Linting and formatting must remain clean.
 **Metric:** `ruff` passes for `src/` and `tests/`.
 
+### NFR-5: Tests-First Workflow
+**Description:** Production changes must be accompanied by tests, enforced by local and CI guards.
+**Metric:** Tests-first guard passes for commits and CI runs.
+
 ## Scope
 
 ### In Scope
