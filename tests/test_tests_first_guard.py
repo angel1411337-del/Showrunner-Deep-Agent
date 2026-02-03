@@ -10,12 +10,7 @@ def test_blocks_src_without_tests() -> None:
 
 
 def test_allows_src_with_tests() -> None:
-    assert (
-        tests_first.should_block(
-            ["src/showrunner/foo.py", "tests/test_foo.py"]
-        )
-        is False
-    )
+    assert tests_first.should_block(["src/showrunner/foo.py", "tests/test_foo.py"]) is False
 
 
 def test_allows_tests_only() -> None:
