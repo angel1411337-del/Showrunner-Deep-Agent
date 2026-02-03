@@ -1,8 +1,9 @@
 """LLM provider interfaces and implementations."""
 
-from showrunner.providers.base import BaseLLMProvider
+from showrunner.providers.base import BaseLLMProvider, LLMProviderProtocol
+from showrunner.providers.rule_based import RuleBasedProvider
 
-__all__ = ["BaseLLMProvider"]
+__all__ = ["BaseLLMProvider", "LLMProviderProtocol", "RuleBasedProvider"]
 
 # Conditionally export AnthropicProvider if anthropic is installed
 try:
