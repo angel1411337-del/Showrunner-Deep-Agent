@@ -1,0 +1,99 @@
+{
+  "description": "A proposed narrative twist.",
+  "properties": {
+    "twist_id": {
+      "description": "Unique identifier for this twist",
+      "title": "Twist Id",
+      "type": "string"
+    },
+    "description": {
+      "description": "Twist description",
+      "title": "Description",
+      "type": "string"
+    },
+    "twist_type": {
+      "description": "Twist type label",
+      "title": "Twist Type",
+      "type": "string"
+    },
+    "affected_obligations": {
+      "description": "Obligation IDs affected by this twist",
+      "items": {
+        "type": "string"
+      },
+      "title": "Affected Obligations",
+      "type": "array"
+    },
+    "affected_entities": {
+      "description": "Entity IDs impacted by the twist",
+      "items": {
+        "type": "string"
+      },
+      "title": "Affected Entities",
+      "type": "array"
+    },
+    "evidence_support": {
+      "description": "Evidence anchors supporting the twist",
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Support",
+      "type": "array"
+    },
+    "contradictions": {
+      "description": "Evidence anchors contradicting the twist",
+      "items": {
+        "type": "string"
+      },
+      "title": "Contradictions",
+      "type": "array"
+    },
+    "required_setup": {
+      "description": "Setup beats required before the twist",
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Setup",
+      "type": "array"
+    },
+    "backfill_suggestions": {
+      "description": "Suggested backfill for retroactive setup",
+      "items": {
+        "type": "string"
+      },
+      "title": "Backfill Suggestions",
+      "type": "array"
+    },
+    "reader_predictability": {
+      "default": 0.5,
+      "description": "Predictability (0-1)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Reader Predictability",
+      "type": "number"
+    },
+    "thematic_alignment": {
+      "default": 0.5,
+      "description": "Thematic alignment (0-1)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Thematic Alignment",
+      "type": "number"
+    },
+    "risk_notes": {
+      "description": "Risk notes for this twist",
+      "items": {
+        "type": "string"
+      },
+      "title": "Risk Notes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "twist_id",
+    "description",
+    "twist_type"
+  ],
+  "title": "TwistProposal",
+  "type": "object"
+}
