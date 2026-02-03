@@ -24,15 +24,6 @@ from showrunner.contracts import (
     PassageRecord,
     RunManifest,
 )
-from showrunner.pipeline.protocols import (
-    CanonIndexerProtocol,
-    DedupeMergerProtocol,
-    EntityResolverProtocol,
-    ExportRendererProtocol,
-    InputAdapterProtocol,
-    ObligationExtractorProtocol,
-    QualityGatesProtocol,
-)
 
 _langgraph_memory_saver: type[Any]
 _langgraph_stategraph: type[Any] | None
@@ -66,6 +57,26 @@ StateGraph: type[Any] | None = _langgraph_stategraph
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from showrunner.pipeline.protocols import (
+        CanonIndexerProtocol,
+        DedupeMergerProtocol,
+        EntityResolverProtocol,
+        ExportRendererProtocol,
+        InputAdapterProtocol,
+        ObligationExtractorProtocol,
+        QualityGatesProtocol,
+    )
+else:
+    from showrunner.pipeline import protocols as _protocols
+
+    CanonIndexerProtocol = _protocols.CanonIndexerProtocol
+    DedupeMergerProtocol = _protocols.DedupeMergerProtocol
+    EntityResolverProtocol = _protocols.EntityResolverProtocol
+    ExportRendererProtocol = _protocols.ExportRendererProtocol
+    InputAdapterProtocol = _protocols.InputAdapterProtocol
+    ObligationExtractorProtocol = _protocols.ObligationExtractorProtocol
+    QualityGatesProtocol = _protocols.QualityGatesProtocol
 
 
 class PipelineConfig(BaseModel):
