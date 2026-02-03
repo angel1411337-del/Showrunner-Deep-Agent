@@ -691,7 +691,7 @@ class TestProgressCallbacks:
         mock_factory.create_canon_indexer.return_value = mock_indexer
 
         mock_resolver = Mock()
-        mock_resolver.resolve.return_value = ([], [])
+        mock_resolver.resolve.return_value = ([], [], [])
         mock_factory.create_entity_resolver.return_value = mock_resolver
 
         mock_extractor = Mock()
@@ -699,7 +699,7 @@ class TestProgressCallbacks:
         mock_factory.create_obligation_extractor.return_value = mock_extractor
 
         mock_merger = Mock()
-        mock_merger.merge.return_value = []
+        mock_merger.merge.return_value = ([], [], 0.0)
         mock_factory.create_dedupe_merger.return_value = mock_merger
 
         mock_gates = Mock()
@@ -853,7 +853,7 @@ class TestPipelineExecution:
 
         def track_resolve(*args: object, **kwargs: object) -> tuple:
             execution_order.append("resolve_entities")
-            return ([], [])
+            return ([], [], [])
 
         mock_resolver.resolve.side_effect = track_resolve
         mock_factory.create_entity_resolver.return_value = mock_resolver
@@ -869,9 +869,9 @@ class TestPipelineExecution:
 
         mock_merger = Mock()
 
-        def track_merge(*args: object, **kwargs: object) -> list:
+        def track_merge(*args: object, **kwargs: object) -> tuple:
             execution_order.append("merge_duplicates")
-            return []
+            return ([], [], 0.0)
 
         mock_merger.merge.side_effect = track_merge
         mock_factory.create_dedupe_merger.return_value = mock_merger
@@ -933,7 +933,7 @@ class TestPipelineExecution:
         mock_factory.create_canon_indexer.return_value = mock_indexer
 
         mock_resolver = Mock()
-        mock_resolver.resolve.return_value = ([], [])
+        mock_resolver.resolve.return_value = ([], [], [])
         mock_factory.create_entity_resolver.return_value = mock_resolver
 
         mock_extractor = Mock()
@@ -941,7 +941,7 @@ class TestPipelineExecution:
         mock_factory.create_obligation_extractor.return_value = mock_extractor
 
         mock_merger = Mock()
-        mock_merger.merge.return_value = []
+        mock_merger.merge.return_value = ([], [], 0.0)
         mock_factory.create_dedupe_merger.return_value = mock_merger
 
         mock_gates = Mock()
@@ -1061,7 +1061,7 @@ class TestIncrementalExecution:
         mock_factory.create_canon_indexer.return_value = mock_indexer
 
         mock_resolver = Mock()
-        mock_resolver.resolve.return_value = ([], [])
+        mock_resolver.resolve.return_value = ([], [], [])
         mock_factory.create_entity_resolver.return_value = mock_resolver
 
         mock_extractor = Mock()
@@ -1069,7 +1069,7 @@ class TestIncrementalExecution:
         mock_factory.create_obligation_extractor.return_value = mock_extractor
 
         mock_merger = Mock()
-        mock_merger.merge.return_value = []
+        mock_merger.merge.return_value = ([], [], 0.0)
         mock_factory.create_dedupe_merger.return_value = mock_merger
 
         mock_gates = Mock()
@@ -1242,7 +1242,7 @@ class TestArtifactWriting:
         mock_factory.create_canon_indexer.return_value = mock_indexer
 
         mock_resolver = Mock()
-        mock_resolver.resolve.return_value = ([], [])
+        mock_resolver.resolve.return_value = ([], [], [])
         mock_factory.create_entity_resolver.return_value = mock_resolver
 
         mock_extractor = Mock()
@@ -1250,7 +1250,7 @@ class TestArtifactWriting:
         mock_factory.create_obligation_extractor.return_value = mock_extractor
 
         mock_merger = Mock()
-        mock_merger.merge.return_value = []
+        mock_merger.merge.return_value = ([], [], 0.0)
         mock_factory.create_dedupe_merger.return_value = mock_merger
 
         mock_gates = Mock()
@@ -1291,7 +1291,7 @@ class TestArtifactWriting:
         mock_factory.create_canon_indexer.return_value = mock_indexer
 
         mock_resolver = Mock()
-        mock_resolver.resolve.return_value = (sample_entities, [])
+        mock_resolver.resolve.return_value = (sample_entities, [], [])
         mock_factory.create_entity_resolver.return_value = mock_resolver
 
         mock_extractor = Mock()
@@ -1299,7 +1299,7 @@ class TestArtifactWriting:
         mock_factory.create_obligation_extractor.return_value = mock_extractor
 
         mock_merger = Mock()
-        mock_merger.merge.return_value = []
+        mock_merger.merge.return_value = ([], [], 0.0)
         mock_factory.create_dedupe_merger.return_value = mock_merger
 
         mock_gates = Mock()
@@ -1340,7 +1340,7 @@ class TestArtifactWriting:
         mock_factory.create_canon_indexer.return_value = mock_indexer
 
         mock_resolver = Mock()
-        mock_resolver.resolve.return_value = ([], [])
+        mock_resolver.resolve.return_value = ([], [], [])
         mock_factory.create_entity_resolver.return_value = mock_resolver
 
         mock_extractor = Mock()
@@ -1348,7 +1348,7 @@ class TestArtifactWriting:
         mock_factory.create_obligation_extractor.return_value = mock_extractor
 
         mock_merger = Mock()
-        mock_merger.merge.return_value = sample_obligations
+        mock_merger.merge.return_value = (sample_obligations, [], 0.0)
         mock_factory.create_dedupe_merger.return_value = mock_merger
 
         mock_gates = Mock()

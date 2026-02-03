@@ -24,6 +24,15 @@ from showrunner.contracts import (
     PassageRecord,
     RunManifest,
 )
+from showrunner.pipeline.protocols import (
+    CanonIndexerProtocol,
+    DedupeMergerProtocol,
+    EntityResolverProtocol,
+    ExportRendererProtocol,
+    InputAdapterProtocol,
+    ObligationExtractorProtocol,
+    QualityGatesProtocol,
+)
 
 _langgraph_memory_saver: type[Any]
 _langgraph_stategraph: type[Any] | None
@@ -57,16 +66,6 @@ StateGraph: type[Any] | None = _langgraph_stategraph
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from showrunner.pipeline.protocols import (
-        CanonIndexerProtocol,
-        DedupeMergerProtocol,
-        EntityResolverProtocol,
-        ExportRendererProtocol,
-        InputAdapterProtocol,
-        ObligationExtractorProtocol,
-        QualityGatesProtocol,
-    )
 
 
 class PipelineConfig(BaseModel):
@@ -295,6 +294,8 @@ class ShowrunnerPipeline:
 
     def _load_input(self, state: PipelineState) -> PipelineState:
         self._report_progress("load_input", 0.0)
+        if state.get("error"):
+            return state
         if "documents" in state:
             self._report_progress("load_input", 1.0)
             return state
@@ -308,6 +309,8 @@ class ShowrunnerPipeline:
 
     def _index_canon(self, state: PipelineState) -> PipelineState:
         self._report_progress("index_canon", 0.0)
+        if state.get("error"):
+            return state
         try:
             indexer = self._factory.create_canon_indexer()
             documents = state.get("documents", [])
@@ -332,6 +335,8 @@ class ShowrunnerPipeline:
 
     def _resolve_entities(self, state: PipelineState) -> PipelineState:
         self._report_progress("resolve_entities", 0.0)
+        if state.get("error"):
+            return state
         try:
             resolver = self._factory.create_entity_resolver()
             passages = state.get("passages", [])
@@ -352,6 +357,8 @@ class ShowrunnerPipeline:
 
     def _extract_obligations(self, state: PipelineState) -> PipelineState:
         self._report_progress("extract_obligations", 0.0)
+        if state.get("error"):
+            return state
         try:
             extractor = self._factory.create_obligation_extractor()
             passages = state.get("passages", [])
@@ -366,6 +373,8 @@ class ShowrunnerPipeline:
 
     def _merge_duplicates(self, state: PipelineState) -> PipelineState:
         self._report_progress("merge_duplicates", 0.0)
+        if state.get("error"):
+            return state
         try:
             merger = self._factory.create_dedupe_merger()
             obligations = state.get("obligations", [])
@@ -381,6 +390,8 @@ class ShowrunnerPipeline:
 
     def _validate_gates(self, state: PipelineState) -> PipelineState:
         self._report_progress("validate_gates", 0.0)
+        if state.get("error"):
+            return state
         try:
             gates = self._factory.create_quality_gates()
             passages = state.get("passages", [])
@@ -415,6 +426,8 @@ class ShowrunnerPipeline:
 
     def _export_dossier(self, state: PipelineState) -> PipelineState:
         self._report_progress("export_dossier", 0.0)
+        if state.get("error"):
+            return state
         try:
             passages = state.get("passages", [])
             entities = state.get("entities", [])
