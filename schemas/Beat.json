@@ -1,0 +1,69 @@
+{
+  "description": "A story beat in the outline.",
+  "properties": {
+    "beat_id": {
+      "description": "Unique identifier for this beat",
+      "title": "Beat Id",
+      "type": "string"
+    },
+    "description": {
+      "description": "Human-readable beat description",
+      "title": "Description",
+      "type": "string"
+    },
+    "chapter_hint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional chapter placement hint",
+      "title": "Chapter Hint"
+    },
+    "pov_character": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional POV character for the beat",
+      "title": "Pov Character"
+    },
+    "obligations_addressed": {
+      "description": "Obligation IDs addressed in this beat",
+      "items": {
+        "type": "string"
+      },
+      "title": "Obligations Addressed",
+      "type": "array"
+    },
+    "entities_involved": {
+      "description": "Entity IDs involved in this beat",
+      "items": {
+        "type": "string"
+      },
+      "title": "Entities Involved",
+      "type": "array"
+    },
+    "is_bridging": {
+      "default": false,
+      "description": "Whether this beat bridges convergence points",
+      "title": "Is Bridging",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "beat_id",
+    "description"
+  ],
+  "title": "Beat",
+  "type": "object"
+}

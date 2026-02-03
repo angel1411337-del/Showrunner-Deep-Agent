@@ -1,0 +1,45 @@
+{
+  "description": "A possible answer to a mystery.",
+  "properties": {
+    "truth_id": {
+      "description": "Unique identifier for the candidate truth",
+      "title": "Truth Id",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of the candidate truth",
+      "title": "Description",
+      "type": "string"
+    },
+    "evidence_for": {
+      "description": "Evidence anchor IDs supporting this truth",
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence For",
+      "type": "array"
+    },
+    "evidence_against": {
+      "description": "Evidence anchor IDs contradicting this truth",
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Against",
+      "type": "array"
+    },
+    "likelihood": {
+      "default": 0.5,
+      "description": "Estimated likelihood (0-1)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Likelihood",
+      "type": "number"
+    }
+  },
+  "required": [
+    "truth_id",
+    "description"
+  ],
+  "title": "CandidateTruth",
+  "type": "object"
+}

@@ -1,0 +1,158 @@
+{
+  "$defs": {
+    "Beat": {
+      "description": "A story beat in the outline.",
+      "properties": {
+        "beat_id": {
+          "description": "Unique identifier for this beat",
+          "title": "Beat Id",
+          "type": "string"
+        },
+        "description": {
+          "description": "Human-readable beat description",
+          "title": "Description",
+          "type": "string"
+        },
+        "chapter_hint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional chapter placement hint",
+          "title": "Chapter Hint"
+        },
+        "pov_character": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional POV character for the beat",
+          "title": "Pov Character"
+        },
+        "obligations_addressed": {
+          "description": "Obligation IDs addressed in this beat",
+          "items": {
+            "type": "string"
+          },
+          "title": "Obligations Addressed",
+          "type": "array"
+        },
+        "entities_involved": {
+          "description": "Entity IDs involved in this beat",
+          "items": {
+            "type": "string"
+          },
+          "title": "Entities Involved",
+          "type": "array"
+        },
+        "is_bridging": {
+          "default": false,
+          "description": "Whether this beat bridges convergence points",
+          "title": "Is Bridging",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "beat_id",
+        "description"
+      ],
+      "title": "Beat",
+      "type": "object"
+    },
+    "ConvergencePoint": {
+      "description": "Where multiple plot threads converge.",
+      "properties": {
+        "convergence_id": {
+          "description": "Unique identifier for convergence",
+          "title": "Convergence Id",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the convergence",
+          "title": "Description",
+          "type": "string"
+        },
+        "converging_obligations": {
+          "description": "Obligation IDs converging here",
+          "items": {
+            "type": "string"
+          },
+          "title": "Converging Obligations",
+          "type": "array"
+        },
+        "suggested_placement": {
+          "description": "Suggested placement (book/chapter hint)",
+          "title": "Suggested Placement",
+          "type": "string"
+        },
+        "dramatic_weight": {
+          "description": "Relative dramatic weight (0-1)",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Dramatic Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "convergence_id",
+        "description",
+        "suggested_placement",
+        "dramatic_weight"
+      ],
+      "title": "ConvergencePoint",
+      "type": "object"
+    }
+  },
+  "description": "A section of the master outline.",
+  "properties": {
+    "section_id": {
+      "description": "Unique identifier for section",
+      "title": "Section Id",
+      "type": "string"
+    },
+    "title": {
+      "description": "Section title",
+      "title": "Title",
+      "type": "string"
+    },
+    "book_number": {
+      "description": "Book number for this section",
+      "minimum": 1,
+      "title": "Book Number",
+      "type": "integer"
+    },
+    "beats": {
+      "description": "Beats in this section",
+      "items": {
+        "$ref": "#/$defs/Beat"
+      },
+      "title": "Beats",
+      "type": "array"
+    },
+    "convergence_points": {
+      "description": "Convergence points in this section",
+      "items": {
+        "$ref": "#/$defs/ConvergencePoint"
+      },
+      "title": "Convergence Points",
+      "type": "array"
+    }
+  },
+  "required": [
+    "section_id",
+    "title",
+    "book_number"
+  ],
+  "title": "OutlineSection",
+  "type": "object"
+}

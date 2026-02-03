@@ -1,0 +1,122 @@
+{
+  "$defs": {
+    "CandidateTruth": {
+      "description": "A possible answer to a mystery.",
+      "properties": {
+        "truth_id": {
+          "description": "Unique identifier for the candidate truth",
+          "title": "Truth Id",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the candidate truth",
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_for": {
+          "description": "Evidence anchor IDs supporting this truth",
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence For",
+          "type": "array"
+        },
+        "evidence_against": {
+          "description": "Evidence anchor IDs contradicting this truth",
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Against",
+          "type": "array"
+        },
+        "likelihood": {
+          "default": 0.5,
+          "description": "Estimated likelihood (0-1)",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Likelihood",
+          "type": "number"
+        }
+      },
+      "required": [
+        "truth_id",
+        "description"
+      ],
+      "title": "CandidateTruth",
+      "type": "object"
+    }
+  },
+  "description": "A mystery with its reveal plan and candidate truths.",
+  "properties": {
+    "reveal_id": {
+      "description": "Unique identifier for this reveal entry",
+      "title": "Reveal Id",
+      "type": "string"
+    },
+    "mystery_obligation_id": {
+      "description": "Obligation ID for the underlying mystery",
+      "title": "Mystery Obligation Id",
+      "type": "string"
+    },
+    "mystery_description": {
+      "description": "Description of the mystery",
+      "title": "Mystery Description",
+      "type": "string"
+    },
+    "candidate_truths": {
+      "description": "Candidate truths for this mystery",
+      "items": {
+        "$ref": "#/$defs/CandidateTruth"
+      },
+      "title": "Candidate Truths",
+      "type": "array"
+    },
+    "selected_truth": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Chosen truth_id when decided",
+      "title": "Selected Truth"
+    },
+    "reveal_placement": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Suggested placement (book/chapter hint)",
+      "title": "Reveal Placement"
+    },
+    "characters_who_learn": {
+      "description": "Entity IDs for characters who learn the truth",
+      "items": {
+        "type": "string"
+      },
+      "title": "Characters Who Learn",
+      "type": "array"
+    },
+    "dramatic_impact": {
+      "default": "moderate",
+      "description": "Impact label (major/moderate/minor)",
+      "title": "Dramatic Impact",
+      "type": "string"
+    }
+  },
+  "required": [
+    "reveal_id",
+    "mystery_obligation_id",
+    "mystery_description"
+  ],
+  "title": "RevealEntry",
+  "type": "object"
+}

@@ -1,0 +1,43 @@
+{
+  "description": "Where multiple plot threads converge.",
+  "properties": {
+    "convergence_id": {
+      "description": "Unique identifier for convergence",
+      "title": "Convergence Id",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of the convergence",
+      "title": "Description",
+      "type": "string"
+    },
+    "converging_obligations": {
+      "description": "Obligation IDs converging here",
+      "items": {
+        "type": "string"
+      },
+      "title": "Converging Obligations",
+      "type": "array"
+    },
+    "suggested_placement": {
+      "description": "Suggested placement (book/chapter hint)",
+      "title": "Suggested Placement",
+      "type": "string"
+    },
+    "dramatic_weight": {
+      "description": "Relative dramatic weight (0-1)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Dramatic Weight",
+      "type": "number"
+    }
+  },
+  "required": [
+    "convergence_id",
+    "description",
+    "suggested_placement",
+    "dramatic_weight"
+  ],
+  "title": "ConvergencePoint",
+  "type": "object"
+}
