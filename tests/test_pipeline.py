@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
@@ -32,6 +33,9 @@ from showrunner.contracts import (
     PassageRecord,
     RunManifest,
 )
+
+if TYPE_CHECKING:
+    from showrunner.pipeline.orchestrator import PipelineConfig, PipelineState
 
 
 # =============================================================================
@@ -234,9 +238,7 @@ class TestPipelineConfig:
         )
         assert config.similarity_threshold == 0.8
 
-    def test_config_allows_custom_values(
-        self, temp_input_dir: Path, temp_output_dir: Path
-    ) -> None:
+    def test_config_allows_custom_values(self, temp_input_dir: Path, temp_output_dir: Path) -> None:
         """PipelineConfig accepts custom parameter values."""
         from showrunner.pipeline.orchestrator import PipelineConfig
 
@@ -288,8 +290,6 @@ class TestPipelineState:
 
     def test_create_empty_state(self) -> None:
         """PipelineState can be created as empty dict."""
-        from showrunner.pipeline.orchestrator import PipelineState
-
         state: PipelineState = {}
         assert state.get("documents") is None
         assert state.get("passages") is None
@@ -303,39 +303,29 @@ class TestPipelineState:
 
     def test_state_stores_documents(self, sample_documents: list[DocumentUnit]) -> None:
         """PipelineState can store document list."""
-        from showrunner.pipeline.orchestrator import PipelineState
-
         state: PipelineState = {"documents": sample_documents}
         assert state.get("documents") is not None
         assert len(state["documents"]) == 2
 
     def test_state_stores_passages(self, sample_passages: list[PassageRecord]) -> None:
         """PipelineState can store passage list."""
-        from showrunner.pipeline.orchestrator import PipelineState
-
         state: PipelineState = {"passages": sample_passages}
         assert state.get("passages") is not None
         assert len(state["passages"]) == 2
 
     def test_state_stores_entities(self, sample_entities: list[Entity]) -> None:
         """PipelineState can store entity list."""
-        from showrunner.pipeline.orchestrator import PipelineState
-
         state: PipelineState = {"entities": sample_entities}
         assert state.get("entities") is not None
         assert len(state["entities"]) == 2
 
     def test_state_stores_error(self) -> None:
         """PipelineState can capture error messages."""
-        from showrunner.pipeline.orchestrator import PipelineState
-
         state: PipelineState = {"error": "Pipeline failed at stage X"}
         assert state["error"] == "Pipeline failed at stage X"
 
     def test_state_is_typed_dict_compatible(self) -> None:
         """PipelineState works as LangGraph TypedDict state."""
-        from showrunner.pipeline.orchestrator import PipelineState
-
         # Must be usable as dict for LangGraph
         state: PipelineState = {}
         assert isinstance(state, dict)
@@ -345,8 +335,6 @@ class TestPipelineState:
 
     def test_state_can_be_copied(self, sample_documents: list[DocumentUnit]) -> None:
         """PipelineState can be copied as a dict."""
-        from showrunner.pipeline.orchestrator import PipelineState
-
         original: PipelineState = {"documents": sample_documents}
         copied = dict(original)
         assert copied.get("documents") is not None
@@ -419,9 +407,7 @@ class TestComponentFactory:
         """Factory creates InputAdapter component."""
         from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         adapter = factory.create_input_adapter()
         assert adapter is not None
@@ -432,9 +418,7 @@ class TestComponentFactory:
         """Factory creates CanonIndexer component."""
         from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         indexer = factory.create_canon_indexer()
         assert indexer is not None
@@ -445,9 +429,7 @@ class TestComponentFactory:
         """Factory creates EntityResolver component."""
         from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         resolver = factory.create_entity_resolver()
         assert resolver is not None
@@ -458,9 +440,7 @@ class TestComponentFactory:
         """Factory creates ObligationExtractor component."""
         from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         extractor = factory.create_obligation_extractor()
         assert extractor is not None
@@ -471,9 +451,7 @@ class TestComponentFactory:
         """Factory creates DedupeMerger component."""
         from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         merger = factory.create_dedupe_merger()
         assert merger is not None
@@ -484,9 +462,7 @@ class TestComponentFactory:
         """Factory creates QualityGates component."""
         from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         gates = factory.create_quality_gates()
         assert gates is not None
@@ -497,9 +473,7 @@ class TestComponentFactory:
         """Factory creates ExportRenderer component."""
         from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         renderer = factory.create_export_renderer()
         assert renderer is not None
@@ -538,9 +512,7 @@ class TestDependencyInjection:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         custom_factory = ComponentFactory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=custom_factory)
         assert pipeline._factory is custom_factory
@@ -555,9 +527,7 @@ class TestDependencyInjection:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         pipeline = ShowrunnerPipeline(config=config)
         assert pipeline._factory is not None
         assert isinstance(pipeline._factory, ComponentFactory)
@@ -572,9 +542,7 @@ class TestDependencyInjection:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         # Create mock factory
         mock_factory = Mock(spec=ComponentFactory)
@@ -605,9 +573,7 @@ class TestProgressCallbacks:
         """ShowrunnerPipeline accepts on_progress callback."""
         from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         progress_callback = Mock()
         pipeline = ShowrunnerPipeline(config=config, on_progress=progress_callback)
@@ -618,14 +584,11 @@ class TestProgressCallbacks:
     ) -> None:
         """Pipeline notifies progress callback when stage starts."""
         from showrunner.pipeline.orchestrator import (
-            ComponentFactory,
             PipelineConfig,
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         progress_callback = Mock()
 
         # Create mock factory with mock components
@@ -648,9 +611,7 @@ class TestProgressCallbacks:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         progress_values: list[float] = []
 
         def track_progress(stage: str, progress: float) -> None:
@@ -666,18 +627,14 @@ class TestProgressCallbacks:
         for value in progress_values:
             assert 0.0 <= value <= 1.0
 
-    def test_pipeline_reports_all_stages(
-        self, temp_input_dir: Path, temp_output_dir: Path
-    ) -> None:
+    def test_pipeline_reports_all_stages(self, temp_input_dir: Path, temp_output_dir: Path) -> None:
         """Pipeline reports progress for all pipeline stages."""
         from showrunner.pipeline.orchestrator import (
             PipelineConfig,
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         reported_stages: list[str] = []
 
         def track_stages(stage: str, progress: float) -> None:
@@ -685,9 +642,7 @@ class TestProgressCallbacks:
                 reported_stages.append(stage)
 
         mock_factory = self._create_mock_factory(config)
-        pipeline = ShowrunnerPipeline(
-            config=config, factory=mock_factory, on_progress=track_stages
-        )
+        pipeline = ShowrunnerPipeline(config=config, factory=mock_factory, on_progress=track_stages)
         pipeline.run()
 
         expected_stages = [
@@ -711,9 +666,7 @@ class TestProgressCallbacks:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = self._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -721,7 +674,7 @@ class TestProgressCallbacks:
         result, manifest = pipeline.run()
         assert result is not None
 
-    def _create_mock_factory(self, config: "PipelineConfig") -> Mock:
+    def _create_mock_factory(self, config: PipelineConfig) -> Mock:
         """Helper to create a mock factory with all components."""
         from showrunner.pipeline.orchestrator import ComponentFactory
 
@@ -774,9 +727,7 @@ class TestPipelineGraphConstruction:
         """Pipeline builds LangGraph StateGraph on initialization."""
         from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         pipeline = ShowrunnerPipeline(config=config)
         assert pipeline._graph is not None
 
@@ -786,9 +737,7 @@ class TestPipelineGraphConstruction:
         """Graph contains all required pipeline stage nodes."""
         from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         pipeline = ShowrunnerPipeline(config=config)
 
         expected_nodes = [
@@ -810,9 +759,7 @@ class TestPipelineGraphConstruction:
         """Graph has conditional edge from validate_gates (pass -> export, fail -> error)."""
         from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         pipeline = ShowrunnerPipeline(config=config)
 
         # validate_gates should have conditional routing
@@ -824,9 +771,7 @@ class TestPipelineGraphConstruction:
         """Graph entry point is load_input node."""
         from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         pipeline = ShowrunnerPipeline(config=config)
         assert pipeline.get_entry_point() == "load_input"
 
@@ -836,9 +781,7 @@ class TestPipelineGraphConstruction:
         """Graph is compiled with MemorySaver for checkpointing."""
         from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         pipeline = ShowrunnerPipeline(config=config)
         assert pipeline._checkpointer is not None
 
@@ -861,9 +804,7 @@ class TestPipelineExecution:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -882,9 +823,7 @@ class TestPipelineExecution:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         execution_order: list[str] = []
 
@@ -979,9 +918,7 @@ class TestPipelineExecution:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         # Create mock factory where validation fails
         mock_factory = Mock(spec=ComponentFactory)
@@ -1034,18 +971,14 @@ class TestPipelineExecution:
         # State should have error
         assert result.error is not None
 
-    def test_run_generates_run_manifest(
-        self, temp_input_dir: Path, temp_output_dir: Path
-    ) -> None:
+    def test_run_generates_run_manifest(self, temp_input_dir: Path, temp_output_dir: Path) -> None:
         """run() generates RunManifest with correct metadata."""
         from showrunner.pipeline.orchestrator import (
             PipelineConfig,
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -1064,9 +997,7 @@ class TestPipelineExecution:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -1095,9 +1026,7 @@ class TestIncrementalExecution:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         # Use real factory (not mock) for incremental run since LangGraph
         # checkpointer needs serializable state
         pipeline = ShowrunnerPipeline(config=config)
@@ -1117,9 +1046,7 @@ class TestIncrementalExecution:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         mock_factory = Mock(spec=ComponentFactory)
         mock_factory.config = config
@@ -1170,9 +1097,7 @@ class TestIncrementalExecution:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         # Use real factory (not mock) for incremental run since LangGraph
         # checkpointer needs serializable state
@@ -1207,9 +1132,7 @@ class TestErrorHandling:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         mock_factory = Mock(spec=ComponentFactory)
         mock_factory.config = config
@@ -1242,9 +1165,7 @@ class TestErrorHandling:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         mock_factory = Mock(spec=ComponentFactory)
         mock_factory.config = config
@@ -1274,9 +1195,7 @@ class TestErrorHandling:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -1309,9 +1228,7 @@ class TestArtifactWriting:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         mock_factory = Mock(spec=ComponentFactory)
         mock_factory.config = config
@@ -1360,9 +1277,7 @@ class TestArtifactWriting:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         mock_factory = Mock(spec=ComponentFactory)
         mock_factory.config = config
@@ -1411,9 +1326,7 @@ class TestArtifactWriting:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
 
         mock_factory = Mock(spec=ComponentFactory)
         mock_factory.config = config
@@ -1452,18 +1365,14 @@ class TestArtifactWriting:
         obligations_path = temp_output_dir / "obligations" / "obligations.json"
         assert obligations_path.exists()
 
-    def test_writes_run_manifest_json(
-        self, temp_input_dir: Path, temp_output_dir: Path
-    ) -> None:
+    def test_writes_run_manifest_json(self, temp_input_dir: Path, temp_output_dir: Path) -> None:
         """Pipeline writes run_manifest.json."""
         from showrunner.pipeline.orchestrator import (
             PipelineConfig,
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -1495,9 +1404,7 @@ class TestLangGraphIntegration:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -1514,9 +1421,7 @@ class TestLangGraphIntegration:
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 
@@ -1524,20 +1429,16 @@ class TestLangGraphIntegration:
 
         # If no error, all stages completed
         if result.error is None:
-            assert result.dossier_path is not None or True  # May be None if mocked
+            assert result.dossier_path is not None
 
-    def test_checkpointer_saves_state(
-        self, temp_input_dir: Path, temp_output_dir: Path
-    ) -> None:
+    def test_checkpointer_saves_state(self, temp_input_dir: Path, temp_output_dir: Path) -> None:
         """MemorySaver checkpointer saves intermediate state."""
         from showrunner.pipeline.orchestrator import (
             PipelineConfig,
             ShowrunnerPipeline,
         )
 
-        config = PipelineConfig(
-            input_source=temp_input_dir, output_dir=temp_output_dir
-        )
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         mock_factory = TestProgressCallbacks()._create_mock_factory(config)
         pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
 

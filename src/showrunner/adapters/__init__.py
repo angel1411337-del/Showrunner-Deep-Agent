@@ -1,9 +1,9 @@
 """Adapters for loading and processing input documents."""
 
 from showrunner.adapters.input_adapter import (
-    InputAdapter,
     FileInputAdapter,
     FolderInputAdapter,
+    InputAdapter,
     create_adapter,
     parse_filename_metadata,
 )

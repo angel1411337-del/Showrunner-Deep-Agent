@@ -4,9 +4,10 @@ TDD tests for the DataOps-grade quality gates system.
 Tests written first, then implementation to pass them.
 """
 
+from __future__ import annotations
+
 import json
-from pathlib import Path
-from uuid import uuid4
+from typing import TYPE_CHECKING
 
 import pytest
 from pydantic import BaseModel
@@ -16,7 +17,6 @@ from showrunner.contracts import (
     Entity,
     EntityType,
     EvidenceAnchor,
-    Finding,
     FindingSeverity,
     Obligation,
     ObligationCategory,
@@ -24,6 +24,8 @@ from showrunner.contracts import (
 )
 from showrunner.gates.quality_gates import QualityGates
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ============================================================================
 # Fixtures
@@ -470,8 +472,7 @@ class TestCheckReferentialIntegrity:
         alias_errors = [
             f
             for f in findings
-            if f.severity == FindingSeverity.ERROR
-            and "alias" in f.message.lower()
+            if f.severity == FindingSeverity.ERROR and "alias" in f.message.lower()
         ]
         assert len(alias_errors) >= 1
         assert any("nonexistent-entity-999" in f.message for f in alias_errors)
@@ -564,9 +565,7 @@ class TestCheckReferentialIntegrity:
         error_findings = [f for f in findings if f.severity == FindingSeverity.ERROR]
         assert len(error_findings) >= 3
 
-    def test_check_integrity_empty_inputs_returns_empty(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_check_integrity_empty_inputs_returns_empty(self, quality_gates: QualityGates) -> None:
         """Empty inputs should return no findings (nothing to validate)."""
         findings = quality_gates.check_referential_integrity(
             passages=[],
@@ -705,9 +704,7 @@ class TestDetectContradictions:
         # No contradictions in sample data
         assert findings == []
 
-    def test_detect_contradictions_returns_warn_severity(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_detect_contradictions_returns_warn_severity(self, quality_gates: QualityGates) -> None:
         """Detected contradictions should be WARN severity (MVP soft gate)."""
         # Create potentially contradicting obligations
         obligation1 = Obligation(
@@ -781,9 +778,7 @@ class TestRunAllGates:
         assert findings == []
         assert passed is True
 
-    def test_run_all_gates_integrity_error_returns_false(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_run_all_gates_integrity_error_returns_false(self, quality_gates: QualityGates) -> None:
         """Referential integrity error should fail the gate."""
         passage = PassageRecord(
             passage_id="book1:0",
@@ -816,9 +811,7 @@ class TestRunAllGates:
         assert len(findings) >= 1
         assert any(f.severity == FindingSeverity.ERROR for f in findings)
 
-    def test_run_all_gates_evidence_error_returns_false(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_run_all_gates_evidence_error_returns_false(self, quality_gates: QualityGates) -> None:
         """Evidence gate error should fail the gate."""
         passage = PassageRecord(
             passage_id="book1:0",
@@ -854,7 +847,8 @@ class TestRunAllGates:
         assert any(f.category == "evidence_gate" for f in findings)
 
     def test_run_all_gates_warn_only_returns_true(
-        self, quality_gates: QualityGates,
+        self,
+        quality_gates: QualityGates,
         sample_passages: list[PassageRecord],
         sample_anchors: list[EvidenceAnchor],
         sample_entities: list[Entity],
@@ -874,9 +868,7 @@ class TestRunAllGates:
         # All sample data is valid, so should pass
         assert passed is True
 
-    def test_run_all_gates_empty_data_returns_true(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_run_all_gates_empty_data_returns_true(self, quality_gates: QualityGates) -> None:
         """Empty data should pass (nothing to validate)."""
         findings, passed = quality_gates.run_all_gates(
             passages=[],
@@ -889,9 +881,7 @@ class TestRunAllGates:
         assert passed is True
         assert findings == []
 
-    def test_run_all_gates_aggregates_all_findings(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_run_all_gates_aggregates_all_findings(self, quality_gates: QualityGates) -> None:
         """All findings from all gates should be aggregated."""
         passage = PassageRecord(
             passage_id="book1:0",
@@ -944,9 +934,7 @@ class TestRunAllGates:
 class TestFindingCreation:
     """Tests to ensure Finding objects are created correctly."""
 
-    def test_findings_have_unique_ids(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_findings_have_unique_ids(self, quality_gates: QualityGates) -> None:
         """Each finding should have a unique ID."""
         bad_obligation1 = Obligation.model_construct(
             obligation_id="obl-001",
@@ -978,9 +966,7 @@ class TestFindingCreation:
         finding_ids = [f.finding_id for f in findings]
         assert len(finding_ids) == len(set(finding_ids))  # All unique
 
-    def test_findings_include_related_ids(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_findings_include_related_ids(self, quality_gates: QualityGates) -> None:
         """Findings should include related IDs for traceability."""
         bad_obligation = Obligation.model_construct(
             obligation_id="obl-traceable",
@@ -999,9 +985,7 @@ class TestFindingCreation:
         assert len(findings) == 1
         assert "obl-traceable" in findings[0].related_ids
 
-    def test_findings_have_timestamps(
-        self, quality_gates: QualityGates
-    ) -> None:
+    def test_findings_have_timestamps(self, quality_gates: QualityGates) -> None:
         """All findings should have timestamps."""
         bad_obligation = Obligation.model_construct(
             obligation_id="obl-001",

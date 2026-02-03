@@ -6,8 +6,10 @@ for identical inputs across runs, ensuring reproducibility.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 import pytest
 
@@ -65,15 +67,11 @@ class TestFullPipeline:
     """End-to-end determinism tests."""
 
     @pytest.mark.skip(reason="Full pipeline not yet implemented")
-    def test_full_pipeline_deterministic(
-        self, assert_golden: Any, tmp_path: Path
-    ) -> None:
+    def test_full_pipeline_deterministic(self, assert_golden: Any, tmp_path: Path) -> None:
         """Full pipeline should produce identical output for same input."""
         pass
 
     @pytest.mark.skip(reason="Full pipeline not yet implemented")
-    def test_incremental_vs_full_equivalence(
-        self, assert_golden: Any, tmp_path: Path
-    ) -> None:
+    def test_incremental_vs_full_equivalence(self, assert_golden: Any, tmp_path: Path) -> None:
         """Incremental processing should match full processing."""
         pass

@@ -5,16 +5,16 @@ Categories: PLOT_THREAD, CHEKHOV_GUN, PROPHECY_VISION, MYSTERY
 """
 
 import pytest
+
 from showrunner.contracts import (
-    PassageRecord,
-    Obligation,
-    ObligationCategory,
     Entity,
     EntityType,
     EvidenceAnchor,
+    Obligation,
+    ObligationCategory,
+    PassageRecord,
 )
 from showrunner.extractors.obligation_extractor import ObligationExtractor
-
 
 # --- Fixtures ---
 
@@ -376,7 +376,6 @@ class TestChekhovGunExtraction:
         obligations, _ = extractor.extract([sample_passage_chekhov_gun], sample_entities)
         chekhov_obls = [o for o in obligations if o.category == ObligationCategory.CHEKHOV_GUN]
         # At least one should have related entity IDs
-        has_entities = any(len(o.related_entity_ids) > 0 for o in chekhov_obls)
         # May not always find entities if name doesn't match exactly
         assert len(chekhov_obls) >= 1
 

@@ -7,21 +7,20 @@ TDD-style tests covering:
 - Dossier generation from validated stores
 """
 
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
-import tempfile
 
 import pytest
 
 from showrunner.contracts import (
-    Obligation,
-    ObligationCategory,
     Entity,
     EntityType,
     EvidenceAnchor,
+    Obligation,
+    ObligationCategory,
     PassageRecord,
 )
-
 
 # =============================================================================
 # Fixtures for test data
@@ -287,7 +286,9 @@ class TestMarkdownFormatter:
         from showrunner.renderers.export_renderer import MarkdownFormatter
 
         formatter = MarkdownFormatter()
-        obligations = [o for o in sample_obligations if o.category == ObligationCategory.PROPHECY_VISION]
+        obligations = [
+            o for o in sample_obligations if o.category == ObligationCategory.PROPHECY_VISION
+        ]
         result = formatter.format_category_section(ObligationCategory.PROPHECY_VISION, obligations)
 
         assert "Prophecies & Visions" in result
@@ -299,7 +300,9 @@ class TestMarkdownFormatter:
         from showrunner.renderers.export_renderer import MarkdownFormatter
 
         formatter = MarkdownFormatter()
-        obligations = [o for o in sample_obligations if o.category == ObligationCategory.CHEKHOV_GUN]
+        obligations = [
+            o for o in sample_obligations if o.category == ObligationCategory.CHEKHOV_GUN
+        ]
         result = formatter.format_category_section(ObligationCategory.CHEKHOV_GUN, obligations)
 
         assert "Chekhov's Guns" in result
@@ -311,7 +314,9 @@ class TestMarkdownFormatter:
         from showrunner.renderers.export_renderer import MarkdownFormatter
 
         formatter = MarkdownFormatter()
-        obligations = [o for o in sample_obligations if o.category == ObligationCategory.PLOT_THREAD]
+        obligations = [
+            o for o in sample_obligations if o.category == ObligationCategory.PLOT_THREAD
+        ]
         result = formatter.format_category_section(ObligationCategory.PLOT_THREAD, obligations)
 
         assert "Plot Threads" in result
@@ -746,7 +751,7 @@ class TestExportRendererRenderDossier:
         result = renderer.render_dossier(sample_obligations)
 
         # Evidence excerpts from anchors should be in the output
-        for anchor in sample_anchors:
+        for _anchor in sample_anchors:
             # At least some excerpts should appear (those linked to obligations)
             pass  # The actual check is that the output contains evidence sections
 
@@ -972,9 +977,7 @@ class TestStrategyPatternSwappableFormatters:
             ) -> str:
                 return f"<section>{category.value}</section>"
 
-            def format_obligation(
-                self, obl: Obligation, evidence: list[EvidenceAnchor]
-            ) -> str:
+            def format_obligation(self, obl: Obligation, evidence: list[EvidenceAnchor]) -> str:
                 return f"<div>{obl.description}</div>"
 
             def format_footer(self, metrics: dict) -> str:
@@ -1011,9 +1014,7 @@ class TestStrategyPatternSwappableFormatters:
             ) -> str:
                 return f"--- {category.value} ---\n"
 
-            def format_obligation(
-                self, obl: Obligation, evidence: list[EvidenceAnchor]
-            ) -> str:
+            def format_obligation(self, obl: Obligation, evidence: list[EvidenceAnchor]) -> str:
                 return f"* {obl.description}\n"
 
             def format_footer(self, metrics: dict) -> str:

@@ -6,11 +6,11 @@ All components implement these protocols for type safety.
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     import sqlite3
+    from pathlib import Path
 
     from showrunner.contracts import (
         AliasEntry,
@@ -192,9 +192,7 @@ class DedupeMergerProtocol(Protocol):
         """
         ...
 
-    def find_duplicates(
-        self, obligations: list[Obligation]
-    ) -> list[tuple[str, str, float]]:
+    def find_duplicates(self, obligations: list[Obligation]) -> list[tuple[str, str, float]]:
         """Find pairs of potentially duplicate obligations.
 
         Args:
@@ -344,9 +342,7 @@ class DossierFormatterProtocol(Protocol):
         """
         ...
 
-    def format_category_section(
-        self, category: Any, obligations: list[Obligation]
-    ) -> str:
+    def format_category_section(self, category: Any, obligations: list[Obligation]) -> str:
         """Format a category section.
 
         Args:
@@ -358,9 +354,7 @@ class DossierFormatterProtocol(Protocol):
         """
         ...
 
-    def format_obligation(
-        self, obl: Obligation, evidence: list[EvidenceAnchor]
-    ) -> str:
+    def format_obligation(self, obl: Obligation, evidence: list[EvidenceAnchor]) -> str:
         """Format a single obligation.
 
         Args:
@@ -388,7 +382,7 @@ class DossierFormatterProtocol(Protocol):
 class ExportRendererProtocol(Protocol):
     """Protocol for export rendering."""
 
-    def render(self, obligations: list[Obligation]):
+    def render(self, obligations: list[Obligation]) -> str | Path:
         """Render dossier output, returning content or path."""
         ...
 

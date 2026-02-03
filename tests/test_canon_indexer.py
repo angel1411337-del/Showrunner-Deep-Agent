@@ -8,16 +8,19 @@ TDD tests covering:
 - Edge cases and error handling
 """
 
+from __future__ import annotations
+
 import json
 import sqlite3
-import tempfile
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from showrunner.contracts import DocumentUnit, PassageRecord
 from showrunner.indexers.canon_indexer import CanonIndexer
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # =============================================================================
 # Fixtures
@@ -142,9 +145,7 @@ class TestSegmentParagraphs:
         assert passages[1].passage_id == "book1_ch1:1"
         assert passages[2].passage_id == "book1_ch1:2"
 
-    def test_segment_paragraphs_tracks_char_offsets_correctly(
-        self, indexer: CanonIndexer
-    ) -> None:
+    def test_segment_paragraphs_tracks_char_offsets_correctly(self, indexer: CanonIndexer) -> None:
         """Character offsets should accurately reflect positions."""
         doc = DocumentUnit(
             source_id="test",
@@ -186,9 +187,7 @@ class TestSegmentParagraphs:
 class TestSegmentParagraphsEdgeCases:
     """Test edge cases in paragraph segmentation."""
 
-    def test_segment_paragraphs_empty_text_returns_empty_list(
-        self, indexer: CanonIndexer
-    ) -> None:
+    def test_segment_paragraphs_empty_text_returns_empty_list(self, indexer: CanonIndexer) -> None:
         """Empty document should return empty list."""
         doc = DocumentUnit(
             source_id="empty",
@@ -214,9 +213,7 @@ class TestSegmentParagraphsEdgeCases:
 
         assert passages == []
 
-    def test_segment_paragraphs_single_paragraph_no_splits(
-        self, indexer: CanonIndexer
-    ) -> None:
+    def test_segment_paragraphs_single_paragraph_no_splits(self, indexer: CanonIndexer) -> None:
         """Single paragraph without splits returns one passage."""
         doc = DocumentUnit(
             source_id="single",
@@ -246,9 +243,7 @@ class TestSegmentParagraphsEdgeCases:
         assert passages[0].text == "First with spaces."
         assert passages[1].text == "Second with spaces."
 
-    def test_segment_paragraphs_skips_empty_paragraphs(
-        self, indexer: CanonIndexer
-    ) -> None:
+    def test_segment_paragraphs_skips_empty_paragraphs(self, indexer: CanonIndexer) -> None:
         """Empty paragraphs between content should be skipped."""
         doc = DocumentUnit(
             source_id="gaps",
@@ -263,9 +258,7 @@ class TestSegmentParagraphsEdgeCases:
         assert passages[0].text == "First."
         assert passages[1].text == "Second."
 
-    def test_segment_paragraphs_handles_triple_newlines(
-        self, indexer: CanonIndexer
-    ) -> None:
+    def test_segment_paragraphs_handles_triple_newlines(self, indexer: CanonIndexer) -> None:
         """Triple newlines should also split paragraphs."""
         doc = DocumentUnit(
             source_id="triple",
@@ -277,9 +270,7 @@ class TestSegmentParagraphsEdgeCases:
 
         assert len(passages) == 2
 
-    def test_segment_paragraphs_handles_mixed_line_endings(
-        self, indexer: CanonIndexer
-    ) -> None:
+    def test_segment_paragraphs_handles_mixed_line_endings(self, indexer: CanonIndexer) -> None:
         """Mixed line endings (CRLF) should be handled."""
         doc = DocumentUnit(
             source_id="crlf",
@@ -310,7 +301,7 @@ class TestDeterminism:
         passages2 = indexer.segment_paragraphs(sample_document)
 
         assert len(passages1) == len(passages2)
-        for p1, p2 in zip(passages1, passages2):
+        for p1, p2 in zip(passages1, passages2, strict=True):
             assert p1.passage_id == p2.passage_id
             assert p1.text == p2.text
             assert p1.char_start == p2.char_start
@@ -329,7 +320,8 @@ class TestDeterminism:
         assert [p.passage_id for p in passages1] == [p.passage_id for p in passages2]
 
     def test_index_is_deterministic_across_runs(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         multi_document_corpus: list[DocumentUnit],
         tmp_path: Path,
     ) -> None:
@@ -344,7 +336,7 @@ class TestDeterminism:
         conn2.close()
 
         assert len(passages1) == len(passages2)
-        for p1, p2 in zip(passages1, passages2):
+        for p1, p2 in zip(passages1, passages2, strict=True):
             assert p1.passage_id == p2.passage_id
 
 
@@ -357,7 +349,8 @@ class TestIndexMethod:
     """Test the index method and SQLite database creation."""
 
     def test_index_creates_database_file(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_db_path: Path,
     ) -> None:
@@ -368,7 +361,8 @@ class TestIndexMethod:
         assert temp_db_path.exists()
 
     def test_index_returns_passages_and_connection(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_db_path: Path,
     ) -> None:
@@ -383,7 +377,8 @@ class TestIndexMethod:
         conn.close()
 
     def test_index_creates_passages_table(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_db_path: Path,
     ) -> None:
@@ -397,7 +392,8 @@ class TestIndexMethod:
         conn.close()
 
     def test_index_creates_source_index(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_db_path: Path,
     ) -> None:
@@ -411,7 +407,8 @@ class TestIndexMethod:
         conn.close()
 
     def test_index_creates_order_index(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_db_path: Path,
     ) -> None:
@@ -425,7 +422,8 @@ class TestIndexMethod:
         conn.close()
 
     def test_index_inserts_all_passages(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_db_path: Path,
     ) -> None:
@@ -439,7 +437,8 @@ class TestIndexMethod:
         conn.close()
 
     def test_index_stores_correct_passage_data(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         temp_db_path: Path,
     ) -> None:
         """Stored passage data should match input."""
@@ -454,20 +453,21 @@ class TestIndexMethod:
         cursor = conn.execute(
             "SELECT passage_id, source_id, paragraph_index, text, char_start, char_end "
             "FROM passages WHERE passage_id = ?",
-            ("test:0",)
+            ("test:0",),
         )
         row = cursor.fetchone()
 
         assert row[0] == "test:0"  # passage_id
-        assert row[1] == "test"    # source_id
-        assert row[2] == 0         # paragraph_index
+        assert row[1] == "test"  # source_id
+        assert row[2] == 0  # paragraph_index
         assert row[3] == "Hello world."  # text
-        assert row[4] == 0         # char_start
-        assert row[5] == 12        # char_end
+        assert row[4] == 0  # char_start
+        assert row[5] == 12  # char_end
         conn.close()
 
     def test_index_multiple_documents_stores_all(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         multi_document_corpus: list[DocumentUnit],
         temp_db_path: Path,
     ) -> None:
@@ -481,7 +481,8 @@ class TestIndexMethod:
         conn.close()
 
     def test_index_empty_list_returns_empty_passages(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         temp_db_path: Path,
     ) -> None:
         """Empty document list should return empty passages."""
@@ -493,7 +494,8 @@ class TestIndexMethod:
         conn.close()
 
     def test_index_can_query_by_source_id(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         multi_document_corpus: list[DocumentUnit],
         temp_db_path: Path,
     ) -> None:
@@ -502,7 +504,7 @@ class TestIndexMethod:
 
         cursor = conn.execute(
             "SELECT passage_id FROM passages WHERE source_id = ? ORDER BY paragraph_index",
-            ("book1_ch2",)
+            ("book1_ch2",),
         )
         results = cursor.fetchall()
 
@@ -522,7 +524,8 @@ class TestWritePassagesJsonl:
     """Test the write_passages_jsonl method."""
 
     def test_write_passages_jsonl_creates_file(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_jsonl_path: Path,
     ) -> None:
@@ -533,7 +536,8 @@ class TestWritePassagesJsonl:
         assert temp_jsonl_path.exists()
 
     def test_write_passages_jsonl_correct_line_count(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_jsonl_path: Path,
     ) -> None:
@@ -545,7 +549,8 @@ class TestWritePassagesJsonl:
         assert len(lines) == len(passages)
 
     def test_write_passages_jsonl_valid_json_per_line(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         temp_jsonl_path: Path,
     ) -> None:
@@ -559,7 +564,8 @@ class TestWritePassagesJsonl:
             assert isinstance(parsed, dict)
 
     def test_write_passages_jsonl_contains_all_fields(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         temp_jsonl_path: Path,
     ) -> None:
         """Each JSON object should contain all PassageRecord fields."""
@@ -575,11 +581,19 @@ class TestWritePassagesJsonl:
         line = temp_jsonl_path.read_text().strip()
         parsed = json.loads(line)
 
-        expected_fields = {"passage_id", "source_id", "paragraph_index", "text", "char_start", "char_end"}
+        expected_fields = {
+            "passage_id",
+            "source_id",
+            "paragraph_index",
+            "text",
+            "char_start",
+            "char_end",
+        }
         assert set(parsed.keys()) == expected_fields
 
     def test_write_passages_jsonl_correct_values(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         temp_jsonl_path: Path,
     ) -> None:
         """JSON values should match passage data."""
@@ -603,7 +617,8 @@ class TestWritePassagesJsonl:
         assert parsed["char_end"] == 13
 
     def test_write_passages_jsonl_empty_list_creates_empty_file(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         temp_jsonl_path: Path,
     ) -> None:
         """Empty passages list should create empty file."""
@@ -653,7 +668,8 @@ class TestIntegration:
     """Integration tests for full workflow."""
 
     def test_full_workflow_segment_index_export(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         multi_document_corpus: list[DocumentUnit],
         tmp_path: Path,
     ) -> None:
@@ -681,7 +697,8 @@ class TestIntegration:
         assert len(passages) == 5  # 2 paragraphs + 3 paragraphs
 
     def test_roundtrip_passage_data_preserved(
-        self, indexer: CanonIndexer,
+        self,
+        indexer: CanonIndexer,
         sample_document: DocumentUnit,
         tmp_path: Path,
     ) -> None:
@@ -691,13 +708,11 @@ class TestIntegration:
         passages, conn = indexer.index([sample_document], db_path)
 
         # Query back from database
-        cursor = conn.execute(
-            "SELECT passage_id, text FROM passages ORDER BY paragraph_index"
-        )
+        cursor = conn.execute("SELECT passage_id, text FROM passages ORDER BY paragraph_index")
         db_passages = cursor.fetchall()
         conn.close()
 
         # Verify data matches
-        for passage, db_row in zip(passages, db_passages):
+        for passage, db_row in zip(passages, db_passages, strict=True):
             assert passage.passage_id == db_row[0]
             assert passage.text == db_row[1]

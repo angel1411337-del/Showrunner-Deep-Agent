@@ -15,7 +15,6 @@ from typing import Any
 
 import pytest
 
-
 # Path to golden fixtures
 FIXTURES_DIR = Path(__file__).parent / "golden" / "fixtures"
 
@@ -152,8 +151,7 @@ class TestGoldenDeterminism:
         for passage in data["passages"]:
             expected_id = f"{source_id}:{passage['paragraph_index']}"
             assert passage["passage_id"] == expected_id, (
-                f"Passage ID mismatch: expected {expected_id}, "
-                f"got {passage['passage_id']}"
+                f"Passage ID mismatch: expected {expected_id}, got {passage['passage_id']}"
             )
 
     def test_passage_ids_sequential(self):
@@ -189,9 +187,7 @@ class TestGoldenDeterminism:
         entity_ids = {e["entity_id"] for e in data["entities"]}
 
         # All entity IDs must be unique
-        assert len(entity_ids) == len(data["entities"]), (
-            "Duplicate entity IDs detected"
-        )
+        assert len(entity_ids) == len(data["entities"]), "Duplicate entity IDs detected"
 
         # Entity types must be from the valid set
         valid_types = {"person", "place", "group", "title", "artifact", "vehicle"}
@@ -222,9 +218,7 @@ class TestGoldenDeterminism:
         obligation_ids = {o["obligation_id"] for o in data["obligations"]}
 
         # All obligation IDs must be unique
-        assert len(obligation_ids) == len(data["obligations"]), (
-            "Duplicate obligation IDs detected"
-        )
+        assert len(obligation_ids) == len(data["obligations"]), "Duplicate obligation IDs detected"
 
         # Obligation categories must be from the valid set
         valid_categories = {"plot_thread", "chekhov_gun", "prophecy_vision", "mystery"}
@@ -416,10 +410,7 @@ class TestGoldenObligationCategories:
     def test_prophecy_vision_has_correct_structure(self):
         """Prophecy/vision obligations have expected structure."""
         data = load_json_fixture("expected_obligations.json")
-        prophecies = [
-            o for o in data["obligations"]
-            if o["category"] == "prophecy_vision"
-        ]
+        prophecies = [o for o in data["obligations"] if o["category"] == "prophecy_vision"]
 
         assert len(prophecies) >= 1, "No prophecy obligations found"
         for prophecy in prophecies:
@@ -432,29 +423,22 @@ class TestGoldenObligationCategories:
         obligations_data = load_json_fixture("expected_obligations.json")
 
         artifact_ids = {
-            e["entity_id"] for e in entities_data["entities"]
-            if e["entity_type"] == "artifact"
+            e["entity_id"] for e in entities_data["entities"] if e["entity_type"] == "artifact"
         }
 
         chekhov_guns = [
-            o for o in obligations_data["obligations"]
-            if o["category"] == "chekhov_gun"
+            o for o in obligations_data["obligations"] if o["category"] == "chekhov_gun"
         ]
 
         for gun in chekhov_guns:
             related_ids = set(gun.get("related_entity_ids", []))
             has_artifact = bool(related_ids & artifact_ids)
-            assert has_artifact, (
-                f"Chekhov's gun {gun['obligation_id']} has no artifact reference"
-            )
+            assert has_artifact, f"Chekhov's gun {gun['obligation_id']} has no artifact reference"
 
     def test_mystery_has_question_evidence(self):
         """Mystery obligations have evidence containing question patterns."""
         data = load_json_fixture("expected_obligations.json")
-        mysteries = [
-            o for o in data["obligations"]
-            if o["category"] == "mystery"
-        ]
+        mysteries = [o for o in data["obligations"] if o["category"] == "mystery"]
 
         assert len(mysteries) >= 1, "No mystery obligations found"
 

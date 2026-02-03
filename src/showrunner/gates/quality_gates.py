@@ -7,12 +7,16 @@ Implements quality gates for the Showrunner Orchestrator:
 - Contradiction detection (soft gate in MVP)
 """
 
+from __future__ import annotations
+
 import json
-from datetime import datetime
-from pathlib import Path
+from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
-from pydantic import BaseModel
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from pydantic import BaseModel
 
 from showrunner.contracts import (
     AliasEntry,
@@ -100,8 +104,8 @@ class QualityGates:
 
     def _validate_against_schema(
         self,
-        data: dict,
-        schema: dict,
+        data: dict[str, Any],
+        schema: dict[str, Any],
     ) -> list[str]:
         """Validate data against a JSON schema.
 
@@ -115,22 +119,36 @@ class QualityGates:
         errors: list[str] = []
 
         # Check required fields
-        required_fields = schema.get("required", [])
+        required_fields_raw = schema.get("required", [])
+        if not isinstance(required_fields_raw, list):
+            required_fields_raw = []
+        required_fields_list = cast("list[Any]", required_fields_raw)
+        required_fields: list[str] = []
+        for field in required_fields_list:
+            if isinstance(field, str):
+                required_fields.append(field)
         for field in required_fields:
             if field not in data:
                 errors.append(f"Missing required field: {field}")
 
         # Check property types
-        properties = schema.get("properties", {})
+        properties_raw = schema.get("properties", {})
+        if not isinstance(properties_raw, dict):
+            properties_raw = {}
+        properties = cast("dict[str, Any]", properties_raw)
         for field_name, field_schema in properties.items():
-            if field_name in data:
-                value = data[field_name]
-                expected_type = field_schema.get("type")
-                if expected_type and not self._check_type(value, expected_type):
-                    errors.append(
-                        f"Field '{field_name}' has wrong type: "
-                        f"expected {expected_type}, got {type(value).__name__}"
-                    )
+            if field_name not in data:
+                continue
+            if not isinstance(field_schema, dict):
+                continue
+            field_schema_typed = cast("dict[str, Any]", field_schema)
+            value = data[field_name]
+            expected_type = field_schema_typed.get("type")
+            if isinstance(expected_type, str) and not self._check_type(value, expected_type):
+                errors.append(
+                    f"Field '{field_name}' has wrong type: "
+                    f"expected {expected_type}, got {type(value).__name__}"
+                )
 
         return errors
 
@@ -320,16 +338,15 @@ class QualityGates:
             ("is true", "is false"),
         ]
 
-        for category, obls in by_category.items():
+        for _category, obls in by_category.items():
             for i, obl1 in enumerate(obls):
-                for obl2 in obls[i + 1:]:
+                for obl2 in obls[i + 1 :]:
                     for positive, negative in contradiction_keywords:
                         desc1_lower = obl1.description.lower()
                         desc2_lower = obl2.description.lower()
 
-                        if (
-                            (positive in desc1_lower and negative in desc2_lower) or
-                            (negative in desc1_lower and positive in desc2_lower)
+                        if (positive in desc1_lower and negative in desc2_lower) or (
+                            negative in desc1_lower and positive in desc2_lower
                         ):
                             findings.append(
                                 Finding(

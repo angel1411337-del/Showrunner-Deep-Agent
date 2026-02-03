@@ -11,19 +11,17 @@ and resolving entities from passages. It supports:
 
 import re
 import uuid
-from collections import defaultdict
 from dataclasses import dataclass, field
 
 from showrunner.contracts import (
-    PassageRecord,
+    AliasEntry,
     Entity,
     EntityType,
-    AliasEntry,
-    OverrideRule,
-    OverrideAction,
     EvidenceAnchor,
+    OverrideAction,
+    OverrideRule,
+    PassageRecord,
 )
-
 
 # Known artifacts list (swords, weapons, significant items)
 KNOWN_ARTIFACTS = {
@@ -105,6 +103,10 @@ PLACE_INDICATORS = {
 }
 
 
+def _empty_mentions() -> list[tuple[str, int, int, str]]:
+    return []
+
+
 @dataclass
 class MentionInfo:
     """Tracks information about entity mentions during extraction."""
@@ -115,7 +117,7 @@ class MentionInfo:
     first_seen_order: int
     mention_count: int = 1
     is_important: bool = False
-    mentions: list[tuple[str, int, int, str]] = field(default_factory=list)
+    mentions: list[tuple[str, int, int, str]] = field(default_factory=_empty_mentions)
     # List of (passage_id, char_start, char_end, excerpt)
 
 
@@ -148,11 +150,8 @@ class EntityResolver:
 
         if override.action == OverrideAction.IGNORE:
             self._ignored_aliases.add(override.target_alias)
-        elif override.action == OverrideAction.ASSIGN:
-            if override.target_entity_id:
-                self._forced_assignments[override.target_alias] = (
-                    override.target_entity_id
-                )
+        elif override.action == OverrideAction.ASSIGN and override.target_entity_id:
+            self._forced_assignments[override.target_alias] = override.target_entity_id
 
     def _generate_id(self, prefix: str) -> str:
         """Generate a unique ID with prefix."""
@@ -166,7 +165,7 @@ class EntityResolver:
         self, text: str, passage_id: str, passage_order: int
     ) -> list[MentionInfo]:
         """Extract title patterns like 'Lord of X', 'King of X', etc."""
-        mentions = []
+        mentions: list[MentionInfo] = []
 
         # Title patterns
         patterns = [
@@ -176,7 +175,7 @@ class EntityResolver:
             (r"\bHand of the King\b", "Hand of the King"),
         ]
 
-        for pattern, prefix in patterns:
+        for pattern, _prefix in patterns:
             for match in re.finditer(pattern, text):
                 matched_text = match.group(0)
                 if self._is_ignored(matched_text):
@@ -200,7 +199,7 @@ class EntityResolver:
         self, text: str, passage_id: str, passage_order: int
     ) -> list[MentionInfo]:
         """Extract House patterns like 'House Stark'."""
-        mentions = []
+        mentions: list[MentionInfo] = []
 
         pattern = r"\bHouse ([A-Z][a-z]+)\b"
         for match in re.finditer(pattern, text):
@@ -226,7 +225,7 @@ class EntityResolver:
         self, text: str, passage_id: str, passage_order: int
     ) -> list[MentionInfo]:
         """Extract known artifact names."""
-        mentions = []
+        mentions: list[MentionInfo] = []
 
         for artifact in KNOWN_ARTIFACTS:
             pattern = rf"\b{re.escape(artifact)}\b"
@@ -252,7 +251,7 @@ class EntityResolver:
         self, text: str, passage_id: str, passage_order: int
     ) -> list[MentionInfo]:
         """Extract place patterns including 'The Wall' and named locations."""
-        mentions = []
+        mentions: list[MentionInfo] = []
 
         # The Wall special case
         pattern = r"\bThe Wall\b"
@@ -319,7 +318,7 @@ class EntityResolver:
         self, text: str, passage_id: str, passage_order: int
     ) -> list[MentionInfo]:
         """Extract potential vehicle (ship) names."""
-        mentions = []
+        mentions: list[MentionInfo] = []
 
         # Pattern: "The <Capitalized Name>" or "the <Capitalized Name>"
         ship_pattern = r"\b[Tt]he ([A-Z][a-z]+(?: [A-Z][a-z]+)*)\b"
@@ -337,7 +336,13 @@ class EntityResolver:
             # Check if this looks like a ship reference
             context_before = text[max(0, match.start() - 100) : match.start()].lower()
             context_after = text[match.end() : match.end() + 100].lower()
-            full_context = context_before + " " + text[match.start():match.end()].lower() + " " + context_after
+            full_context = (
+                context_before
+                + " "
+                + text[match.start() : match.end()].lower()
+                + " "
+                + context_after
+            )
 
             ship_indicators = [
                 "sail",
@@ -380,7 +385,7 @@ class EntityResolver:
         self, text: str, passage_id: str, passage_order: int
     ) -> list[MentionInfo]:
         """Extract capitalized word sequences as potential person/place names."""
-        mentions = []
+        mentions: list[MentionInfo] = []
 
         # Pattern for capitalized sequences (2+ words)
         # Also handles "Name the Epithet" patterns like "Aegon the Conqueror"
@@ -440,9 +445,7 @@ class EntityResolver:
 
         return mentions
 
-    def _merge_mentions(
-        self, all_mentions: list[MentionInfo]
-    ) -> dict[str, MentionInfo]:
+    def _merge_mentions(self, all_mentions: list[MentionInfo]) -> dict[str, MentionInfo]:
         """Merge mentions of the same entity into single entries."""
         merged: dict[str, MentionInfo] = {}
 
@@ -462,11 +465,9 @@ class EntityResolver:
 
         return merged
 
-    def _apply_vehicle_threshold(
-        self, mentions: dict[str, MentionInfo]
-    ) -> dict[str, MentionInfo]:
+    def _apply_vehicle_threshold(self, mentions: dict[str, MentionInfo]) -> dict[str, MentionInfo]:
         """Apply vehicle limiting rule - filter out vehicles below threshold."""
-        filtered = {}
+        filtered: dict[str, MentionInfo] = {}
 
         for key, mention in mentions.items():
             if mention.entity_type == EntityType.VEHICLE:
@@ -496,24 +497,12 @@ class EntityResolver:
             passage_id = passage.passage_id
 
             # Extract different entity types
-            all_mentions.extend(
-                self._extract_title_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_house_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_artifact_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_place_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_vehicle_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_capitalized_sequences(text, passage_id, order)
-            )
+            all_mentions.extend(self._extract_title_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_house_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_artifact_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_place_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_vehicle_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_capitalized_sequences(text, passage_id, order))
 
         # Merge duplicate mentions
         merged = self._merge_mentions(all_mentions)
@@ -522,7 +511,7 @@ class EntityResolver:
         filtered = self._apply_vehicle_threshold(merged)
 
         # Convert to Entity objects
-        entities = []
+        entities: list[Entity] = []
         for canonical_name, mention in filtered.items():
             entity_id = self._generate_id("entity")
 
@@ -659,31 +648,19 @@ class EntityResolver:
             text = passage.text
             passage_id = passage.passage_id
 
-            all_mentions.extend(
-                self._extract_title_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_house_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_artifact_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_place_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_vehicle_patterns(text, passage_id, order)
-            )
-            all_mentions.extend(
-                self._extract_capitalized_sequences(text, passage_id, order)
-            )
+            all_mentions.extend(self._extract_title_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_house_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_artifact_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_place_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_vehicle_patterns(text, passage_id, order))
+            all_mentions.extend(self._extract_capitalized_sequences(text, passage_id, order))
 
         # Merge and filter
         merged = self._merge_mentions(all_mentions)
         filtered = self._apply_vehicle_threshold(merged)
 
         # Build entities
-        entities = []
+        entities: list[Entity] = []
         for canonical_name, mention in filtered.items():
             entity_id = self._generate_id("entity")
 

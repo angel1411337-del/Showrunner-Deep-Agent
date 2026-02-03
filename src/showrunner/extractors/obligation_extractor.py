@@ -11,15 +11,15 @@ Each obligation MUST have >= 1 evidence anchor (hard gate).
 
 import hashlib
 import re
-from typing import Pattern
+from re import Pattern
 
 from showrunner.contracts import (
-    PassageRecord,
-    Obligation,
-    ObligationCategory,
     Entity,
     EntityType,
     EvidenceAnchor,
+    Obligation,
+    ObligationCategory,
+    PassageRecord,
 )
 
 
@@ -310,12 +310,8 @@ class ObligationExtractor:
             List of (Obligation, EvidenceAnchor) tuples
         """
         results: list[tuple[Obligation, EvidenceAnchor]] = []
-        person_entities = {
-            e.entity_id: e for e in entities if e.entity_type == EntityType.PERSON
-        }
-        place_entities = {
-            e.entity_id: e for e in entities if e.entity_type == EntityType.PLACE
-        }
+        person_entities = {e.entity_id: e for e in entities if e.entity_type == EntityType.PERSON}
+        place_entities = {e.entity_id: e for e in entities if e.entity_type == EntityType.PLACE}
 
         for passage in passages:
             text = passage.text
@@ -387,12 +383,8 @@ class ObligationExtractor:
             Tuple of (Obligation, EvidenceAnchor)
         """
         # Generate stable IDs based on content
-        anchor_id = self._generate_anchor_id(
-            passage.passage_id, match.start(), match.end()
-        )
-        obligation_id = self._generate_obligation_id(
-            category, passage.passage_id, match.group()
-        )
+        anchor_id = self._generate_anchor_id(passage.passage_id, match.start(), match.end())
+        obligation_id = self._generate_obligation_id(category, passage.passage_id, match.group())
 
         # Create evidence anchor
         anchor = EvidenceAnchor(

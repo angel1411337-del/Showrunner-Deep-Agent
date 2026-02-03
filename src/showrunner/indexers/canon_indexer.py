@@ -7,10 +7,15 @@ This module provides the CanonIndexer class which:
 4. Tracks segmentation_version for migration support
 """
 
+from __future__ import annotations
+
 import json
 import re
 import sqlite3
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from showrunner.contracts import DocumentUnit, PassageRecord
 
@@ -136,7 +141,10 @@ class CanonIndexer:
         normalized_pos = 0
 
         while normalized_pos < normalized_offset and original_pos < len(original):
-            if original_pos + 1 < len(original) and original[original_pos:original_pos + 2] == "\r\n":
+            if (
+                original_pos + 1 < len(original)
+                and original[original_pos : original_pos + 2] == "\r\n"
+            ):
                 crlf_count += 1
                 original_pos += 2
                 normalized_pos += 1
@@ -232,7 +240,7 @@ class CanonIndexer:
                     p.char_end,
                 )
                 for p in passages
-            ]
+            ],
         )
         conn.commit()
 

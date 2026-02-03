@@ -6,7 +6,7 @@ normalizing both to the same DocumentUnit model for downstream processing.
 
 import warnings
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, cast
 
 from showrunner.contracts import DocumentUnit
 
@@ -25,8 +25,35 @@ class InputAdapter(Protocol):
         """
         ...
 
+    def load_files(self, files: list[Path]) -> list[DocumentUnit]:
+        """Load a specific set of files as DocumentUnits.
 
-SUPPORTED_EXTENSIONS = {".txt", ".md", ".markdown", ".docx", ".pdf"}
+        Args:
+            files: List of files to load.
+
+        Returns:
+            List of DocumentUnit objects.
+        """
+        ...
+
+
+SUPPORTED_EXTENSIONS: set[str] = {".txt", ".md", ".markdown", ".docx", ".pdf"}
+
+
+class _DocxParagraph(Protocol):
+    text: str
+
+
+class _DocxDocument(Protocol):
+    paragraphs: list[_DocxParagraph]
+
+
+class _PdfPage(Protocol):
+    def extract_text(self) -> str | None: ...
+
+
+class _PdfReader(Protocol):
+    pages: list[_PdfPage]
 
 
 def _load_text_file(source: Path) -> str:
@@ -39,8 +66,12 @@ def _load_docx_file(source: Path) -> str:
     except ImportError as exc:
         raise RuntimeError("python-docx is required to read .docx files") from exc
 
-    document = docx.Document(source)
-    return "\n".join(paragraph.text for paragraph in document.paragraphs)
+    document = cast(
+        "_DocxDocument",
+        docx.Document(source),  # type: ignore[reportUnknownMemberType]
+    )
+    paragraphs = [paragraph.text for paragraph in document.paragraphs]
+    return "\n".join(paragraphs)
 
 
 def _load_pdf_file(source: Path) -> str:
@@ -52,7 +83,7 @@ def _load_pdf_file(source: Path) -> str:
         except ImportError as exc:
             raise RuntimeError("pypdf is required to read .pdf files") from exc
 
-    reader = PdfReader(str(source))
+    reader = cast("_PdfReader", PdfReader(str(source)))
     parts: list[str] = []
     for page_index, page in enumerate(reader.pages, start=1):
         text = page.extract_text() or ""
@@ -141,6 +172,13 @@ class FileInputAdapter:
 
         return [doc]
 
+    def load_files(self, files: list[Path]) -> list[DocumentUnit]:
+        """Load a list of files as DocumentUnits."""
+        documents: list[DocumentUnit] = []
+        for path in files:
+            documents.extend(self.load(path))
+        return documents
+
 
 class FolderInputAdapter:
     """Adapter for loading a folder of chapter files.
@@ -169,8 +207,8 @@ class FolderInputAdapter:
         if source.is_file():
             raise ValueError(f"Path is not a directory: {source}")
 
-        all_files = [f for f in source.iterdir() if f.is_file()]
-        supported_files = []
+        all_files: list[Path] = [f for f in source.iterdir() if f.is_file()]
+        supported_files: list[Path] = []
         for file_path in all_files:
             if file_path.suffix.lower() in SUPPORTED_EXTENSIONS:
                 supported_files.append(file_path)
@@ -178,6 +216,7 @@ class FolderInputAdapter:
                 warnings.warn(
                     f"Unsupported file skipped: {file_path.name}",
                     UserWarning,
+                    stacklevel=2,
                 )
         supported_files = sorted(supported_files, key=lambda p: p.name)
 
@@ -191,10 +230,51 @@ class FolderInputAdapter:
                 warnings.warn(
                     f"Skipping {file_path.name}: {exc}",
                     UserWarning,
+                    stacklevel=2,
                 )
                 continue
             book_label, chapter_label = parse_filename_metadata(file_path.name)
 
+            doc = DocumentUnit(
+                source_id=file_path.stem,
+                source_path=str(file_path),
+                order_hint=order_hint,
+                raw_text=raw_text,
+                book_label=book_label,
+                chapter_label=chapter_label,
+            )
+            documents.append(doc)
+            order_hint += 1
+
+        return documents
+
+    def load_files(self, files: list[Path]) -> list[DocumentUnit]:
+        """Load a list of files as DocumentUnits (used for incremental runs)."""
+        supported_files: list[Path] = []
+        for file_path in files:
+            if file_path.suffix.lower() in SUPPORTED_EXTENSIONS:
+                supported_files.append(file_path)
+            else:
+                warnings.warn(
+                    f"Unsupported file skipped: {file_path.name}",
+                    UserWarning,
+                    stacklevel=2,
+                )
+        supported_files = sorted(supported_files, key=lambda p: p.name)
+
+        documents: list[DocumentUnit] = []
+        order_hint = 0
+        for file_path in supported_files:
+            try:
+                raw_text = _load_file_text(file_path)
+            except RuntimeError as exc:
+                warnings.warn(
+                    f"Skipping {file_path.name}: {exc}",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                continue
+            book_label, chapter_label = parse_filename_metadata(file_path.name)
             doc = DocumentUnit(
                 source_id=file_path.stem,
                 source_path=str(file_path),

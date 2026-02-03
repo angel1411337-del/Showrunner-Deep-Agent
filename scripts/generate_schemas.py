@@ -9,19 +9,19 @@ import json
 from pathlib import Path
 
 from showrunner.contracts import (
+    AliasEntry,
+    DatasetManifest,
     DocumentUnit,
-    PassageRecord,
+    Entity,
     EvidenceAnchor,
     EvidenceIndex,
-    Entity,
-    AliasEntry,
-    OverrideRule,
-    Obligation,
-    ObligationGraphEdge,
     Finding,
     MetricsReport,
+    Obligation,
+    ObligationGraphEdge,
+    OverrideRule,
+    PassageRecord,
     RunManifest,
-    DatasetManifest,
 )
 
 SCHEMA_DIR = Path(__file__).parent.parent / "schemas"

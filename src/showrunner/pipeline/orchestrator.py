@@ -3,25 +3,14 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
-import os
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING, Any, cast
 
-try:
-    from langgraph.graph import END, StateGraph
-    from langgraph.checkpoint.memory import MemorySaver
-    _LANGGRAPH_AVAILABLE = True
-except ImportError:  # pragma: no cover - fallback when langgraph isn't installed
-    END = object()
-
-    class MemorySaver:  # minimal stub for tests
-        pass
-
-    StateGraph = None
-    _LANGGRAPH_AVAILABLE = False
 from pydantic import BaseModel, Field
 
 from showrunner.contracts import (
@@ -35,20 +24,54 @@ from showrunner.contracts import (
     PassageRecord,
     RunManifest,
 )
-from showrunner.pipeline.protocols import (
-    CanonIndexerProtocol,
-    DedupeMergerProtocol,
-    EntityResolverProtocol,
-    ExportRendererProtocol,
-    InputAdapterProtocol,
-    ObligationExtractorProtocol,
-    QualityGatesProtocol,
-)
 
+_langgraph_memory_saver: type[Any]
+_langgraph_stategraph: type[Any] | None
+_langgraph_end: object
+_langgraph_available: bool
+
+_langgraph_end = object()
+
+
+class _FallbackMemorySaver:  # minimal stub for tests
+    pass
+
+
+_langgraph_memory_saver = _FallbackMemorySaver
+_langgraph_stategraph = None
+_langgraph_available = False
+
+try:  # pragma: no cover - optional dependency
+    graph_module = importlib.import_module("langgraph.graph")
+    checkpoint_module = importlib.import_module("langgraph.checkpoint.memory")
+    _langgraph_end = cast("object", graph_module.END)
+    _langgraph_stategraph = cast("type[Any]", graph_module.StateGraph)
+    _langgraph_memory_saver = cast("type[Any]", checkpoint_module.MemorySaver)
+    _langgraph_available = True
+except Exception:
+    _langgraph_available = False
+
+END: object = _langgraph_end
+MemorySaver: type[Any] = _langgraph_memory_saver
+StateGraph: type[Any] | None = _langgraph_stategraph
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from showrunner.pipeline.protocols import (
+        CanonIndexerProtocol,
+        DedupeMergerProtocol,
+        EntityResolverProtocol,
+        ExportRendererProtocol,
+        InputAdapterProtocol,
+        ObligationExtractorProtocol,
+        QualityGatesProtocol,
+    )
 
 
 class PipelineConfig(BaseModel):
     """Configuration for pipeline execution."""
+
     input_source: Path = Field(...)
     output_dir: Path = Field(...)
     segmentation_version: str = Field(default="1.0.0")
@@ -56,7 +79,7 @@ class PipelineConfig(BaseModel):
     similarity_threshold: float = Field(default=0.8, ge=0.0, le=1.0)
 
 
-class PipelineState(dict):
+class PipelineState(dict[str, Any]):
     """State passed through the LangGraph DAG (dict with attribute access)."""
 
     documents: list[DocumentUnit]
@@ -72,7 +95,7 @@ class PipelineState(dict):
     error: str | None
     gates_passed: bool
 
-    def __getattr__(self, item: str):
+    def __getattr__(self, item: str) -> Any:
         return self.get(item)
 
     def __setattr__(self, key: str, value: object) -> None:
@@ -82,13 +105,15 @@ class PipelineState(dict):
 class _FallbackGraph:
     """Fallback graph runner when LangGraph is unavailable."""
 
-    def __init__(self, pipeline: "ShowrunnerPipeline") -> None:
+    def __init__(self, pipeline: ShowrunnerPipeline) -> None:
         self._pipeline = pipeline
 
-    def invoke(self, initial_state: PipelineState, config: dict | None = None) -> PipelineState:
-        return self._pipeline._run_sequential(initial_state)
+    def invoke(
+        self, initial_state: PipelineState, config: dict[str, Any] | None = None
+    ) -> PipelineState:
+        return self._pipeline._run_sequential(initial_state)  # pyright: ignore[reportPrivateUsage]
 
-    def stream(self, initial_state: PipelineState, config: dict | None = None):
+    def stream(self, initial_state: PipelineState, config: dict[str, Any] | None = None):
         yield {"final": self.invoke(initial_state, config)}
 
 
@@ -99,36 +124,43 @@ class ComponentFactory:
     This factory creates concrete implementations by default but can be
     subclassed to provide mock implementations for testing.
     """
+
     config: PipelineConfig
 
     def create_input_adapter(self) -> InputAdapterProtocol:
         """Create an input adapter for loading documents."""
         from showrunner.adapters.input_adapter import create_adapter
+
         return create_adapter(self.config.input_source)
 
     def create_canon_indexer(self) -> CanonIndexerProtocol:
         """Create a canon indexer for segmenting and indexing passages."""
         from showrunner.indexers.canon_indexer import CanonIndexer
+
         return CanonIndexer(segmentation_version=self.config.segmentation_version)
 
     def create_entity_resolver(self) -> EntityResolverProtocol:
         """Create an entity resolver for extracting and linking entities."""
         from showrunner.resolvers.entity_resolver import EntityResolver
+
         return EntityResolver(vehicle_min_mentions=self.config.vehicle_min_mentions)
 
     def create_obligation_extractor(self) -> ObligationExtractorProtocol:
         """Create an obligation extractor."""
         from showrunner.extractors.obligation_extractor import ObligationExtractor
+
         return ObligationExtractor()
 
     def create_dedupe_merger(self) -> DedupeMergerProtocol:
         """Create a dedupe merger for obligation deduplication."""
         from showrunner.processors.dedupe_merger import DedupeMerger
+
         return DedupeMerger(similarity_threshold=self.config.similarity_threshold)
 
     def create_quality_gates(self) -> QualityGatesProtocol:
         """Create quality gates for validation."""
         from showrunner.gates.quality_gates import QualityGates
+
         return QualityGates()
 
     def create_export_renderer(
@@ -139,6 +171,7 @@ class ComponentFactory:
     ) -> ExportRendererProtocol:
         """Create an export renderer for dossier output."""
         from showrunner.renderers.export_renderer import ExportRenderer, MarkdownFormatter
+
         return ExportRenderer(
             formatter=MarkdownFormatter(),
             passages=passages or [],
@@ -173,7 +206,8 @@ class ShowrunnerPipeline:
         self._factory = factory if factory is not None else ComponentFactory(config=config)
         self._checkpointer = MemorySaver()
         self._checkpoint_states: dict[str, PipelineState] = {}
-        self._compiled_graph = self._build_graph()
+        self._graph: Any = None
+        self._compiled_graph: Any = self._build_graph()
 
     def _report_progress(self, stage: str, progress: float) -> None:
         if self._on_progress:
@@ -192,11 +226,14 @@ class ShowrunnerPipeline:
         ]
         self._entry_point = "load_input"
         self._conditional_nodes = {"validate_gates"}
-        if not _LANGGRAPH_AVAILABLE:
+        if not _langgraph_available:
             self._graph = object()
             return _FallbackGraph(self)
 
-        builder = StateGraph(PipelineState)
+        builder = StateGraph(PipelineState) if StateGraph is not None else None
+        if builder is None:
+            self._graph = object()
+            return _FallbackGraph(self)
         builder.add_node("load_input", self._load_input)
         builder.add_node("index_canon", self._index_canon)
         builder.add_node("resolve_entities", self._resolve_entities)
@@ -211,7 +248,9 @@ class ShowrunnerPipeline:
         builder.add_edge("resolve_entities", "extract_obligations")
         builder.add_edge("extract_obligations", "merge_duplicates")
         builder.add_edge("merge_duplicates", "validate_gates")
-        builder.add_conditional_edges("validate_gates", self._check_gates, {"pass": "export_dossier", "fail": "handle_error"})
+        builder.add_conditional_edges(
+            "validate_gates", self._check_gates, {"pass": "export_dossier", "fail": "handle_error"}
+        )
         builder.add_edge("export_dossier", END)
         builder.add_edge("handle_error", END)
         self._graph = builder
@@ -263,16 +302,16 @@ class ShowrunnerPipeline:
             adapter = self._factory.create_input_adapter()
             documents = adapter.load(self._config.input_source)
             self._report_progress("load_input", 1.0)
-            return {"documents": documents}
+            return PipelineState({"documents": documents})
         except Exception as e:
-            return {"error": f"Failed to load input: {e}"}
+            return PipelineState({"error": f"Failed to load input: {e}"})
 
     def _index_canon(self, state: PipelineState) -> PipelineState:
         self._report_progress("index_canon", 0.0)
         try:
             indexer = self._factory.create_canon_indexer()
             documents = state.get("documents", [])
-            all_passages = []
+            all_passages: list[PassageRecord] = []
             for doc in documents:
                 passages = indexer.segment_paragraphs(doc)
                 all_passages.extend(passages)
@@ -287,23 +326,16 @@ class ShowrunnerPipeline:
                 for passage in all_passages:
                     f.write(json.dumps(passage.model_dump(), default=str) + "\n")
             self._report_progress("index_canon", 1.0)
-            return {"passages": all_passages}
+            return PipelineState({"passages": all_passages})
         except Exception as e:
-            return {"error": f"Failed to index canon: {e}"}
+            return PipelineState({"error": f"Failed to index canon: {e}"})
 
     def _resolve_entities(self, state: PipelineState) -> PipelineState:
         self._report_progress("resolve_entities", 0.0)
         try:
             resolver = self._factory.create_entity_resolver()
             passages = state.get("passages", [])
-            result = resolver.resolve(passages)
-            if isinstance(result, tuple) and len(result) == 3:
-                entities, aliases, anchors = result
-            elif isinstance(result, tuple) and len(result) == 2:
-                entities, aliases = result
-                anchors = []
-            else:
-                entities, aliases, anchors = [], [], []
+            entities, aliases, anchors = resolver.resolve(passages)
             entities_path = self._config.output_dir / "kb" / "entities.json"
             entities_path.parent.mkdir(parents=True, exist_ok=True)
             with open(entities_path, "w") as f:
@@ -312,9 +344,11 @@ class ShowrunnerPipeline:
             with open(aliases_path, "w") as f:
                 json.dump([a.model_dump() for a in aliases], f, indent=2, default=str)
             self._report_progress("resolve_entities", 1.0)
-            return {"entities": entities, "aliases": aliases, "evidence_anchors": anchors}
+            return PipelineState(
+                {"entities": entities, "aliases": aliases, "evidence_anchors": anchors}
+            )
         except Exception as e:
-            return {"error": f"Failed to resolve entities: {e}"}
+            return PipelineState({"error": f"Failed to resolve entities: {e}"})
 
     def _extract_obligations(self, state: PipelineState) -> PipelineState:
         self._report_progress("extract_obligations", 0.0)
@@ -326,29 +360,24 @@ class ShowrunnerPipeline:
             existing_anchors = state.get("evidence_anchors", [])
             all_anchors = existing_anchors + anchors
             self._report_progress("extract_obligations", 1.0)
-            return {"obligations": obligations, "evidence_anchors": all_anchors}
+            return PipelineState({"obligations": obligations, "evidence_anchors": all_anchors})
         except Exception as e:
-            return {"error": f"Failed to extract obligations: {e}"}
+            return PipelineState({"error": f"Failed to extract obligations: {e}"})
 
     def _merge_duplicates(self, state: PipelineState) -> PipelineState:
         self._report_progress("merge_duplicates", 0.0)
         try:
             merger = self._factory.create_dedupe_merger()
             obligations = state.get("obligations", [])
-            merge_result = merger.merge(obligations)
-            if isinstance(merge_result, tuple) and len(merge_result) == 3:
-                merged, edges, _dedupe_rate = merge_result
-            else:
-                merged = merge_result
-                edges = []
+            merged, edges, _dedupe_rate = merger.merge(obligations)
             obl_path = self._config.output_dir / "obligations" / "obligations.json"
             obl_path.parent.mkdir(parents=True, exist_ok=True)
             with open(obl_path, "w") as f:
                 json.dump([o.model_dump() for o in merged], f, indent=2, default=str)
             self._report_progress("merge_duplicates", 1.0)
-            return {"obligations": merged, "obligation_edges": edges}
+            return PipelineState({"obligations": merged, "obligation_edges": edges})
         except Exception as e:
-            return {"error": f"Failed to merge duplicates: {e}"}
+            return PipelineState({"error": f"Failed to merge duplicates: {e}"})
 
     def _validate_gates(self, state: PipelineState) -> PipelineState:
         self._report_progress("validate_gates", 0.0)
@@ -359,22 +388,13 @@ class ShowrunnerPipeline:
             entities = state.get("entities", [])
             aliases = state.get("aliases", [])
             obligations = state.get("obligations", [])
-            if hasattr(gates, "validate"):
-                passed, findings = gates.validate(
-                    passages=passages,
-                    anchors=anchors,
-                    entities=entities,
-                    aliases=aliases,
-                    obligations=obligations,
-                )
-            else:
-                findings, passed = gates.run_all_gates(
-                    passages=passages,
-                    anchors=anchors,
-                    entities=entities,
-                    aliases=aliases,
-                    obligations=obligations,
-                )
+            passed, findings = gates.validate(
+                passages=passages,
+                anchors=anchors,
+                entities=entities,
+                aliases=aliases,
+                obligations=obligations,
+            )
             findings_path = self._config.output_dir / "qa" / "findings.jsonl"
             findings_path.parent.mkdir(parents=True, exist_ok=True)
             with open(findings_path, "w") as f:
@@ -382,14 +402,16 @@ class ShowrunnerPipeline:
                     f.write(json.dumps(finding.model_dump(), default=str) + "\n")
             self._report_progress("validate_gates", 1.0)
             if not passed:
-                return {
-                    "findings": findings,
-                    "gates_passed": passed,
-                    "error": "Quality gates failed",
-                }
-            return {"findings": findings, "gates_passed": passed}
+                return PipelineState(
+                    {
+                        "findings": findings,
+                        "gates_passed": passed,
+                        "error": "Quality gates failed",
+                    }
+                )
+            return PipelineState({"findings": findings, "gates_passed": passed})
         except Exception as e:
-            return {"error": f"Failed to validate gates: {e}"}
+            return PipelineState({"error": f"Failed to validate gates: {e}"})
 
     def _export_dossier(self, state: PipelineState) -> PipelineState:
         self._report_progress("export_dossier", 0.0)
@@ -401,11 +423,7 @@ class ShowrunnerPipeline:
             renderer = self._factory.create_export_renderer(passages, entities, anchors)
             dossier_path = self._config.output_dir / "exports" / "Unresolved_Threads_Dossier.md"
             dossier_path.parent.mkdir(parents=True, exist_ok=True)
-            if hasattr(renderer, "render"):
-                render_result = renderer.render(obligations)
-            else:
-                render_result = renderer.render_dossier(obligations)
-
+            render_result = renderer.render(obligations)
             dossier_content = ""
             if isinstance(render_result, Path):
                 dossier_path = render_result
@@ -415,23 +433,34 @@ class ShowrunnerPipeline:
             if hasattr(renderer, "write_dossier"):
                 renderer.write_dossier(obligations, dossier_path)
             self._report_progress("export_dossier", 1.0)
-            return {"dossier_content": dossier_content, "dossier_path": dossier_path}
+            return PipelineState({"dossier_content": dossier_content, "dossier_path": dossier_path})
         except Exception as e:
-            return {"error": f"Failed to export dossier: {e}"}
+            return PipelineState({"error": f"Failed to export dossier: {e}"})
 
     def _handle_error(self, state: PipelineState) -> PipelineState:
         error = state.get("error", "Unknown error")
         findings_path = self._config.output_dir / "qa" / "findings.jsonl"
         findings_path.parent.mkdir(parents=True, exist_ok=True)
         with open(findings_path, "a") as f:
-            finding = {"finding_id": f"error_{datetime.now().isoformat()}", "severity": "error", "category": "pipeline_error", "message": error, "timestamp": datetime.now().isoformat()}
+            finding = {
+                "finding_id": f"error_{datetime.now().isoformat()}",
+                "severity": "error",
+                "category": "pipeline_error",
+                "message": error,
+                "timestamp": datetime.now().isoformat(),
+            }
             f.write(json.dumps(finding) + "\n")
         return state
 
     def _get_git_sha(self) -> str:
         try:
-            stream = os.popen("git rev-parse HEAD")
-            return stream.read().strip()
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            return result.stdout.strip()
         except Exception:
             return "unknown"
 
@@ -440,12 +469,10 @@ class ShowrunnerPipeline:
 
     def _execute_graph(self, initial_state: PipelineState, thread_id: str) -> PipelineState:
         config = {"configurable": {"thread_id": thread_id}}
-        final_state = None
+        final_state: dict[str, PipelineState] | None = None
         for state in self._compiled_graph.stream(initial_state, config):
             final_state = state
-        actual_state = list(final_state.values())[0] if final_state else {}
-        if isinstance(actual_state, PipelineState):
-            return actual_state
+        actual_state = list(final_state.values())[0] if final_state else PipelineState()
         return PipelineState(actual_state)
 
     def run(self, thread_id: str | None = None) -> tuple[PipelineState, RunManifest]:
@@ -475,12 +502,14 @@ class ShowrunnerPipeline:
 
     def run_incremental(self, changed_files: list[Path]) -> PipelineState:
         adapter = self._factory.create_input_adapter()
+        documents: list[DocumentUnit]
         if hasattr(adapter, "load_files"):
             documents = adapter.load_files(changed_files)
         else:
             documents = []
             for path in changed_files:
                 from showrunner.adapters.input_adapter import create_adapter
+
                 file_adapter = create_adapter(path)
                 documents.extend(file_adapter.load(path))
         initial_state = PipelineState({"documents": documents})

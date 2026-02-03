@@ -12,11 +12,16 @@ OOP Principles Applied:
 - No Primitive Obsession: Uses domain objects throughout
 """
 
+from __future__ import annotations
+
 from abc import abstractmethod
 from collections import defaultdict
 from datetime import datetime
-from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from pathlib import Path
 
 from showrunner.contracts import (
     Entity,
@@ -65,9 +70,7 @@ class DossierFormatter(Protocol):
         ...
 
     @abstractmethod
-    def format_obligation(
-        self, obl: Obligation, evidence: list[EvidenceAnchor]
-    ) -> str:
+    def format_obligation(self, obl: Obligation, evidence: list[EvidenceAnchor]) -> str:
         """Format a single obligation with its evidence.
 
         Args:
@@ -80,7 +83,7 @@ class DossierFormatter(Protocol):
         ...
 
     @abstractmethod
-    def format_footer(self, metrics: dict) -> str:
+    def format_footer(self, metrics: Mapping[str, int]) -> str:
         """Format the dossier footer.
 
         Args:
@@ -134,9 +137,7 @@ class MarkdownFormatter:
         count = len(obligations)
         return f"\n## {display_name} ({count})\n"
 
-    def format_obligation(
-        self, obl: Obligation, evidence: list[EvidenceAnchor]
-    ) -> str:
+    def format_obligation(self, obl: Obligation, evidence: list[EvidenceAnchor]) -> str:
         """Format an obligation with confidence, last seen, and evidence.
 
         Args:
@@ -161,7 +162,7 @@ class MarkdownFormatter:
 
         return "\n".join(lines) + "\n"
 
-    def format_footer(self, metrics: dict) -> str:
+    def format_footer(self, metrics: Mapping[str, int]) -> str:
         """Format the dossier footer with separator and validation notice.
 
         Args:
@@ -210,13 +211,9 @@ class ExportRenderer:
             anchors: List of evidence anchors from validated stores.
         """
         self._formatter = formatter
-        self._passages: dict[str, PassageRecord] = {
-            p.passage_id: p for p in passages
-        }
+        self._passages: dict[str, PassageRecord] = {p.passage_id: p for p in passages}
         self._entities: dict[str, Entity] = {e.entity_id: e for e in entities}
-        self._anchors: dict[str, EvidenceAnchor] = {
-            a.anchor_id: a for a in anchors
-        }
+        self._anchors: dict[str, EvidenceAnchor] = {a.anchor_id: a for a in anchors}
 
     def _group_by_category(
         self, obligations: list[Obligation]
@@ -245,7 +242,7 @@ class ExportRenderer:
         Returns:
             List of resolved EvidenceAnchor objects.
         """
-        evidence = []
+        evidence: list[EvidenceAnchor] = []
         for anchor_id in obl.evidence_anchor_ids:
             if anchor_id in self._anchors:
                 evidence.append(self._anchors[anchor_id])
@@ -266,7 +263,7 @@ class ExportRenderer:
         Returns:
             Complete rendered dossier as a string.
         """
-        sections = []
+        sections: list[str] = []
 
         # Add header
         sections.append(self._formatter.format_header("Unresolved Threads Dossier"))
@@ -288,7 +285,7 @@ class ExportRenderer:
                     sections.append(self._formatter.format_obligation(obl, evidence))
 
         # Add footer
-        metrics = {
+        metrics: dict[str, int] = {
             "total_obligations": len(obligations),
             "categories": len(grouped),
         }
@@ -300,9 +297,7 @@ class ExportRenderer:
         """Compatibility alias for render_dossier."""
         return self.render_dossier(obligations)
 
-    def write_dossier(
-        self, obligations: list[Obligation], output_path: Path
-    ) -> None:
+    def write_dossier(self, obligations: list[Obligation], output_path: Path) -> None:
         """Write dossier to file.
 
         Creates parent directories if they don't exist.

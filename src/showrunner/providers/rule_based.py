@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from showrunner.providers.base import BaseLLMProvider
 
 
@@ -23,10 +25,8 @@ class RuleBasedProvider(BaseLLMProvider):
     def complete_structured(
         self,
         prompt: str,
-        response_model: type,
+        response_model: type[Any],
         system_prompt: str | None = None,
         temperature: float = 0.0,
-    ):
-        raise NotImplementedError(
-            "Rule-based provider does not support structured completion"
-        )
+    ) -> Any:
+        raise NotImplementedError("Rule-based provider does not support structured completion")

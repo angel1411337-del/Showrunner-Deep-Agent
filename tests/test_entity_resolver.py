@@ -12,16 +12,15 @@ TDD-style tests covering:
 import pytest
 
 from showrunner.contracts import (
-    PassageRecord,
+    AliasEntry,
     Entity,
     EntityType,
-    AliasEntry,
-    OverrideRule,
-    OverrideAction,
     EvidenceAnchor,
+    OverrideAction,
+    OverrideRule,
+    PassageRecord,
 )
 from showrunner.resolvers.entity_resolver import EntityResolver
-
 
 # =============================================================================
 # Test Fixtures
@@ -476,9 +475,7 @@ class TestEntityTyping:
             )
         ]
         entities = resolver.extract_entities(passages)
-        targaryen = next(
-            (e for e in entities if "House Targaryen" in e.canonical_name), None
-        )
+        targaryen = next((e for e in entities if "House Targaryen" in e.canonical_name), None)
         assert targaryen is not None
         assert targaryen.entity_type == EntityType.GROUP
 
@@ -499,8 +496,9 @@ class TestVehicleLimiting:
         # Black Wind is mentioned 3 times, should be created
         vehicles = [e for e in entities if e.entity_type == EntityType.VEHICLE]
         # The canonical name may be "The Black Wind" or "Black Wind"
-        assert any("Black Wind" in v.canonical_name for v in vehicles) or \
-               any(v.canonical_name == "The Black Wind" for v in vehicles)
+        assert any("Black Wind" in v.canonical_name for v in vehicles) or any(
+            v.canonical_name == "The Black Wind" for v in vehicles
+        )
 
     def test_vehicle_not_created_below_threshold(
         self, resolver: EntityResolver, vehicle_passages: list[PassageRecord]
@@ -792,9 +790,7 @@ class TestDeterministicTieBreaking:
             # Should be consistently ordered
             assert len(stark_aliases) >= 1
 
-    def test_alphabetical_tiebreak_on_equal_confidence(
-        self, resolver: EntityResolver
-    ) -> None:
+    def test_alphabetical_tiebreak_on_equal_confidence(self, resolver: EntityResolver) -> None:
         """When confidence is equal, alphabetical ordering by entity_id."""
         passages = [
             PassageRecord(

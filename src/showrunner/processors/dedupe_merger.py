@@ -5,12 +5,11 @@ with bonuses for matching categories, overlapping entities, and shared evidence.
 """
 
 import uuid
-from typing import Union
 
 from showrunner.contracts import (
+    EdgeType,
     Obligation,
     ObligationGraphEdge,
-    EdgeType,
 )
 
 
@@ -25,7 +24,7 @@ def _tokenize(text: str) -> set[str]:
     """
     # Simple tokenization: lowercase, split on whitespace, strip punctuation
     words = text.lower().split()
-    tokens = set()
+    tokens: set[str] = set()
     for word in words:
         # Remove leading/trailing punctuation
         clean = word.strip(".,!?;:\"'()-[]{}").lower()
@@ -34,7 +33,7 @@ def _tokenize(text: str) -> set[str]:
     return tokens
 
 
-def _jaccard_similarity(set_a: set, set_b: set) -> float:
+def _jaccard_similarity(set_a: set[str], set_b: set[str]) -> float:
     """Compute Jaccard similarity between two sets.
 
     Args:
@@ -67,6 +66,7 @@ def _compare_passage_ids(passage_id_1: str, passage_id_2: str) -> int:
     Returns:
         1 if passage_id_1 is more recent, -1 if passage_id_2 is more recent, 0 if equal.
     """
+
     # Try to extract numeric suffix
     def extract_number(pid: str) -> int:
         # Split on common separators and take last numeric part
@@ -167,9 +167,7 @@ class DedupeMerger:
         total = base_similarity + category_bonus + entity_bonus + evidence_bonus
         return min(1.0, total)
 
-    def find_duplicates(
-        self, obligations: list[Obligation]
-    ) -> list[tuple[str, str, float]]:
+    def find_duplicates(self, obligations: list[Obligation]) -> list[tuple[str, str, float]]:
         """Find pairs of potentially duplicate obligations.
 
         Compares all pairs of obligations and returns those with similarity
@@ -189,7 +187,7 @@ class DedupeMerger:
 
         # Compare all pairs (O(n^2) - acceptable for MVP)
         for i, obl1 in enumerate(obligations):
-            for obl2 in obligations[i + 1:]:
+            for obl2 in obligations[i + 1 :]:
                 similarity = self.compute_similarity(obl1, obl2)
                 if similarity >= self.similarity_threshold:
                     duplicates.append((obl1.obligation_id, obl2.obligation_id, similarity))

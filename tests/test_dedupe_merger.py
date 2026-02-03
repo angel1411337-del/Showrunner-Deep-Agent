@@ -4,14 +4,13 @@ TDD tests written before implementation.
 """
 
 import pytest
+
 from showrunner.contracts import (
+    EdgeType,
     Obligation,
     ObligationCategory,
-    ObligationGraphEdge,
-    EdgeType,
 )
 from showrunner.processors.dedupe_merger import DedupeMerger
-
 
 # =============================================================================
 # Fixtures
@@ -144,9 +143,7 @@ class TestComputeSimilarity:
 
         assert similarity < 0.3
 
-    def test_compute_similarity_same_category_bonus(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_compute_similarity_same_category_bonus(self, merger: DedupeMerger) -> None:
         """Same category should boost similarity score."""
         base_desc = "The sword was mentioned"
         obl1 = Obligation(
@@ -179,9 +176,7 @@ class TestComputeSimilarity:
 
         assert sim_same > sim_diff
 
-    def test_compute_similarity_overlapping_entities_bonus(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_compute_similarity_overlapping_entities_bonus(self, merger: DedupeMerger) -> None:
         """Overlapping related_entity_ids should boost similarity."""
         obl1 = Obligation(
             obligation_id="obl-1",
@@ -242,9 +237,7 @@ class TestComputeSimilarity:
 class TestFindDuplicates:
     """Tests for find_duplicates method."""
 
-    def test_find_duplicates_empty_list_returns_empty(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_find_duplicates_empty_list_returns_empty(self, merger: DedupeMerger) -> None:
         """Empty input should return empty list."""
         result = merger.find_duplicates([])
 
@@ -280,7 +273,8 @@ class TestFindDuplicates:
         assert result == []
 
     def test_find_duplicates_returns_tuple_with_ids_and_score(
-        self, low_threshold_merger: DedupeMerger,
+        self,
+        low_threshold_merger: DedupeMerger,
         sample_obligation_1: Obligation,
         sample_obligation_2: Obligation,
     ) -> None:
@@ -295,7 +289,8 @@ class TestFindDuplicates:
         assert score >= 0.0 and score <= 1.0
 
     def test_find_duplicates_multiple_pairs(
-        self, low_threshold_merger: DedupeMerger,
+        self,
+        low_threshold_merger: DedupeMerger,
         sample_obligation_1: Obligation,
         sample_obligation_2: Obligation,
         sample_obligation_3: Obligation,
@@ -314,9 +309,7 @@ class TestFindDuplicates:
         found_ids = {(p[0], p[1]) for p in result} | {(p[1], p[0]) for p in result}
         assert ("obl-001", "obl-002") in found_ids or ("obl-002", "obl-001") in found_ids
 
-    def test_find_duplicates_respects_threshold(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_find_duplicates_respects_threshold(self, merger: DedupeMerger) -> None:
         """Should only return pairs above the configured threshold."""
         obl1 = Obligation(
             obligation_id="obl-1",
@@ -359,9 +352,7 @@ class TestMergeObligations:
         )
         assert set(merged.evidence_anchor_ids) == expected_anchors
 
-    def test_merge_obligations_uses_higher_confidence(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_merge_obligations_uses_higher_confidence(self, merger: DedupeMerger) -> None:
         """Merged obligation should use the higher confidence score."""
         obl_low = Obligation(
             obligation_id="obl-low",
@@ -384,9 +375,7 @@ class TestMergeObligations:
 
         assert merged.confidence == 0.95
 
-    def test_merge_obligations_uses_more_recent_last_seen(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_merge_obligations_uses_more_recent_last_seen(self, merger: DedupeMerger) -> None:
         """Merged obligation should use the more recent last_seen_passage_id."""
         obl_old = Obligation(
             obligation_id="obl-old",
@@ -409,9 +398,7 @@ class TestMergeObligations:
 
         assert merged.last_seen_passage_id == "passage-200"
 
-    def test_merge_obligations_keeps_primary_with_more_evidence(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_merge_obligations_keeps_primary_with_more_evidence(self, merger: DedupeMerger) -> None:
         """Should keep obligation with more evidence as primary (use its ID)."""
         obl_less = Obligation(
             obligation_id="obl-less",
@@ -434,9 +421,7 @@ class TestMergeObligations:
 
         assert merged.obligation_id == "obl-more"
 
-    def test_merge_obligations_combines_related_entity_ids(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_merge_obligations_combines_related_entity_ids(self, merger: DedupeMerger) -> None:
         """Merged obligation should combine related_entity_ids from both."""
         obl1 = Obligation(
             obligation_id="obl-1",
@@ -517,9 +502,7 @@ class TestMergeObligations:
 class TestMerge:
     """Tests for the full merge pipeline."""
 
-    def test_merge_empty_list_returns_empty_and_zero_rate(
-        self, merger: DedupeMerger
-    ) -> None:
+    def test_merge_empty_list_returns_empty_and_zero_rate(self, merger: DedupeMerger) -> None:
         """Empty input returns empty list and 0.0 dedupe rate."""
         merged_obls, edges, rate = merger.merge([])
 
@@ -634,17 +617,20 @@ class TestMerge:
         assert rate == pytest.approx(0.5)
 
     def test_merge_preserves_unrelated_obligations(
-        self, merger: DedupeMerger,
+        self,
+        merger: DedupeMerger,
         sample_obligation_1: Obligation,
         sample_obligation_2: Obligation,
         sample_obligation_3: Obligation,
     ) -> None:
         """Unrelated obligations should be preserved unchanged."""
-        merged_obls, edges, rate = merger.merge([
-            sample_obligation_1,
-            sample_obligation_2,
-            sample_obligation_3,
-        ])
+        merged_obls, edges, rate = merger.merge(
+            [
+                sample_obligation_1,
+                sample_obligation_2,
+                sample_obligation_3,
+            ]
+        )
 
         # obl-001 and obl-002 are duplicates, obl-003 is unique
         assert len(merged_obls) == 2

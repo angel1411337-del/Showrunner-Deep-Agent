@@ -3,19 +3,18 @@
 TDD tests for FileInputAdapter, FolderInputAdapter, and create_adapter factory.
 """
 
-import pytest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from showrunner.contracts import DocumentUnit
+import pytest
+
 from showrunner.adapters.input_adapter import (
     FileInputAdapter,
     FolderInputAdapter,
     create_adapter,
-    InputAdapter,
     parse_filename_metadata,
 )
-
+from showrunner.contracts import DocumentUnit
 
 # =============================================================================
 # Filename Parsing Tests
@@ -57,9 +56,7 @@ class TestParseFilenameMetadata:
 
     def test_parse_filename_metadata_multiple_underscores(self) -> None:
         """Parse book1_chapter02_the_wall.txt with multiple underscores."""
-        book_label, chapter_label = parse_filename_metadata(
-            "book1_chapter02_the_wall.txt"
-        )
+        book_label, chapter_label = parse_filename_metadata("book1_chapter02_the_wall.txt")
         assert book_label == "book1"
         assert chapter_label == "chapter02_the_wall"
 
@@ -314,9 +311,7 @@ class TestFolderInputAdapter:
         with TemporaryDirectory() as tmpdir:
             folder = Path(tmpdir)
             (folder / "book1_chapter01_Bran.txt").write_text("Bran", encoding="utf-8")
-            (folder / "book1_chapter02_Catelyn.txt").write_text(
-                "Catelyn", encoding="utf-8"
-            )
+            (folder / "book1_chapter02_Catelyn.txt").write_text("Catelyn", encoding="utf-8")
 
             adapter = FolderInputAdapter()
             result = adapter.load(folder)

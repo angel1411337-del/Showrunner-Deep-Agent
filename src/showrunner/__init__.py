@@ -13,30 +13,30 @@ __version__ = "0.1.0"
 
 # Re-export contracts for public API
 from showrunner.contracts import (
+    AliasEntry,
+    DatasetManifest,
     # Document
     DocumentUnit,
-    PassageRecord,
-    # Evidence
-    EvidenceAnchor,
-    EvidenceIndex,
+    EdgeType,
     # Entity
     Entity,
     EntityType,
-    AliasEntry,
-    OverrideRule,
-    OverrideAction,
-    # Obligation
-    Obligation,
-    ObligationCategory,
-    ObligationGraphEdge,
-    EdgeType,
+    # Evidence
+    EvidenceAnchor,
+    EvidenceIndex,
     # Quality
     Finding,
     FindingSeverity,
     MetricsReport,
+    # Obligation
+    Obligation,
+    ObligationCategory,
+    ObligationGraphEdge,
+    OverrideAction,
+    OverrideRule,
+    PassageRecord,
     # Manifest
     RunManifest,
-    DatasetManifest,
 )
 
 __all__ = [

@@ -7,22 +7,22 @@ All formal artifacts and tool I/O use these contracts for:
 """
 
 from showrunner.contracts.document import DocumentUnit, PassageRecord
-from showrunner.contracts.evidence import EvidenceAnchor, EvidenceIndex
 from showrunner.contracts.entity import (
+    AliasEntry,
     Entity,
     EntityType,
-    AliasEntry,
-    OverrideRule,
     OverrideAction,
+    OverrideRule,
 )
+from showrunner.contracts.evidence import EvidenceAnchor, EvidenceIndex
+from showrunner.contracts.manifest import DatasetManifest, RunManifest
 from showrunner.contracts.obligation import (
+    EdgeType,
     Obligation,
     ObligationCategory,
     ObligationGraphEdge,
-    EdgeType,
 )
 from showrunner.contracts.quality import Finding, FindingSeverity, MetricsReport
-from showrunner.contracts.manifest import RunManifest, DatasetManifest
 
 __all__ = [
     # Document

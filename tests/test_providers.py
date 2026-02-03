@@ -1,7 +1,5 @@
 """Tests for LLM provider interfaces and implementations."""
 
-from typing import runtime_checkable
-
 import pytest
 from pydantic import BaseModel
 
@@ -111,9 +109,7 @@ class TestRuleBasedProvider:
                 prompt="Test prompt",
                 response_model=SampleResponseModel,
             )
-        assert "Rule-based provider does not support structured completion" in str(
-            exc_info.value
-        )
+        assert "Rule-based provider does not support structured completion" in str(exc_info.value)
 
     def test_rule_based_provider_implements_protocol(self):
         """RuleBasedProvider must satisfy LLMProviderProtocol."""

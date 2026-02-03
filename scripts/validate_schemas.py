@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from jsonschema import Draft7Validator, ValidationError
+    from jsonschema import Draft7Validator
 except ImportError:
     print("ERROR: jsonschema package not installed. Run: uv add jsonschema")
     sys.exit(2)
