@@ -1,0 +1,42 @@
+{
+  "description": "An evidence anchor pointing to a specific text span.\n\nAnchors provide provenance for claims, linking obligations and entities\nback to their source passages with exact character positions.",
+  "properties": {
+    "anchor_id": {
+      "description": "Unique identifier for this evidence anchor",
+      "title": "Anchor Id",
+      "type": "string"
+    },
+    "passage_id": {
+      "description": "The passage this anchor references (source_id:paragraph_index)",
+      "title": "Passage Id",
+      "type": "string"
+    },
+    "char_start": {
+      "description": "Character offset start within passage",
+      "minimum": 0,
+      "title": "Char Start",
+      "type": "integer"
+    },
+    "char_end": {
+      "description": "Character offset end within passage",
+      "minimum": 0,
+      "title": "Char End",
+      "type": "integer"
+    },
+    "excerpt": {
+      "description": "Extracted text excerpt for quick reference",
+      "minLength": 1,
+      "title": "Excerpt",
+      "type": "string"
+    }
+  },
+  "required": [
+    "anchor_id",
+    "passage_id",
+    "char_start",
+    "char_end",
+    "excerpt"
+  ],
+  "title": "EvidenceAnchor",
+  "type": "object"
+}

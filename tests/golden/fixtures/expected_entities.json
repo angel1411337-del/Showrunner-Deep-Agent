@@ -1,0 +1,143 @@
+{
+  "metadata": {
+    "source_id": "golden_corpus",
+    "total_entities": 12,
+    "extraction_version": "1.0.0"
+  },
+  "entities": [
+    {
+      "entity_id": "ent_jon",
+      "canonical_name": "Jon",
+      "entity_type": "person",
+      "first_seen_passage": "golden_corpus:0",
+      "mention_count": 6,
+      "is_important": true,
+      "description": "A brooding man with dark hair who stands at the battlements of Winterfell"
+    },
+    {
+      "entity_id": "ent_daenerys",
+      "canonical_name": "Daenerys",
+      "entity_type": "person",
+      "first_seen_passage": "golden_corpus:1",
+      "mention_count": 3,
+      "is_important": true,
+      "description": "A silver-haired woman with violet eyes, born in sunnier climes"
+    },
+    {
+      "entity_id": "ent_tyrion",
+      "canonical_name": "Tyrion",
+      "entity_type": "person",
+      "first_seen_passage": "golden_corpus:2",
+      "mention_count": 2,
+      "is_important": true,
+      "description": "Known as 'The Imp', writes from King's Landing with riddles"
+    },
+    {
+      "entity_id": "ent_ghost",
+      "canonical_name": "Ghost",
+      "entity_type": "person",
+      "first_seen_passage": "golden_corpus:0",
+      "mention_count": 2,
+      "is_important": true,
+      "description": "Jon's direwolf with red eyes, silent as snow"
+    },
+    {
+      "entity_id": "ent_aegon",
+      "canonical_name": "Aegon",
+      "entity_type": "person",
+      "first_seen_passage": "golden_corpus:4",
+      "mention_count": 1,
+      "is_important": false,
+      "description": "Daenerys's ancestor who carried the Dragonstone Dagger during the Conquest"
+    },
+    {
+      "entity_id": "ent_lord_manderly",
+      "canonical_name": "Lord Manderly",
+      "entity_type": "person",
+      "first_seen_passage": "golden_corpus:5",
+      "mention_count": 1,
+      "is_important": false,
+      "description": "A lord who was the target of an assassination attempt at the Twins"
+    },
+    {
+      "entity_id": "ent_winterfell",
+      "canonical_name": "Winterfell",
+      "entity_type": "place",
+      "first_seen_passage": "golden_corpus:0",
+      "mention_count": 2,
+      "is_important": true,
+      "description": "The great castle of the Northern realm, standing for eight thousand years"
+    },
+    {
+      "entity_id": "ent_kings_landing",
+      "canonical_name": "King's Landing",
+      "entity_type": "place",
+      "first_seen_passage": "golden_corpus:2",
+      "mention_count": 1,
+      "is_important": true,
+      "description": "Location where Tyrion resides and the council meets"
+    },
+    {
+      "entity_id": "ent_the_twins",
+      "canonical_name": "The Twins",
+      "entity_type": "place",
+      "first_seen_passage": "golden_corpus:5",
+      "mention_count": 1,
+      "is_important": false,
+      "description": "Location of the assassination attempt on Lord Manderly"
+    },
+    {
+      "entity_id": "ent_moat_cailin",
+      "canonical_name": "Moat Cailin",
+      "entity_type": "place",
+      "first_seen_passage": "golden_corpus:8",
+      "mention_count": 1,
+      "is_important": false,
+      "description": "A destination Daenerys suggests riding to"
+    },
+    {
+      "entity_id": "ent_the_wall",
+      "canonical_name": "The Wall",
+      "entity_type": "place",
+      "first_seen_passage": "golden_corpus:10",
+      "mention_count": 1,
+      "is_important": true,
+      "description": "A barrier beyond which darkness approaches"
+    },
+    {
+      "entity_id": "ent_dragonstone_dagger",
+      "canonical_name": "Dragonstone Dagger",
+      "entity_type": "artifact",
+      "first_seen_passage": "golden_corpus:4",
+      "mention_count": 2,
+      "is_important": true,
+      "description": "A blade of Valyrian steel with a ruby pommel that glows faintly in shadow"
+    }
+  ],
+  "aliases": [
+    {
+      "alias_id": "alias_imp",
+      "alias_text": "The Imp",
+      "entity_id": "ent_tyrion",
+      "confidence": 1.0
+    },
+    {
+      "alias_id": "alias_brother",
+      "alias_text": "brother",
+      "entity_id": "ent_jon",
+      "confidence": 0.9
+    },
+    {
+      "alias_id": "alias_direwolf",
+      "alias_text": "direwolf",
+      "entity_id": "ent_ghost",
+      "confidence": 0.95
+    },
+    {
+      "alias_id": "alias_dagger",
+      "alias_text": "the dagger",
+      "entity_id": "ent_dragonstone_dagger",
+      "confidence": 0.95
+    }
+  ]
+}

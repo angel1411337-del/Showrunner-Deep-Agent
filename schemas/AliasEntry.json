@@ -1,0 +1,35 @@
+{
+  "description": "Mapping from alias/variant name to canonical entity.\n\nTracks all the different ways an entity can be referred to,\nwith confidence scores for fuzzy matches.",
+  "properties": {
+    "alias_id": {
+      "description": "Unique identifier for this alias entry",
+      "title": "Alias Id",
+      "type": "string"
+    },
+    "alias_text": {
+      "description": "The alias/variant text that maps to an entity",
+      "title": "Alias Text",
+      "type": "string"
+    },
+    "entity_id": {
+      "description": "The canonical entity this alias resolves to",
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "confidence": {
+      "description": "Confidence score for this alias mapping (0-1)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    }
+  },
+  "required": [
+    "alias_id",
+    "alias_text",
+    "entity_id",
+    "confidence"
+  ],
+  "title": "AliasEntry",
+  "type": "object"
+}

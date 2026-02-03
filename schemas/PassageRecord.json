@@ -1,0 +1,48 @@
+{
+  "description": "Paragraph-level passage with stable ID for evidence anchoring.\n\nPassage IDs follow the format: {source_id}:{paragraph_index}\nThese IDs remain stable across reruns when text and segmentation rules unchanged.",
+  "properties": {
+    "passage_id": {
+      "description": "Stable ID in format source_id:paragraph_index",
+      "title": "Passage Id",
+      "type": "string"
+    },
+    "source_id": {
+      "description": "Source document this passage belongs to",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "paragraph_index": {
+      "description": "Zero-indexed paragraph position within source",
+      "minimum": 0,
+      "title": "Paragraph Index",
+      "type": "integer"
+    },
+    "text": {
+      "description": "The passage text content",
+      "title": "Text",
+      "type": "string"
+    },
+    "char_start": {
+      "description": "Character offset start within source document",
+      "minimum": 0,
+      "title": "Char Start",
+      "type": "integer"
+    },
+    "char_end": {
+      "description": "Character offset end within source document",
+      "minimum": 0,
+      "title": "Char End",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "passage_id",
+    "source_id",
+    "paragraph_index",
+    "text",
+    "char_start",
+    "char_end"
+  ],
+  "title": "PassageRecord",
+  "type": "object"
+}

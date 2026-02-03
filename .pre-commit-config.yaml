@@ -1,0 +1,128 @@
+# Pre-commit hooks for Showrunner Orchestrator
+# Run `pre-commit install` to enable hooks
+# Run `pre-commit run --all-files` to check all files
+#
+# Passive mode: These hooks run on commit to maintain code quality
+# without blocking the workflow. Use --no-verify to skip if needed.
+
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+
+repos:
+  # Ruff - Fast Python linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.0
+    hooks:
+      - id: ruff
+        name: ruff-check
+        description: Run Ruff linter
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+
+      - id: ruff-format
+        name: ruff-format
+        description: Run Ruff formatter
+        types_or: [python, pyi]
+
+  # Pyright - Static type checker
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        description: Run Pyright type checker
+        entry: uv run pyright
+        language: system
+        types: [python]
+        pass_filenames: false
+        # Only run on src/ changes, not tests
+        files: ^src/
+
+  # Showrunner incremental pipeline (passive mode)
+  - repo: local
+    hooks:
+      - id: showrunner-incremental
+        name: showrunner-incremental
+        description: Trigger incremental pipeline on text file changes
+        entry: uv run python -m showrunner.pipeline.incremental
+        language: system
+        # Trigger on narrative text files
+        files: \.(txt|md|epub)$
+        # Only if files are in corpus/ directory
+        pass_filenames: true
+        # Don't fail the commit if pipeline has issues
+        verbose: true
+        stages: [pre-commit]
+        # Skip if no showrunner module yet
+        require_serial: true
+
+  # JSON schema validation
+  - repo: local
+    hooks:
+      - id: validate-schemas
+        name: validate-schemas
+        description: Validate artifact files against JSON schemas
+        entry: uv run python scripts/validate_schemas.py
+        language: system
+        files: ^artifacts/.*\.(json|jsonl)$
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # Referential integrity check
+  - repo: local
+    hooks:
+      - id: check-integrity
+        name: check-integrity
+        description: Check referential integrity across stores
+        entry: uv run python scripts/check_integrity.py
+        language: system
+        files: ^artifacts/.*\.(json|jsonl)$
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # Trailing whitespace and file endings
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(artifacts/|\.venv/)
+      - id: end-of-file-fixer
+        exclude: ^(artifacts/|\.venv/)
+      - id: check-yaml
+      - id: check-json
+        exclude: ^\.venv/
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+
+  # Commit message format (optional)
+  - repo: local
+    hooks:
+      - id: commit-msg-format
+        name: commit-msg-format
+        description: Check commit message format
+        entry: python -c "
+import sys
+import re
+
+msg = open(sys.argv[1]).read().strip()
+# Allow conventional commits or [step]: format
+patterns = [
+    r'^(feat|fix|docs|style|refactor|test|chore|build|ci)(\(.+\))?: .+',
+    r'^\[.+\]: .+',
+    r'^Merge .+',
+    r'^Revert .+',
+]
+if not any(re.match(p, msg) for p in patterns):
+    print('Commit message should follow conventional commits or [step]: format')
+    print(f'Got: {msg[:50]}...' if len(msg) > 50 else f'Got: {msg}')
+    sys.exit(1)
+"
+        language: system
+        stages: [commit-msg]
+        always_run: true
+        pass_filenames: true
+
+ci:
+  autofix_commit_msg: "style: auto-fix by pre-commit hooks"
+  autoupdate_commit_msg: "chore: update pre-commit hooks"
+  skip: [pyright, showrunner-incremental, validate-schemas, check-integrity]

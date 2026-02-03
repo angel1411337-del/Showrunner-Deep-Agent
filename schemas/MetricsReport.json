@@ -1,0 +1,87 @@
+{
+  "description": "Quality metrics for a pipeline run.\n\nTracks all MVP quality metrics:\n- obligations-with-evidence rate (target 100%)\n- ER ambiguity rate\n- obligation dedupe rate\n- runtime/cost per run",
+  "properties": {
+    "run_id": {
+      "description": "ID of the pipeline run",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "When metrics were collected",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "obligations_with_evidence_rate": {
+      "description": "Fraction of obligations with \u22651 evidence anchor",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Obligations With Evidence Rate",
+      "type": "number"
+    },
+    "er_ambiguity_rate": {
+      "description": "Fraction of aliases with ambiguous resolution",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Er Ambiguity Rate",
+      "type": "number"
+    },
+    "obligation_dedupe_rate": {
+      "description": "Fraction of obligations identified as duplicates",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Obligation Dedupe Rate",
+      "type": "number"
+    },
+    "total_passages": {
+      "description": "Total passages indexed",
+      "minimum": 0,
+      "title": "Total Passages",
+      "type": "integer"
+    },
+    "total_entities": {
+      "description": "Total entities resolved",
+      "minimum": 0,
+      "title": "Total Entities",
+      "type": "integer"
+    },
+    "total_obligations": {
+      "description": "Total obligations extracted",
+      "minimum": 0,
+      "title": "Total Obligations",
+      "type": "integer"
+    },
+    "runtime_seconds": {
+      "description": "Total pipeline runtime in seconds",
+      "minimum": 0.0,
+      "title": "Runtime Seconds",
+      "type": "number"
+    },
+    "contradiction_rate": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "V1: contradiction rate per 10k words",
+      "title": "Contradiction Rate"
+    }
+  },
+  "required": [
+    "run_id",
+    "timestamp",
+    "obligations_with_evidence_rate",
+    "er_ambiguity_rate",
+    "obligation_dedupe_rate",
+    "total_passages",
+    "total_entities",
+    "total_obligations",
+    "runtime_seconds"
+  ],
+  "title": "MetricsReport",
+  "type": "object"
+}

@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "EntityType": {
+      "description": "Types of entities recognized by ER v1.\n\nMVP targets: people, places, groups, titles, artifacts, vehicles (limited).",
+      "enum": [
+        "person",
+        "place",
+        "group",
+        "title",
+        "artifact",
+        "vehicle"
+      ],
+      "title": "EntityType",
+      "type": "string"
+    }
+  },
+  "description": "A resolved canonical entity.\n\nEntities are deduplicated, canonical representations of named items\nin the corpus. Each entity has a type and tracks first appearance\nand mention frequency.",
+  "properties": {
+    "entity_id": {
+      "description": "Unique identifier for this entity",
+      "title": "Entity Id",
+      "type": "string"
+    },
+    "canonical_name": {
+      "description": "The canonical/preferred name for this entity",
+      "title": "Canonical Name",
+      "type": "string"
+    },
+    "entity_type": {
+      "$ref": "#/$defs/EntityType",
+      "description": "Classification of entity type"
+    },
+    "first_seen_passage": {
+      "description": "Passage ID where entity first appears",
+      "title": "First Seen Passage",
+      "type": "string"
+    },
+    "mention_count": {
+      "description": "Total number of mentions across corpus",
+      "minimum": 1,
+      "title": "Mention Count",
+      "type": "integer"
+    },
+    "is_important": {
+      "default": false,
+      "description": "Flag for entities marked as important (esp. vehicles)",
+      "title": "Is Important",
+      "type": "boolean"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional description of the entity",
+      "title": "Description"
+    }
+  },
+  "required": [
+    "entity_id",
+    "canonical_name",
+    "entity_type",
+    "first_seen_passage",
+    "mention_count"
+  ],
+  "title": "Entity",
+  "type": "object"
+}

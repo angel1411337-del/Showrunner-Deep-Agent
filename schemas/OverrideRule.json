@@ -1,0 +1,58 @@
+{
+  "$defs": {
+    "OverrideAction": {
+      "description": "Actions available for human override rules.",
+      "enum": [
+        "assign",
+        "split",
+        "merge",
+        "ignore"
+      ],
+      "title": "OverrideAction",
+      "type": "string"
+    }
+  },
+  "description": "Human override rule for entity resolution.\n\nImplements 'human wins' policy - manual corrections take precedence\nover automated entity resolution.",
+  "properties": {
+    "override_id": {
+      "description": "Unique identifier for this override rule",
+      "title": "Override Id",
+      "type": "string"
+    },
+    "target_alias": {
+      "description": "The alias text this rule applies to",
+      "title": "Target Alias",
+      "type": "string"
+    },
+    "action": {
+      "$ref": "#/$defs/OverrideAction",
+      "description": "The action to take for this override"
+    },
+    "target_entity_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Entity ID to assign (for ASSIGN action)",
+      "title": "Target Entity Id"
+    },
+    "reason": {
+      "description": "Human-provided reason for this override",
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "override_id",
+    "target_alias",
+    "action",
+    "reason"
+  ],
+  "title": "OverrideRule",
+  "type": "object"
+}

@@ -1,0 +1,60 @@
+{
+  "description": "Normalized input document from file or folder.\n\nRepresents a single source file normalized to a common structure\nfor downstream processing by the canon indexer.",
+  "properties": {
+    "source_id": {
+      "description": "Unique identifier for this source (e.g., 'book1', 'book1_ch1')",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "source_path": {
+      "description": "Original file path of the source document",
+      "title": "Source Path",
+      "type": "string"
+    },
+    "order_hint": {
+      "description": "Ordering position within the corpus (0-indexed)",
+      "minimum": 0,
+      "title": "Order Hint",
+      "type": "integer"
+    },
+    "raw_text": {
+      "description": "Full raw text content of the document",
+      "title": "Raw Text",
+      "type": "string"
+    },
+    "book_label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional book/volume label if available",
+      "title": "Book Label"
+    },
+    "chapter_label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional chapter label if available",
+      "title": "Chapter Label"
+    }
+  },
+  "required": [
+    "source_id",
+    "source_path",
+    "order_hint",
+    "raw_text"
+  ],
+  "title": "DocumentUnit",
+  "type": "object"
+}

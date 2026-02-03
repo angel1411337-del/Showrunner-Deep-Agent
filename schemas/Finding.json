@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "FindingSeverity": {
+      "description": "Severity levels for quality findings.",
+      "enum": [
+        "error",
+        "warn",
+        "info"
+      ],
+      "title": "FindingSeverity",
+      "type": "string"
+    }
+  },
+  "description": "A quality validation finding.\n\nFindings capture issues discovered during validation:\n- ERROR: Hard gate violations (e.g., missing evidence)\n- WARN: Soft issues (e.g., contradictions in MVP)\n- INFO: Informational notes",
+  "properties": {
+    "finding_id": {
+      "description": "Unique identifier for this finding",
+      "title": "Finding Id",
+      "type": "string"
+    },
+    "severity": {
+      "$ref": "#/$defs/FindingSeverity",
+      "description": "Severity level of the finding"
+    },
+    "category": {
+      "description": "Category of finding (e.g., 'evidence_gate', 'schema')",
+      "title": "Category",
+      "type": "string"
+    },
+    "message": {
+      "description": "Human-readable description of the finding",
+      "title": "Message",
+      "type": "string"
+    },
+    "source_location": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Location in source files where issue was found",
+      "title": "Source Location"
+    },
+    "related_ids": {
+      "description": "IDs of related entities/obligations/passages",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Ids",
+      "type": "array"
+    },
+    "timestamp": {
+      "description": "When this finding was recorded",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "required": [
+    "finding_id",
+    "severity",
+    "category",
+    "message"
+  ],
+  "title": "Finding",
+  "type": "object"
+}

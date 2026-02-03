@@ -1,0 +1,127 @@
+{
+  "metadata": {
+    "source_id": "golden_corpus",
+    "total_obligations": 4,
+    "extraction_version": "1.0.0"
+  },
+  "obligations": [
+    {
+      "obligation_id": "obl_prophecy_three_crowns",
+      "category": "prophecy_vision",
+      "description": "The Prophecy of the Three Crowns: When fire and ice unite beneath three crowns of gold, the long darkness shall lift, and the realm shall know ten thousand years of peace",
+      "evidence_anchor_ids": ["ev_prophecy_001", "ev_prophecy_002"],
+      "last_seen_passage_id": "golden_corpus:3",
+      "confidence": 0.95,
+      "is_resolved": false,
+      "resolution_passage_id": null,
+      "related_entity_ids": ["ent_jon", "ent_daenerys"]
+    },
+    {
+      "obligation_id": "obl_chekhov_dagger",
+      "category": "chekhov_gun",
+      "description": "The Dragonstone Dagger, a Valyrian steel blade with a glowing ruby pommel carried by Aegon during the Conquest, waits for a purpose none yet understand",
+      "evidence_anchor_ids": ["ev_dagger_001", "ev_dagger_002"],
+      "last_seen_passage_id": "golden_corpus:8",
+      "confidence": 0.92,
+      "is_resolved": false,
+      "resolution_passage_id": null,
+      "related_entity_ids": ["ent_dragonstone_dagger", "ent_daenerys", "ent_jon", "ent_aegon"]
+    },
+    {
+      "obligation_id": "obl_mystery_assassin",
+      "category": "mystery",
+      "description": "Who sent the assassin to kill Lord Manderly at the Twins? The killer vanished and three witnesses died before speaking",
+      "evidence_anchor_ids": ["ev_mystery_001", "ev_mystery_002"],
+      "last_seen_passage_id": "golden_corpus:6",
+      "confidence": 0.90,
+      "is_resolved": false,
+      "resolution_passage_id": null,
+      "related_entity_ids": ["ent_lord_manderly", "ent_the_twins", "ent_tyrion"]
+    },
+    {
+      "obligation_id": "obl_plot_darkness",
+      "category": "plot_thread",
+      "description": "Something vast and unknowable approaches from the darkness beyond the Wall",
+      "evidence_anchor_ids": ["ev_darkness_001", "ev_darkness_002"],
+      "last_seen_passage_id": "golden_corpus:10",
+      "confidence": 0.85,
+      "is_resolved": false,
+      "resolution_passage_id": null,
+      "related_entity_ids": ["ent_jon", "ent_the_wall", "ent_ghost"]
+    }
+  ],
+  "evidence_anchors": [
+    {
+      "anchor_id": "ev_prophecy_001",
+      "passage_id": "golden_corpus:2",
+      "char_start": 85,
+      "char_end": 127,
+      "excerpt": "They speak of the old prophecy again."
+    },
+    {
+      "anchor_id": "ev_prophecy_002",
+      "passage_id": "golden_corpus:3",
+      "char_start": 0,
+      "char_end": 220,
+      "excerpt": "\"The prophecy of the Three Crowns,\" Daenerys murmured, her violet eyes distant. \"When fire and ice unite beneath three crowns of gold, the long darkness shall lift, and the realm shall know ten thousand years of peace.\""
+    },
+    {
+      "anchor_id": "ev_dagger_001",
+      "passage_id": "golden_corpus:4",
+      "char_start": 45,
+      "char_end": 158,
+      "excerpt": "Within it lay the Dragonstone Dagger, a blade of Valyrian steel with a ruby pommel that glowed faintly in shadow."
+    },
+    {
+      "anchor_id": "ev_dagger_002",
+      "passage_id": "golden_corpus:8",
+      "char_start": 163,
+      "char_end": 236,
+      "excerpt": "\"Keep the dagger safe. I fear it will be needed before this tale is done.\""
+    },
+    {
+      "anchor_id": "ev_mystery_001",
+      "passage_id": "golden_corpus:5",
+      "char_start": 57,
+      "char_end": 168,
+      "excerpt": "\"Who sent the assassin to the Twins last moon? Someone tried to kill Lord Manderly, and the trail grows cold.\""
+    },
+    {
+      "anchor_id": "ev_mystery_002",
+      "passage_id": "golden_corpus:6",
+      "char_start": 52,
+      "char_end": 84,
+      "excerpt": "Follow the gold, not the blade."
+    },
+    {
+      "anchor_id": "ev_darkness_001",
+      "passage_id": "golden_corpus:9",
+      "char_start": 59,
+      "char_end": 118,
+      "excerpt": "Something moved in the shadows beneath the ancient trees"
+    },
+    {
+      "anchor_id": "ev_darkness_002",
+      "passage_id": "golden_corpus:10",
+      "char_start": 58,
+      "char_end": 148,
+      "excerpt": "they felt less like a warning and more like a promise of something vast and unknowable approaching from the darkness beyond the Wall."
+    }
+  ],
+  "obligation_edges": [
+    {
+      "edge_id": "edge_prophecy_darkness",
+      "source_obligation_id": "obl_prophecy_three_crowns",
+      "target_obligation_id": "obl_plot_darkness",
+      "edge_type": "supports",
+      "weight": 0.75
+    },
+    {
+      "edge_id": "edge_dagger_prophecy",
+      "source_obligation_id": "obl_chekhov_dagger",
+      "target_obligation_id": "obl_prophecy_three_crowns",
+      "edge_type": "depends_on",
+      "weight": 0.65
+    }
+  ]
+}

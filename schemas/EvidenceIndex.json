@@ -1,0 +1,38 @@
+{
+  "description": "Index linking evidence anchors to entities or obligations.\n\nGroups multiple evidence anchors that support a single claim,\nenabling efficient lookup and integrity validation.",
+  "properties": {
+    "index_id": {
+      "description": "Unique identifier for this index entry",
+      "title": "Index Id",
+      "type": "string"
+    },
+    "target_type": {
+      "description": "Type of target: 'entity' or 'obligation'",
+      "pattern": "^(entity|obligation)$",
+      "title": "Target Type",
+      "type": "string"
+    },
+    "target_id": {
+      "description": "ID of the entity or obligation this evidence supports",
+      "title": "Target Id",
+      "type": "string"
+    },
+    "anchor_ids": {
+      "description": "List of evidence anchor IDs supporting this target",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Anchor Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "index_id",
+    "target_type",
+    "target_id",
+    "anchor_ids"
+  ],
+  "title": "EvidenceIndex",
+  "type": "object"
+}

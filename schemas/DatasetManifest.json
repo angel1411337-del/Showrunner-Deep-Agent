@@ -1,0 +1,50 @@
+{
+  "description": "Manifest describing the input dataset.\n\nEnumerates all source files and provides aggregate statistics\nfor validation and reproducibility.",
+  "properties": {
+    "manifest_id": {
+      "description": "Unique identifier for this manifest",
+      "title": "Manifest Id",
+      "type": "string"
+    },
+    "total_documents": {
+      "description": "Total number of input documents",
+      "minimum": 0,
+      "title": "Total Documents",
+      "type": "integer"
+    },
+    "total_characters": {
+      "description": "Total character count across all documents",
+      "minimum": 0,
+      "title": "Total Characters",
+      "type": "integer"
+    },
+    "source_files": {
+      "description": "List of source file paths",
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Files",
+      "type": "array"
+    },
+    "content_hash": {
+      "description": "Hash of concatenated content for integrity",
+      "title": "Content Hash",
+      "type": "string"
+    },
+    "created_at": {
+      "description": "When this manifest was created",
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "manifest_id",
+    "total_documents",
+    "total_characters",
+    "source_files",
+    "content_hash"
+  ],
+  "title": "DatasetManifest",
+  "type": "object"
+}

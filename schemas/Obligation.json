@@ -1,0 +1,90 @@
+{
+  "$defs": {
+    "ObligationCategory": {
+      "description": "Categories of narrative obligations.\n\nMVP categories: plot threads, Chekhov's guns, prophecies/visions, mysteries.",
+      "enum": [
+        "plot_thread",
+        "chekhov_gun",
+        "prophecy_vision",
+        "mystery"
+      ],
+      "title": "ObligationCategory",
+      "type": "string"
+    }
+  },
+  "description": "An unresolved narrative obligation requiring future resolution.\n\nObligations are extracted claims/threads from the text that the\nstory has implicitly promised to resolve. Each must have at least\none evidence anchor for provenance.",
+  "properties": {
+    "obligation_id": {
+      "description": "Unique identifier for this obligation",
+      "title": "Obligation Id",
+      "type": "string"
+    },
+    "category": {
+      "$ref": "#/$defs/ObligationCategory",
+      "description": "Classification of obligation type"
+    },
+    "description": {
+      "description": "Human-readable description of the obligation",
+      "title": "Description",
+      "type": "string"
+    },
+    "evidence_anchor_ids": {
+      "description": "Evidence anchors supporting this obligation (\u22651 required)",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Anchor Ids",
+      "type": "array"
+    },
+    "last_seen_passage_id": {
+      "description": "Most recent passage where this obligation was referenced",
+      "title": "Last Seen Passage Id",
+      "type": "string"
+    },
+    "confidence": {
+      "description": "Confidence score for this extraction (0-1)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "is_resolved": {
+      "default": false,
+      "description": "Whether this obligation has been marked as resolved",
+      "title": "Is Resolved",
+      "type": "boolean"
+    },
+    "resolution_passage_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Passage where resolution occurred (if resolved)",
+      "title": "Resolution Passage Id"
+    },
+    "related_entity_ids": {
+      "description": "Entity IDs related to this obligation",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Entity Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "obligation_id",
+    "category",
+    "description",
+    "evidence_anchor_ids",
+    "last_seen_passage_id",
+    "confidence"
+  ],
+  "title": "Obligation",
+  "type": "object"
+}

@@ -1,0 +1,86 @@
+{
+  "description": "Manifest capturing all metadata for a pipeline run.\n\nEnables reproducibility by tracking git SHA, versions, hashes,\nand configuration for each run.",
+  "properties": {
+    "run_id": {
+      "description": "Unique identifier for this run",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "When the run started",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "git_sha": {
+      "description": "Git commit SHA of the codebase",
+      "title": "Git Sha",
+      "type": "string"
+    },
+    "python_version": {
+      "description": "Python version used (e.g., '3.14.2')",
+      "title": "Python Version",
+      "type": "string"
+    },
+    "segmentation_version": {
+      "description": "Version of segmentation rules used",
+      "title": "Segmentation Version",
+      "type": "string"
+    },
+    "config_hash": {
+      "description": "Hash of the configuration used",
+      "title": "Config Hash",
+      "type": "string"
+    },
+    "input_dataset_hash": {
+      "description": "Hash of the input dataset",
+      "title": "Input Dataset Hash",
+      "type": "string"
+    },
+    "lockfile_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Hash of uv.lock for dependency reproducibility",
+      "title": "Lockfile Hash"
+    },
+    "completed_timestamp": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "When the run completed (None if still running)",
+      "title": "Completed Timestamp"
+    },
+    "status": {
+      "default": "running",
+      "description": "Current run status",
+      "pattern": "^(running|completed|failed)$",
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "timestamp",
+    "git_sha",
+    "python_version",
+    "segmentation_version",
+    "config_hash",
+    "input_dataset_hash"
+  ],
+  "title": "RunManifest",
+  "type": "object"
+}

@@ -1,0 +1,53 @@
+{
+  "$defs": {
+    "EdgeType": {
+      "description": "Types of relationships between obligations.",
+      "enum": [
+        "depends_on",
+        "contradicts",
+        "supports",
+        "duplicates"
+      ],
+      "title": "EdgeType",
+      "type": "string"
+    }
+  },
+  "description": "Edge connecting two obligations in the obligation graph.\n\nRepresents relationships between obligations for reasoning\nabout dependencies, contradictions, and duplicates.",
+  "properties": {
+    "edge_id": {
+      "description": "Unique identifier for this edge",
+      "title": "Edge Id",
+      "type": "string"
+    },
+    "source_obligation_id": {
+      "description": "Source obligation in the relationship",
+      "title": "Source Obligation Id",
+      "type": "string"
+    },
+    "target_obligation_id": {
+      "description": "Target obligation in the relationship",
+      "title": "Target Obligation Id",
+      "type": "string"
+    },
+    "edge_type": {
+      "$ref": "#/$defs/EdgeType",
+      "description": "Type of relationship between obligations"
+    },
+    "weight": {
+      "default": 1.0,
+      "description": "Relationship strength/confidence (0-1)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Weight",
+      "type": "number"
+    }
+  },
+  "required": [
+    "edge_id",
+    "source_obligation_id",
+    "target_obligation_id",
+    "edge_type"
+  ],
+  "title": "ObligationGraphEdge",
+  "type": "object"
+}
