@@ -9,9 +9,12 @@ and resolving entities from passages. It supports:
 - Vehicle limiting rule (threshold-based creation)
 """
 
+from __future__ import annotations
+
 import re
 import uuid
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from showrunner.contracts import (
     AliasEntry,
@@ -22,6 +25,10 @@ from showrunner.contracts import (
     OverrideRule,
     PassageRecord,
 )
+from showrunner.providers import RuleBasedProvider
+
+if TYPE_CHECKING:
+    from showrunner.providers.base import LLMProviderProtocol
 
 # Known artifacts list (swords, weapons, significant items)
 KNOWN_ARTIFACTS = {
@@ -128,14 +135,18 @@ class EntityResolver:
     and the vehicle limiting rule.
     """
 
-    def __init__(self, vehicle_min_mentions: int = 3) -> None:
+    def __init__(
+        self, vehicle_min_mentions: int = 3, provider: LLMProviderProtocol | None = None
+    ) -> None:
         """Initialize the entity resolver.
 
         Args:
             vehicle_min_mentions: Minimum mentions required for vehicle entities
                                   to be created (default 3).
+            provider: Optional LLM provider (future enhancement).
         """
         self.vehicle_min_mentions = vehicle_min_mentions
+        self._provider = provider or RuleBasedProvider()
         self._overrides: list[OverrideRule] = []
         self._ignored_aliases: set[str] = set()
         self._forced_assignments: dict[str, str] = {}  # alias -> entity_id

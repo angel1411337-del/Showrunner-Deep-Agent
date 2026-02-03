@@ -9,9 +9,12 @@ This module implements rule-based extraction (MVP, swappable for LLM) to identif
 Each obligation MUST have >= 1 evidence anchor (hard gate).
 """
 
+from __future__ import annotations
+
 import hashlib
 import re
 from re import Pattern
+from typing import TYPE_CHECKING
 
 from showrunner.contracts import (
     Entity,
@@ -21,6 +24,10 @@ from showrunner.contracts import (
     ObligationCategory,
     PassageRecord,
 )
+from showrunner.providers import RuleBasedProvider
+
+if TYPE_CHECKING:
+    from showrunner.providers.base import LLMProviderProtocol
 
 
 class ObligationExtractor:
@@ -100,9 +107,13 @@ class ObligationExtractor:
         re.compile(r"\bconflict\b.*\b(would not|wouldn't|not end)\b", re.IGNORECASE),
     ]
 
-    def __init__(self) -> None:
-        """Initialize the ObligationExtractor."""
-        pass
+    def __init__(self, provider: LLMProviderProtocol | None = None) -> None:
+        """Initialize the ObligationExtractor.
+
+        Args:
+            provider: Optional LLM provider (future enhancement).
+        """
+        self._provider = provider or RuleBasedProvider()
 
     def extract(
         self,

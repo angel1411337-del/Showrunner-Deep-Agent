@@ -67,6 +67,7 @@ if TYPE_CHECKING:
         ObligationExtractorProtocol,
         QualityGatesProtocol,
     )
+    from showrunner.providers.base import LLMProviderProtocol
 else:
     from showrunner.pipeline import protocols as _protocols
 
@@ -136,6 +137,7 @@ class ComponentFactory:
     """
 
     config: PipelineConfig
+    provider: LLMProviderProtocol | None = None
 
     def create_input_adapter(self) -> InputAdapterProtocol:
         """Create an input adapter for loading documents."""
@@ -153,13 +155,16 @@ class ComponentFactory:
         """Create an entity resolver for extracting and linking entities."""
         from showrunner.resolvers.entity_resolver import EntityResolver
 
-        return EntityResolver(vehicle_min_mentions=self.config.vehicle_min_mentions)
+        return EntityResolver(
+            vehicle_min_mentions=self.config.vehicle_min_mentions,
+            provider=self.provider,
+        )
 
     def create_obligation_extractor(self) -> ObligationExtractorProtocol:
         """Create an obligation extractor."""
         from showrunner.extractors.obligation_extractor import ObligationExtractor
 
-        return ObligationExtractor()
+        return ObligationExtractor(provider=self.provider)
 
     def create_dedupe_merger(self) -> DedupeMergerProtocol:
         """Create a dedupe merger for obligation deduplication."""

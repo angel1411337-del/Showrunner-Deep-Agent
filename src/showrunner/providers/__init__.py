@@ -10,14 +10,19 @@ AnthropicProvider: type[Any] | None
 
 __all__ = ["BaseLLMProvider", "LLMProviderProtocol", "RuleBasedProvider"]
 
-# Conditionally export AnthropicProvider if anthropic is installed
-if importlib.util.find_spec("showrunner.providers.anthropic"):
-    from showrunner.providers import anthropic as _anthropic  # type: ignore[reportMissingImports]
-
-    AnthropicProvider = cast(
-        "type[Any]",
-        _anthropic.AnthropicProvider,  # type: ignore[reportUnknownMemberType]
-    )
-    __all__.append("AnthropicProvider")
+# Conditionally export AnthropicProvider if dependencies are installed
+if importlib.util.find_spec("langchain_anthropic"):
+    try:
+        from showrunner.providers import (
+            anthropic as _anthropic,  # type: ignore[reportMissingImports]
+        )
+    except Exception:
+        AnthropicProvider = None
+    else:
+        AnthropicProvider = cast(
+            "type[Any]",
+            _anthropic.AnthropicProvider,  # type: ignore[reportUnknownMemberType]
+        )
+        __all__.append("AnthropicProvider")
 else:
     AnthropicProvider = None
