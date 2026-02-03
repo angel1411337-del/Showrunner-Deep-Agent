@@ -104,7 +104,7 @@
 
 ## Unit 6: Twist Bank (v0.4)
 **Agent:** tdd-oop
-**Status:** Not Started
+**Status:** Complete
 **Branch:** unit-6-twist-bank
 
 **Owns:**
