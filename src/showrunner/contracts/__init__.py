@@ -22,6 +22,7 @@ from showrunner.contracts.obligation import (
     ObligationCategory,
     ObligationGraphEdge,
 )
+from showrunner.contracts.outline import Beat, ConvergencePoint, OutlineSection
 from showrunner.contracts.quality import Finding, FindingSeverity, MetricsReport
 
 __all__ = [
@@ -49,4 +50,8 @@ __all__ = [
     # Manifest
     "RunManifest",
     "DatasetManifest",
+    # Outline
+    "Beat",
+    "ConvergencePoint",
+    "OutlineSection",
 ]

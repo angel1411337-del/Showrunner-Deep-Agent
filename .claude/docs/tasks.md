@@ -2,7 +2,7 @@
 
 ## Unit 1: Provider Harness
 **Agent:** tdd-oop
-**Status:** Not Started
+**Status:** Complete
 **Branch:** unit-1-providers
 
 **Owns:**
@@ -22,7 +22,7 @@
 
 ## Unit 2: Multi-Format Input Adapters
 **Agent:** data-models
-**Status:** Not Started
+**Status:** Complete
 **Branch:** unit-2-input-formats
 
 **Owns:**
@@ -42,7 +42,7 @@
 
 ## Unit 3: Incremental Pipeline Path
 **Agent:** tdd-oop
-**Status:** Not Started
+**Status:** Complete
 **Branch:** unit-3-incremental
 
 **Owns:**
@@ -63,7 +63,7 @@
 
 ## Unit 4: Outline Planning (v0.2)
 **Agent:** tdd-oop
-**Status:** Not Started
+**Status:** Complete
 **Branch:** unit-4-outline
 
 **Owns:**

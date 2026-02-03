@@ -1,0 +1,1839 @@
+Also remember the initial tech stack: 
+
+Alright Angel, here's a comprehensive breakdown of cutting-edge techniques that could supercharge your ASOIAF project:
+
+---
+
+## **1. RLM (Recursive Language Models)** - The Big One
+**Paper**: arXiv:2512.24601 (Alex Zhang, MIT - December 2025)
+
+This is exactly what you described wanting. Instead of cramming 1.7M words into context:
+- Prompt becomes a **Python variable in a REPL**
+- Model writes code to slice, search, query the text
+- Launches **sub-LLM calls** on specific snippets
+- Handles inputs **100x beyond** native context windows
+- **Comparable cost** to single model calls
+
+**For ASOIAF**: Query "every prophecy mentioning dragons," get exact passages, cross-reference with character chapters, all programmatically. No forgetting.
+
+---
+
+## **2. GraphRAG 2.0 Ecosystem**
+
+The field has matured massively since you started your Halo GraphRAG:
+
+**Key advances:**
+- **FalkorDB GraphRAG SDK**: 90% hallucination reduction, sub-50ms queries [Medium](https://medium.com/@claudiubranzan/from-llms-to-knowledge-graphs-building-production-ready-graph-systems-in-2025-2b4aff1ec99a)
+- **Cognee**: Cognitive memory layer combining graph structures with vector embeddings - specifically for agents that need to reason across sessions [Medium](https://medium.com/@claudiubranzan/from-llms-to-knowledge-graphs-building-production-ready-graph-systems-in-2025-2b4aff1ec99a)
+- **LightRAG**: 10x token reduction vs Microsoft GraphRAG, 65-80% cost savings
+- **GFM-RAG** (NeurIPS 2025): Graph Foundation Model for retrieval
+
+**For ASOIAF**: Build the relationship graph (houses, allegiances, debts, prophecies), then query across it with natural language. "Who owes the Lannisters money and has reason to betray them?"
+
+---
+
+## **3. Zep: Temporal Knowledge Graphs for Agent Memory**
+
+This architecture incorporates semantic and episodic memory alongside entity and community summaries, achieving state-of-the-art on memory benchmarks while reducing token costs. [Getzep](https://blog.getzep.com/content/files/2025/01/ZEP__USING_KNOWLEDGE_GRAPHS_TO_POWER_LLM_AGENT_MEMORY_2025011700.pdf)
+
+**Key innovation**: Tracks when relationships *changed* over time (critical for ASOIAF where alliances shift constantly). Uses label propagation for community detection.
+
+**For ASOIAF**: "Who was allied with the Starks before the Red Wedding vs after?" becomes a queryable timeline.
+
+---
+
+## **4. Mind Map Agent (Agentic Reasoning)**
+
+From the February 2025 paper on deep research:
+
+The Mind Map agent constructs a structured knowledge graph to track logical relationships, improving deductive reasoning. During reasoning, the model proactively embeds specialized tokens (web-search token, coding token, mind-map calling token) to interact with external agents. [arXiv](https://arxiv.org/html/2502.04644v1)
+
+**For ASOIAF**: As the model reasons about plot resolution, it builds a visible map of what it's tracking - which prophecies need resolution, which Chekhov's guns remain unfired.
+
+---
+
+## **5. Multi-Agent Debate (With Caveats)**
+
+The research got more nuanced in 2025-2026:
+
+Multi-Agent Debate: Majority Voting alone accounts for most of the performance gains typically attributed to MAD. Debate induces a martingale over agents' belief trajectories, meaning debate alone does not improve expected correctness. [OpenReview](https://openreview.net/forum?id=iUjGNJzrF1)
+
+**But**: Adaptive Heterogeneous Multi-Agent Debate (A-HMAD) uses diverse specialized agents and dynamic debate coordination. Achieves 4-6% accuracy gains and reduces factual errors by over 30%. [Springer](https://link.springer.com/article/10.1007/s44443-025-00353-3)
+
+**For ASOIAF**: Don't use homogeneous agents all debating the same way. Use:
+- Lore Expert agent (trained on wiki/supplementary material)
+- Prophecy Interpreter agent
+- Character Psychology agent  
+- Plot Structure agent
+- Foreshadowing Tracker agent
+
+Have them debate with assigned expertise, not generic "what do you think?"
+
+---
+
+## **6. Character Generalization & Roleplay Fine-tuning**
+
+**RoleplayLLM framework** (NLPCC 2025):
+Uses two-stage training—Supervised Fine-Tuning (SFT) for foundational alignment, followed by Direct Preference Optimization (DPO) to refine response quality according to human preferences. Outperforms GPT-3.5 on both real and fictional characters. [Springer](https://link.springer.com/chapter/10.1007/978-981-95-3349-7_4)
+
+**OpenCharacter** (September 2025):
+- Character Generalization - models that adapt to *arbitrary* user-defined characters
+- Trained on large-scale synthetic personas
+- Two strategies: response rewriting and direct generation
+
+**For ASOIAF**: Fine-tune separate character voice models on their POV chapters. Tyrion-voice, Jon-voice, Daenerys-voice. Then the agentic system chooses which voice to deploy for which chapter continuation.
+
+---
+
+## **7. CollabStory: Multi-LLM Collaborative Story Generation**
+
+This study focuses on long-form stories in various genres written by either single agents or up to 5 agents. Each agent writes a segment of the story and passes it to the next agent to add their own part, and the process continues until a coherent narrative is produced. [ACL Anthology](https://aclanthology.org/2025.findings-emnlp.750.pdf)
+
+**For ASOIAF**: Instead of one model writing everything, have specialized agents hand off:
+- Plot architecture agent sets the outline
+- Character voice agents write individual POVs
+- Continuity agent checks for contradictions
+- Foreshadowing agent ensures setup/payoff
+
+---
+
+## **8. Self-Evolving Agents with Memory**
+
+The Agent Memory research has exploded:
+
+**MAGMA** (January 2026): Multi-Graph based Agentic Memory Architecture. **EverMemOS**: Self-Organizing Memory Operating System for Structured Long-Horizon Reasoning. [GitHub](https://github.com/Shichun-Liu/Agent-Memory-Paper-List)
+
+These architectures let agents:
+- Learn from their own mistakes during generation
+- Update their knowledge base as they write
+- Maintain memory across *weeks to months* of runtime
+
+---
+
+## **9. Inference-Time Scaling**
+
+Not a single technique but a philosophy that's proven effective:
+
+A lot of LLM benchmark and performance progress will come from improved tooling and inference-time scaling rather than from training or the core model itself. Self-consistency and self-refinement are covered extensively. [Sebastian Raschka](https://magazine.sebastianraschka.com/p/state-of-llms-2025)
+
+**For ASOIAF**: Instead of generating once, have the system:
+1. Generate draft plot point
+2. Self-critique for lore consistency
+3. Refine based on critique
+4. Check against prophecy tracker
+5. Iterate until consistent
+
+---
+
+## **Proposed Architecture Stack for ASOIAF Completion**
+
+```
+Layer 1: RLM (Recursive Language Model)
+├── Manages the 1.7M word corpus as REPL variable
+├── Programmatic search/slice/query
+└── Sub-LLM delegation for specific retrieval
+
+Layer 2: Hybrid GraphRAG (FalkorDB + Cognee)
+├── Entity graph: Characters, Houses, Locations
+├── Temporal edges: Alliances over time
+├── Prophecy nodes linked to foreshadowing passages
+└── Community detection for faction dynamics
+
+Layer 3: Zep-style Temporal Memory
+├── Tracks what the system "knows" evolved
+├── Episodic memory of plot events
+└── Semantic memory of themes/patterns
+
+Layer 4: A-HMAD Multi-Agent Debate
+├── Lore Expert (fine-tuned on supplementary material)
+├── Character Psychologist 
+├── Plot Architect
+├── Prophecy Interpreter
+├── Foreshadowing Tracker
+└── Consensus optimizer weighing agent reliability
+
+Layer 5: Character Voice Models
+├── POV-specific fine-tuned models
+├── RoleplayLLM-style DPO alignment
+└── CollabStory handoff protocol
+
+Layer 6: Self-Consistency Loop
+├── Generate → Critique → Refine
+├── Check against Mind Map of obligations
+└── Iterate until internally consistent
+```
+
+---
+
+**Bottom line**: The technology has converged on exactly the modular, agentic, memory-aware architecture you intuited. The pieces exist. They just need assembly. And crucially - **the trajectory continues**. By the time GRRM potentially passes, this stack will be more capable, cheaper, and easier to deploy.
+
+The garden is about to get crystallized whether the gardener likes it or not.
+
+Based on my research, I've found several additional cutting-edge techniques and tools beyond what was already discussed. Here's what's new:
+
+---
+
+## **ADDITIONAL TOOLS FOR THE ASOIAF AI COMPLETION PROJECT**
+
+### **1. CAUSAL WORLD MODELS FOR NARRATIVE REASONING**
+
+**"Language Agents Meet Causality" (ICLR 2025)**
+- Framework that integrates Causal Representation Learning (CRL) with LLMs
+- Learns a causal world model with variables linked to natural language expressions
+- The causal world model acts as a simulator the LLM can query and interact with
+- **Outperforms standard LLM reasoners, especially for longer planning horizons**
+
+**FOR ASOIAF:** Build a causal model of the story world—if character X does Y, what consequences cascade? Track "if Robb had married a Frey" counterfactuals. Map cause→effect chains for prophecy fulfillment paths.
+
+---
+
+### **2. DIFFUSION LANGUAGE MODELS (DLMs)**
+
+**Google Gemini Diffusion (I/O 2025)**
+- First commercial-grade DLM achieving parity with autoregressive models
+- **1,479 tokens per second**—5x faster than comparable AR models
+- Enables controllable generation via gradient-based methods
+- SEDD (ICML 2024 Best Paper): 6-8× better perplexity than GPT-2 with 32× fewer network evaluations
+
+**LLaDA (2025)**
+- Masked diffusion model trained from scratch challenging autoregressive dominance
+- Demonstrates scalability and competitive results vs LLaMA3
+
+**FOR ASOIAF:** Non-autoregressive generation could enable better global coherence across chapters. Control attributes like tone, pacing, tension level through continuous diffusion steering rather than rigid prompting.
+
+---
+
+### **3. HALLUCINATION DETECTION & CORRECTION SYSTEMS**
+
+**SUScore + ICQ Framework (NLPCC 2025)**
+- Substantive-word Uncertainty Score: Quantifies uncertainty over semantically important tokens (nouns, verbs, numerals)
+- Iterative Chain-Query (ICQ): Multi-step consistency checking with optional RAG enhancement
+- Model-agnostic, requires no retraining
+
+**HaluGate (vLLM, December 2025)**
+- Production-ready token-level hallucination detection
+- 76-162ms overhead—negligible compared to generation times
+- Three-stage pipeline: Prompt classification → Token detection → NLI explanation
+
+**FINCH-ZK (EMNLP 2025)**
+- Zero-knowledge hallucination detection through cross-model consistency
+- Block-level correction with iterative refinement
+- Works without external knowledge bases
+
+**FOR ASOIAF:** Critical for ensuring generated content doesn't contradict established lore. Run every generated passage through SUScore to flag uncertain claims, then ICQ to verify against the GraphRAG knowledge base.
+
+---
+
+### **4. DOME: DYNAMIC HIERARCHICAL OUTLINING WITH MEMORY-ENHANCEMENT (NAACL 2025)**
+
+- Combines novel-writing theory with plan-write framework
+- **Temporal Knowledge Graph (TKG)** stores generated story and tracks relationship evolution
+- **87.61% conflict reduction** through memory-enhancement module
+- Dynamic outline expansion adapts to uncertainty during generation
+
+**How It Works:**
+1. Rough outline generated for story stage
+2. Each outline expanded into detailed outlines based on TKG queries
+3. Partial stories generated, stored in TKG
+4. Semantic filtering keeps historical information concise
+
+**FOR ASOIAF:** Perfect for managing the five-book handoff. Each book's major plot points become outline stages, with the TKG tracking every character relationship, alliance, and debt across all generated content.
+
+---
+
+### **5. SPECULATIVE DECODING MATURATION**
+
+**EAGLE-3 (NVIDIA 2025)**
+- Lightweight autoregressive prediction head attached to target model
+- Eliminates need for separate draft model
+- **3.6× throughput improvements** on H200 GPUs
+
+**Heterogeneous Vocabulary Speculative Decoding (Intel/Weizmann, ICML 2025)**
+- Any draft model can accelerate any target model regardless of vocabulary
+- **2.8× speedup** with off-the-shelf models, no retraining
+- Already integrated into Hugging Face Transformers
+
+**FOR ASOIAF:** Massive generation project benefits enormously from 2-3× speedup. Use small fine-tuned GRRM-voice draft model to propose tokens, verified by larger reasoning model.
+
+---
+
+### **6. LONG-FORM STORY GENERATION FRAMEWORKS**
+
+**AgentWrite (2024-2025)**
+- Decomposes ultra-long generation into subtasks
+- Enables coherent outputs **exceeding 20,000 words**
+
+**Re3 (Recursive Reprompting and Revision)**
+- Constructs structured overarching plan
+- Generates passages by injecting contextual information from plan AND current story state
+- Stories over 2,000 words with maintained coherence
+
+**CogWriter**
+- Training-free framework for constrained long-form generation
+- Systematic cognitive writing paradigm
+- Exceptional on LongGenBench
+
+**FOR ASOIAF:** The multi-book project would use hierarchical decomposition—series outline → book outline → chapter outline → scene. Each level verified against higher-level constraints before expansion.
+
+---
+
+### **7. CONTEXT CACHING FOR MASSIVE CORPORA**
+
+**Strata: Hierarchical Context Caching (August 2025)**
+- Up to **3.75× improvement** in time-to-first-token on long-context workloads
+- Layer-wise KV cache transfer overlapping
+- Exploits GPU, CPU, DRAM, SSD hierarchy
+
+**Epic: Position-Independent Context Caching**
+- **7× throughput improvement** vs existing systems
+- AttnLink algorithm leverages static attention sparsity
+- KVSplit customizable chunking strategy
+- Works even when token order differs across requests
+
+**FOR ASOIAF:** The 1.7M word corpus would benefit enormously from caching. When generating Chapter X, the KV cache from previous chapters remains available without recomputation. Position-independent caching allows querying any part of the corpus without prefix matching.
+
+---
+
+### **8. NARRATIVE CONSISTENCY & CHARACTER TRACKING**
+
+**Character Network Analysis for LLM Stories (NeurIPS 2025 Workshop)**
+- Extracts relationship networks from generated stories
+- Analyzes subgraph density (positive vs negative relationships)
+- Automated large-scale coherence evaluation
+
+**TLDM Benchmark: Too Long, Didn't Model (May 2025)**
+- State-oriented narrative understanding tasks
+- Tests how models represent state up to a given point in a novel
+- Decomposable ground construction (novel summary = concatenated chapter summaries)
+
+**Contradiction Detection in RAG (March 2025)**
+- Framework to detect contradictory information in retrieved document sets
+- Critical for handling rapidly evolving domains with conflicting facts
+
+**FOR ASOIAF:** Use character network analysis to verify generated content maintains proper relationship structures. TLDM-style decomposition lets you verify each chapter's state matches accumulated story state.
+
+---
+
+### **9. MULTI-AGENT STORY GENERATION WITH NON-LINEAR NARRATION**
+
+**Story Generator with Literary Theory (2025)**
+- Multi-agent structure: Story Starter → Outline Writing → Story Expander → Story Ender
+- Long-term memory (prevents theme drift) + Short-term memory (latest outlines)
+- **Story theme obstacle framework** based on narratology theory
+- Knowledge graph integration for introducing uncertainty and maintaining appeal
+
+**Agents' Room (ICLR 2025)**
+- Multi-step collaboration for narrative generation
+- Distinct cognitive perspectives and domain expertise per agent
+
+**FOR ASOIAF:** Story Starter = premise from existing books. Outline Writing agent generates possible chapter directions. Story Expander uses character voice models. Story Ender ensures Chekhov's guns fire and prophecies resolve.
+
+---
+
+## **UPDATED COMPREHENSIVE ARCHITECTURE STACK**
+
+```
+Layer 0: Context Caching (Strata/Epic)
+├── Cache entire ASOIAF corpus KV
+├── Position-independent retrieval
+└── 3-7× speedup on repeated queries
+
+Layer 1: RLM (Recursive Language Model)
+├── Manages 1.7M word corpus as REPL variable
+├── Programmatic search/slice/query
+└── Sub-LLM delegation for specific retrieval
+
+Layer 2: Hybrid GraphRAG (FalkorDB + Cognee)
+├── Entity graph: Characters, Houses, Locations
+├── Temporal edges: Alliances over time
+├── Prophecy nodes linked to foreshadowing passages
+└── Community detection for faction dynamics
+
+Layer 3: Causal World Model
+├── Cause→effect chains for plot events
+├── Counterfactual reasoning
+└── Prophecy fulfillment path tracking
+
+Layer 4: Zep-style Temporal Memory
+├── Tracks what system "knows" evolved
+├── Episodic memory of plot events
+└── Semantic memory of themes/patterns
+
+Layer 5: A-HMAD Multi-Agent Debate
+├── Lore Expert
+├── Character Psychologist
+├── Plot Architect
+├── Prophecy Interpreter
+├── Foreshadowing Tracker
+└── Consensus optimizer weighing agent reliability
+
+Layer 6: DOME Hierarchical Outlining
+├── Dynamic outline expansion
+├── TKG for conflict detection
+└── 87% conflict reduction
+
+Layer 7: Character Voice Models (RoleplayLLM + OpenCharacter)
+├── POV-specific fine-tuned models
+├── DPO alignment for character consistency
+└── CollabStory handoff protocol
+
+Layer 8: Diffusion LM for Controllable Generation
+├── Gradient-based control over style/tone
+├── Non-autoregressive coherence
+└── 5× generation speed
+
+Layer 9: Hallucination Detection Pipeline
+├── SUScore for uncertainty quantification
+├── ICQ multi-step verification
+├── HaluGate token-level detection
+└── Cross-reference against GraphRAG
+
+Layer 10: Speculative Decoding
+├── EAGLE-3 for throughput
+├── Heterogeneous vocabulary support
+└── 2-3× overall speedup
+
+Layer 11: Self-Evolving Memory (MAGMA/EverMemOS)
+├── Learns from generation mistakes
+├── Updates knowledge base dynamically
+└── Maintains memory across weeks/months
+
+Layer 12: Inference-Time Scaling Loop
+├── Generate → Critique → Refine
+├── Check against Mind Map of obligations
+└── Iterate until internally consistent
+```
+
+---
+
+The technology stack has gotten significantly more sophisticated. The combination of **causal world models** (understanding why things happen), **diffusion LMs** (controllable generation), **hallucination detection** (ensuring accuracy), and **context caching** (making it computationally feasible) represents a quantum leap from even 2024 capabilities.
+
+GRRM's race against time just got even more lopsided.
+
+
+| Expert(s)   | DataOps Engineer; MLOps Engineer; Agentic Systems Engineer; Narrative Systems Architect                                                                                                                             |
+| :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Question    | Integrate the “initial tech stack” research list into the Showrunner Agent architecture, clarifying what becomes MVP vs Final, and confirm we’re using the latest practical tooling (Python, etc.).                 |
+| Goal        | Turn the research buffet into a **tracked, layered implementation plan**: what each technique is for, where it plugs into the orchestrator, how it’s enforced, and what we intentionally defer.                     |
+| Plan        | 1) Normalize everything into capability buckets → 2) Map each to **MVP / Final** layers → 3) Define the **harness hooks** (contracts, gates, telemetry) that make it reliable → 4) Lock “latest tooling” baselines. |
+| Assumptions | We keep **evidence-anchored outputs** as non-negotiable; we prefer **simple MVP plumbing** over fancy infra; later modules are additive (don’t break core artifacts).                                               |
+
+---
+
+## 🧠 q=deep orchestrator agent RLM GraphRAG temporal memory mind-map agents long-form narrative consistency hallucination detection speculative decoding context caching
+
+### 1) What we “have” right now (after you re-pasted the initial stack)
+
+You’ve basically defined a **modular Showrunner Agent** where:
+
+* **Core truth substrate (MVP)** = *Corpus tooling + Evidence anchors + Entity resolution + Obligations ledger + Export docs*
+* **Reliability substrate (Phase 2/3)** = *World state + contradiction checks + reveal legality + better ER/personas*
+* **Planning/creative substrate (Phase 3/4)** = *Outlines + reveal ledger + twist bank + ending candidates*
+* **Optional performance / next-gen generation (later)** = *context caching, speculative decoding, diffusion LMs, etc.*
+
+That’s the key simplification: **most of the “stack” is not required to produce serious writer value**—it becomes accelerators, quality multipliers, or new creative capabilities once the canon substrate is stable.
+
+---
+
+### 2) Tech stack tally → where it plugs into the architecture
+
+Below is the “ledger view” of your initial research list: **Capability → Technique → Where it lives → MVP vs Final → What it enforces**
+
+#### A) Corpus access & evidence anchoring (non-negotiable backbone)
+
+* **RLM / REPL-style corpus control** (your “corpus as variable + slice/search + subcalls” idea)
+
+  * **Lives in:** Canon Indexer + Retrieval Tools (`corpus_grep`, `corpus_slice`, `chapter_lookup`)
+  * **Stage:** **MVP**
+  * **Enforces:** every extracted claim can point to a passage ID (evidence anchor)
+
+*(You cited the RLM paper arXiv:2512.24601; we’ll treat it as the conceptual model for this layer.)* ([arXiv][1])
+
+#### B) Knowledge substrate (graph + temporal + memory)
+
+* **GraphRAG ecosystem (FalkorDB / LightRAG / “GraphRAG 2.0”)**
+
+  * **Lives in:** Knowledge Layer (graph+vector)
+  * **Stage:** **Final** (optional earlier if you want faster query + richer relations)
+  * **Enforces:** structured relationship queries + provenance back to text
+
+FalkorDB GraphRAG SDK (as named in your list) would sit here. ([GitHub][2])
+
+* **Zep temporal memory / episodic + semantic summaries**
+
+  * **Lives in:** Temporal Memory store (timeline-indexed “what changed when”)
+  * **Stage:** **Phase 2/Final**
+  * **Enforces:** time-aware queries (“before vs after”) and durable agent memory behaviors ([Zep][3])
+
+#### C) “Mind map agents” (you’re right: these are not a footnote)
+
+* **Mind Map Agent** (explicit structured map of obligations / dependencies / reasoning state)
+
+  * **Lives in:** Obligation Extractor + Planning/Verification loops
+  * **Stage:** **MVP+** (you can implement a pragmatic version immediately)
+  * **Enforces:**
+
+    * no “floating” obligations without links
+    * visible dependency graph (“A depends on B”)
+    * coverage checks (“what’s still unaccounted for?”)
+
+This maps directly onto your **obligations ledger + obligation_graph** artifacts, and it becomes the *control panel* for twist/ending generation. ([arXiv][4])
+
+> Practical take: in *our* system, “Mind Map Agent” isn’t a fancy reasoning trick—it’s the **UI-less internal control graph** that prevents the agent from losing track of promises the story made.
+
+#### D) Quality control: hallucinations / contradictions / legality gates
+
+* **Hallucination detection pipelines (SUScore/ICQ, HaluGate, etc.)**
+
+  * **Lives in:** QA / Guard Layer
+  * **Stage:** **Phase 2+** (MVP can do “evidence-required” first, then add detectors)
+  * **Enforces:** flag uncertain claims, force re-check against evidence, block invented canon where required ([Python Developer's Guide][5])
+
+#### E) Planning frameworks for long-form writing (structure)
+
+* **DOME hierarchical outlining with memory enhancement**
+
+  * **Lives in:** Story Planning (outline expansion) + TKG/state
+  * **Stage:** **Phase 3/Final**
+  * **Enforces:** outline → expand → verify against state; reduces conflicts via memory-linked checks ([Python.org][6])
+
+* **CollabStory / multi-LLM handoff**
+
+  * **Lives in:** Generation pipeline (handoff protocol across agents)
+  * **Stage:** **Phase 4/Final**
+  * **Enforces:** segment ownership + continuity agent signoff
+
+#### F) Creative “reach” for sci-fi / new-direction twists
+
+* **Causal world models**
+
+  * **Lives in:** Optional “Simulator” module (cause→effect checks, counterfactual planning)
+  * **Stage:** **Final**
+  * **Enforces:** twist plausibility under world rules (“if X then consequences Y/Z”)
+
+* **Character voice generalization / fine-tuning**
+
+  * **Lives in:** Voice Catalog + constrained generation
+  * **Stage:** **Phase 4/Final**
+  * **Enforces:** POV voice constraints + arc constraints during drafting
+
+#### G) Performance accelerators (explicitly optional)
+
+* **Context caching (Strata/Epic)**, **speculative decoding (EAGLE-3)**, diffusion LMs
+
+  * **Lives in:** Serving / Perf layer
+  * **Stage:** **Later**
+  * **Enforces:** not story correctness—just throughput/cost improvements ([Python documentation][7])
+
+---
+
+### 3) “Latest tooling” baseline (Python + why)
+
+**Python 3.12 is not the latest major.** As of your current timeframe, **Python 3.14.x** is the newest major release line, and python.org lists **3.14.2** among the latest releases. ([Python.org][8])
+
+So:
+
+* **Baseline target:** **Python 3.14.x** for “latest tooling” builds. ([Python.org][8])
+* **Compatibility reality:** if any key deps lag on 3.14, you can pin runtime to 3.13/3.12 for a short period—but the “latest-first” target is 3.14.
+
+---
+
+### 4) How this changes the architecture doc (what we should update)
+
+Your existing “ASOIAF Showrunner Orchestrator — Architecture (MVP → Final)” is already structurally correct. The update is mainly:
+
+1. **Add a “Techniques ↔ Components” appendix**
+
+   * a table exactly like section (2) above, with links and “MVP/Phase/Final” tags
+
+2. **Promote Mind Map to a first-class control plane**
+
+   * not just “obligations extractor,” but the thing that drives:
+   * coverage reports, dependency edges, twist candidate generation constraints, ending scoring
+
+3. **Clarify the “optional performance” bucket**
+
+   * keep caching/spec-decoding/diffusion explicitly *out* of MVP acceptance tests
+
+4. **Lock Python baseline**
+
+   * set repo config + CI to Python 3.14.x (with an escape hatch if a dependency forces 3.13)
+
+---
+
+If you want, next I can produce **“Appendix A: Tech Stack Tally (Tracked)”** as a clean, PM-friendly section you can paste into the architecture pack (with one row per technique: purpose, component, enforcement hook, phase, link).
+
+[1]: https://arxiv.org/abs/2512.24601?utm_source=chatgpt.com "Recursive Language Models"
+[2]: https://github.com/FalkorDB/GraphRAG-SDK?utm_source=chatgpt.com "FalkorDB/GraphRAG-SDK: Build fast and accurate GenAI ..."
+[3]: https://blog.getzep.com/content/files/2025/01/ZEP__USING_KNOWLEDGE_GRAPHS_TO_POWER_LLM_AGENT_MEMORY_2025011700.pdf?utm_source=chatgpt.com "ZEP:ATEMPORAL KNOWLEDGE GRAPH ARCHITECTURE ..."
+[4]: https://arxiv.org/abs/2502.04644?utm_source=chatgpt.com "Agentic Reasoning: Reasoning LLMs with Tools for the Deep Research"
+[5]: https://devguide.python.org/versions/?utm_source=chatgpt.com "Status of Python versions"
+[6]: https://www.python.org/downloads/release/python-3130/?utm_source=chatgpt.com "Python Release Python 3.13.0"
+[7]: https://docs.python.org/3/whatsnew/3.13.html?utm_source=chatgpt.com "What's New In Python 3.13"
+[8]: https://www.python.org/downloads/?utm_source=chatgpt.com "Download Python"
+
+
+Create a part two to thia architecture with the sci-fi enhancement and the core loops and protections we have developed in place:
+
+ASOIAF Showrunner Orchestrator — Architecture (MVP → Final)
+
+1) Purpose
+
+Build a deep orchestrator agent on a Deep Agents-style harness (planning + filesystem + subagents) that can:
+
+Ingest a long story corpus (e.g., ASOIAF) as searchable, referenceable passages
+
+Maintain a living series bible (state, timelines, who-knows-what)
+
+Maintain an obligations ledger (unresolved plots, Chekhov guns, prophecies, mysteries)
+
+Generate writer-ready documents (dossiers, outlines, reveal tables)
+
+Propose ending candidates and twists that are congruent with existing text
+
+Enforce verification gates to reduce contradictions and invented canon
+
+
+This doc defines:
+
+MVP: the smallest build that produces real writer value
+
+Final product: the complete “showrunner pipeline” target state
+
+
+
+---
+
+2) Scope boundaries
+
+In scope
+
+Evidence-anchored extraction from a corpus you are allowed to process
+
+Structured artifacts: Markdown, JSON, CSV
+
+Iterative generate → verify → revise loops
+
+Entity resolution, timelines, belief/knowledge tracking
+
+
+Out of scope (for MVP)
+
+GPU serving optimizations (KV caching, speculative decoding)
+
+Diffusion LMs
+
+Heavy multi-agent debate as default
+
+Fully automated “publishable prose” without human editing
+
+
+
+---
+
+3) Users and workflows
+
+Primary user
+
+Writer / showrunner: wants clean handoff docs and planning support
+
+
+Secondary users
+
+Continuity editor: wants contradiction checks and state correctness
+
+Tooling engineer: wants reproducible runs, logs, and diffable outputs
+
+
+
+---
+
+4) Core artifacts (the product output)
+
+These files are the product.
+
+Canon indexing artifacts
+
+canon/passages.jsonl — passage ID + text + location metadata
+
+canon/index.sqlite — lookup tables (by book/chapter, offsets, tokens)
+
+canon/evidence_index.jsonl — stable references to evidence passages
+
+
+Knowledge & state artifacts
+
+kb/entities.json — canonical entity registry (people, places, groups, artifacts, titles)
+
+kb/aliases.json — alias → entity candidates (with provenance)
+
+kb/world_state.json — time-indexed state snapshot (alive/dead, location, allegiance, possessions)
+
+kb/belief_state/ — per-character belief/knowledge snapshots by timeline checkpoint
+
+
+Obligation artifacts
+
+obligations/obligations.json — plots/guns/prophecies/mysteries ledger
+
+obligations/obligation_graph.json — edges: introduced_by, echoed_by, depends_on, resolves, contradicts
+
+
+Writer-facing exports
+
+exports/Unresolved_Threads_Dossier.md
+
+exports/master_outline_books_6_7.md
+
+exports/themes_and_thesis.md
+
+exports/mysteries_reveals_table.csv
+
+exports/pacing_plan.md
+
+exports/ending_candidates/ (structured + writer summaries)
+
+exports/twist_bank.md
+
+
+
+---
+
+5) High-level system architecture
+
+A) MVP system context
+
+┌───────────────────────────────────┐
+User Request ───►│ Deep Orchestrator (Deep Agents harness) │
+                │  - planning (todo list)           │
+                │  - tool calls                     │
+                │  - subagent delegation            │
+                └──────────────┬────────────────────┘
+                               │
+         ┌─────────────────────┼──────────────────────┐
+         │                     │                      │
+┌────────▼────────┐   ┌────────▼─────────┐   ┌────────▼──────────┐
+│ Canon Indexer    │   │ Extractors        │   │ Verifiers          │
+│ - chunk/ID text  │   │ - obligations     │   │ - dedupe           │
+│ - grep/slice     │   │ - entities/aliases│   │ - contradictions   │
+└────────┬────────┘   └────────┬─────────┘   └────────┬──────────┘
+         │                     │                      │
+         └──────────┬──────────┴───────────┬──────────┘
+                    │                      │
+            ┌───────▼────────┐    ┌────────▼──────────┐
+            │ Stores (files)  │    │ Export Renderer     │
+            │ - json/csv/md   │    │ - dossier + tables  │
+            └─────────────────┘    └────────────────────┘
+
+B) Final product system context
+
+Adds: Graph DB, temporal graph, richer scoring, automated chapter packet generation, optional serving/perf modules.
+
+┌──────────────────────────────────────────┐
+User Request ───►│ Deep Orchestrator (Showrunner Agent)     │
+                │ - planning + subagents + iteration loops │
+                └───────────────┬──────────────────────────┘
+                                │
+   ┌────────────────────────────┼─────────────────────────────┐
+   │                            │                             │
+┌──▼─────────────┐     ┌────────▼─────────┐          ┌────────▼─────────┐
+│ Retrieval Layer │     │ Knowledge Layer   │          │ QA / Guard Layer  │
+│ - corpus tools  │     │ - graph + vector  │          │ - contradiction    │
+│ - evidence packs│     │ - temporal memory │          │ - reveal legality  │
+└──┬─────────────┘     └────────┬─────────┘          └────────┬─────────┘
+   │                             │                             │
+   └───────────────┬─────────────┴──────────────┬──────────────┘
+                   │                            │
+           ┌───────▼─────────┐         ┌────────▼──────────┐
+           │ Story Planning    │         │ Generation         │
+           │ - outlines        │         │ - voice constrained│
+           │ - reveals/pacing  │         │ - chapter packets  │
+           └────────┬─────────┘         └────────┬──────────┘
+                    │                            │
+                    └──────────┬─────────────────┘
+                               │
+                      ┌────────▼─────────┐
+                      │ Exports + APIs    │
+                      │ - docs + bundles  │
+                      │ - UI (optional)   │
+                      └───────────────────┘
+
+
+---
+
+6) Component breakdown
+
+6.1 Deep Orchestrator (Deep Agents Harness)
+
+Responsibilities
+
+Decompose requests into repeatable jobs (plan → execute → verify → export)
+
+Maintain job state on disk (idempotent runs)
+
+Delegate to subagents for narrow passes (ER, prophecy extraction, continuity audit, export)
+
+
+Harness capabilities leveraged
+
+Planning: generate and update a TODO list for each run (keeps work structured)
+
+Filesystem as working memory: read/write/edit artifacts; treat outputs as diffable product
+
+Subagent delegation: spawn specialist passes without polluting supervisor context
+
+Skills / middleware (later): package reusable instruction bundles and add reusable guardrails
+
+
+Inputs
+
+User prompts (build dossier, build outline, generate twist bank)
+
+Existing artifacts in the workspace
+
+
+Outputs
+
+Updated artifacts + exports
+
+
+
+---
+
+6.2 Canon Indexer (RLM-ish corpus tools)
+
+Responsibilities
+
+Split text into stable passage IDs: book/chapter/paragraph (plus offsets)
+
+Provide tools:
+
+corpus_grep(query)
+
+corpus_slice(passage_id, window)
+
+chapter_lookup(book, chapter)
+
+
+
+Why it exists
+
+Evidence anchoring (no “trust me” summaries)
+
+Cheap retrieval loops
+
+
+
+---
+
+6.3 Entity Resolution (ER)
+
+Responsibilities
+
+Build entities.json (canonical IDs)
+
+Build aliases.json with provenance
+
+Resolve mentions to entities with confidence
+
+Support personas (e.g., Theon/Reek) and transferable titles
+
+
+MVP approach
+
+Two-stage linker:
+
+1. candidate generation (string match + alias table + embeddings)
+
+
+2. rerank/decision pass (LLM or classifier)
+
+
+
+Human overrides: overrides.yml wins over model guesses
+
+
+
+---
+
+6.4 Obligation Extractor (Mind-map / obligations ledger)
+
+Responsibilities
+
+Extract candidates for:
+
+plot threads
+
+Chekhov guns
+
+prophecies/visions
+
+mysteries
+
+debts/oaths
+
+
+Attach evidence and “last seen”
+
+Maintain dependencies and status
+
+
+Core rule
+
+No obligation entry without at least one evidence anchor.
+
+
+
+---
+
+6.5 State & Belief Tracking
+
+Responsibilities
+
+Maintain world_state.json snapshots
+
+Maintain per-character belief state snapshots
+
+
+Used for
+
+Preventing knowledge leaks
+
+Making twist/ending proposals plausible
+
+
+
+---
+
+6.6 Verification gates
+
+Responsibilities
+
+Dedupe (merge duplicates across POVs)
+
+Contradiction checks (time/location/death)
+
+Reveal legality checks (don’t reveal early)
+
+Coverage reports (what % of key obligations are tracked)
+
+
+
+---
+
+6.7 Export Renderer
+
+Responsibilities
+
+Convert structured stores into writer-ready docs
+
+Produce:
+
+dossier
+
+outlines
+
+reveal ledger
+
+pacing plan
+
+ending candidate pack
+
+twist bank
+
+
+
+
+---
+
+7) MVP definition (what ships first)
+
+MVP goal
+
+Generate a writer-ready Unresolved Threads Dossier with evidence anchors.
+
+MVP features
+
+1. Corpus indexing + grep/slice tools
+
+
+2. Entity registry (basic) + alias table (basic)
+
+
+3. Obligation ledger extraction (plots/guns/prophecies)
+
+
+4. Dedupe + confidence scoring
+
+
+5. Export to Unresolved_Threads_Dossier.md
+
+
+
+MVP non-goals
+
+Full graph database
+
+Full belief-state correctness
+
+Ending generation as default
+
+Performance acceleration
+
+
+MVP acceptance tests
+
+Dossier contains:
+
+categorized sections (plots/guns/prophecies)
+
+evidence references for each item
+
+last-seen chapter locations
+
+confidence score
+
+
+
+
+---
+
+8) Final product definition (what we’re building toward)
+
+Final product goal
+
+A full showrunner pipeline that can maintain the canon substrate while producing:
+
+outlines
+
+reveal schedules
+
+twist banks
+
+ending candidates
+
+chapter packets
+
+
+Final product features
+
+Full ER with personas + title transfer modeling
+
+Temporal knowledge graph (alliances, debts, event ordering)
+
+Belief-state tracking robust enough for reveal legality
+
+Twist generator constrained by obligations + state
+
+Ending generator with scoring + required bridging scenes
+
+Continuous update loop: every output updates state + obligations
+
+
+Optional performance modules
+
+Context caching
+
+Speculative decoding
+
+
+
+---
+
+9) Roadmap (phased)
+
+Phase 0 — Workspace + harness
+
+Repo layout + deterministic runs
+
+Deep orchestrator skeleton on a Deep Agents-style harness (planning + files + subagents)
+
+
+Phase 1 — MVP dossier
+
+Index corpus → extract obligations → export dossier
+
+
+Phase 2 — Reliability
+
+World state ledger + contradiction checks
+
+Better ER (aliases, personas)
+
+
+Phase 3 — Planning outputs
+
+Master outline (Books 6–7)
+
+Themes + reveal ledger + pacing plan
+
+
+Phase 4 — Creative exploration
+
+Twist bank generator + scoring
+
+Ending candidates + bridging scenes
+
+
+Phase 5 — Full showrunner loop
+
+Chapter packet generation
+
+Update state/obligations after each chapter
+
+
+
+---
+
+10) Interfaces (tool contracts)
+
+Retrieval tools
+
+corpus_grep(query: str) -> list[Hit]
+
+corpus_slice(passage_id: str, window: int) -> str
+
+
+ER tools
+
+resolve_mention(mention: str, context: str) -> {entity_id, confidence, rationale}
+
+
+Obligation tools
+
+extract_obligations(passages: list[str]) -> list[ObligationCandidate]
+
+merge_obligations(candidates) -> obligations.json
+
+
+Verification tools
+
+check_contradictions(changes) -> list[Finding]
+
+check_reveal_legality(chapter_slot, reveals_table) -> list[Finding]
+
+
+Export tools
+
+render_dossier(obligations.json) -> exports/*.md
+
+
+
+---
+
+11) Risks and mitigations
+
+Risk: Entity confusion (titles, disguises)
+
+Mitigation: personas + title nodes + overrides
+
+Risk: Invented canon (hallucinations)
+
+Mitigation: evidence-anchored entries + contradiction checks + forced citations
+
+Risk: Overfitting to one ending
+
+Mitigation: produce multiple candidates with tradeoff notes
+
+Risk: Unbounded scope
+
+Mitigation: MVP only ships dossier + core stores
+
+
+---
+
+12) Glossary
+
+Obligation: any setup the story implicitly promises to address (thread, gun, prophecy, mystery)
+
+Evidence anchor: a stable pointer to exact text passages supporting an item
+
+Reveal legality: whether a reveal occurs at a time/POV consistent with who can know it
+
+Belief state: what a character knows/suspects at a given time
+
+
+
+
+
+
+| Expert(s)   | Technical Product Manager; DataOps Engineer; Agentic Systems Engineer                                                                                                                                                                  |
+| :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Question    | Apply the tooling updates to the locked PRD-lite while preserving all previously locked product decisions.                                                                                                                             |
+| Goal        | Produce a PM-runnable PRD with the same scope/requirements, but with an updated “latest tooling” baseline, enforceable contract gates, and a clear upgrade discipline.                                                                 |
+| Plan        | Patch only what’s necessary: (1) small wording in summary to name the harness + runtime, (2) replace Section 12 with the updated stack, (3) add a short tooling governance appendix (12A), (4) add one milestone note for CI/lockfile. |
+| Assumptions | Local-first MVP; contract-first with Pydantic; artifact-driven pipeline; passive mode via git hooks; stable paragraph anchors.                                                                                                         |
+
+---
+
+# PRD-Lite (Locked) — Showrunner Orchestrator (MVP → V1) — **Tooling Updated (Feb 2026)**
+
+## 1) Product Summary
+
+A contract-driven deep orchestrator agent on a **Deep Agents harness** (planning + filesystem + subagents) and a **LangGraph v1** stage DAG runtime that:
+
+* Ingests a long narrative corpus as stable, evidence-addressable passages
+* Builds a living canon substrate (entities, obligations, state) with provenance
+* Produces writer-ready planning docs (dossier first; then master outline, reveal ledger, twist bank)
+* Supports passive, incremental structuring via git hooks
+* Supports non-linear drafting (beginning/middle/end) and world-first sci-fi later in V1+
+
+North Star: series-scale continuity and planning without hallucinated canon, with progressive enforcement.
+
+---
+
+## 2) Target Users
+
+Primary: Writer / Showrunner
+Secondary: Continuity Editor; Tooling Engineer (internal)
+
+---
+
+## 3) Jobs To Be Done (JTBD)
+
+1. Extract unresolved obligations with evidence so a writer can resume confidently.
+2. Maintain a structured canon substrate that remains stable across reruns.
+3. Generate planning artifacts in priority order:
+   **Dossier → Master Outline → Reveal Ledger → Twist Bank**
+4. Passively accumulate structure during writing with minimal friction (git hooks).
+
+---
+
+## 4) Inputs (Locked)
+
+### MVP corpus input
+
+Supported input forms (either/or):
+
+* Single plain-text file, OR
+* Folder of chapter files (one file per chapter/scene)
+
+Requirement: implement an **Input Adapter** interface so both formats normalize to the same internal `DocumentUnit` model:
+
+* `source_id`, `source_path`, `order_hint`, `raw_text`, optional metadata (book/chapter labels if available)
+
+---
+
+## 5) Evidence Anchors (Locked)
+
+### Anchor granularity
+
+Paragraph-level anchors for MVP (default).
+IDs stable across reruns whenever text and segmentation rules are unchanged.
+
+### Passage ID policy (MVP)
+
+`passage_id = <source_id>:<paragraph_index>`
+(plus optional character offsets in evidence index)
+
+---
+
+## 6) Entity Resolution Scope (Locked)
+
+### MVP ER targets
+
+* People, Places, Groups
+* Titles (e.g., “Hand of the King”)
+* Artifacts (e.g., named weapons, objects, books)
+* Vehicles: limited (only when explicitly named and recurring / plot-relevant)
+
+### Vehicle limiting rule (MVP)
+
+Vehicle entities only created if either:
+
+* appears ≥ N times (config, default 3), OR
+* explicitly tagged as important by the system (high-confidence) or by user override
+
+---
+
+## 7) Enforcement stance (Locked)
+
+* Hard evidence gates for obligations/claims (no entry without ≥1 evidence anchor)
+* Soft contradiction checks in MVP (WARN findings; do not fail the run)
+
+---
+
+## 8) MVP Definition (Release v0.1) — “Dossier”
+
+### MVP Goal
+
+Generate a writer-ready Unresolved Threads Dossier with evidence anchors, deduping, last-seen locations, and confidence.
+
+### MVP Deliverables
+
+**Exports**
+
+* `exports/Unresolved_Threads_Dossier.md`
+
+**Stores**
+
+* `canon/passages.jsonl`
+* `canon/evidence_index.jsonl`
+* `canon/index.sqlite`
+* `kb/entities.json`
+* `kb/aliases.json`
+* `obligations/obligations.json`
+* `qa/findings.jsonl`, `qa/metrics.json`
+* `run_manifest.json` + dataset manifests + tool call audit log
+
+### MVP Functional Requirements
+
+1. Canon Indexer
+
+* normalize input → stable paragraph passages
+* build sqlite lookup by source/chapter/order_hint
+
+2. ER v1
+
+* build entity registry and alias table
+* support overrides (human wins)
+* tag entity type (person/place/group/title/artifact/vehicle)
+
+3. Obligation Extractor v1
+   Categories: plot thread / Chekhov gun / prophecy-vision / mystery
+   Each obligation must include:
+
+* evidence anchors (≥1)
+* last-seen reference (source_id + passage_id)
+* confidence score
+
+4. Dedupe/Merge
+
+* merge near-duplicate obligations across POVs
+
+5. Export Renderer
+
+* renders dossier only from validated stores
+
+6. Gates
+
+* schema validation, referential integrity
+* evidence gate is ERROR if violated
+* contradictions are WARN only (MVP)
+
+### MVP Acceptance Criteria
+
+* 100% of obligations have ≥1 evidence anchor
+* Each entry includes last-seen + confidence
+* Rerun with identical inputs produces stable IDs and materially identical dossier structure (ordering rules deterministic)
+* Findings file exists with at least: schema validation results, ER ambiguity count, dedupe metrics
+
+---
+
+## 9) V1 Priorities (Locked Order)
+
+After v0.1 dossier:
+
+### v0.2 — Master Outline
+
+* `exports/master_outline_books_6_7.md` (or equivalent “series continuation outline” if not ASOIAF-specific)
+* Outline derived from obligations + entity/state substrate
+* Includes convergence points + required bridging beats (high level)
+
+Acceptance focus: measurable coverage mapping: “which obligations are addressed where” (even if soft).
+
+### v0.3 — Reveal Ledger
+
+* `exports/mysteries_reveals_table.csv`
+* Tracks: mystery, candidate truths, reveal placement slot, who learns what when (initially coarse)
+
+Acceptance focus: every reveal entry points back to a mystery/obligation node and references evidence anchors.
+
+### v0.4 — Twist Bank
+
+* `exports/twist_bank.md`
+* Twists constrained by:
+
+  * obligations ledger
+  * state plausibility (coarse)
+  * evidence congruence (no invented canon claims)
+
+Acceptance focus: each twist includes: affected obligations, required setup/backfill suggestions, and risk notes.
+
+---
+
+## 10) Passive Mode (V1) — Git Hooks First (Locked)
+
+### First implementation
+
+Git hooks (pre-commit or post-commit) trigger micro-runs:
+
+* detect changed text files
+* re-index only changed sources
+* re-run ER/obligations only on impacted passages
+* update manifests + findings + review queue
+
+### UX principle
+
+Default: silent capture
+Questions flow into `review/queue.jsonl` (non-blocking)
+
+---
+
+## 11) Quality Metrics (MVP → V1)
+
+### MVP
+
+* obligations-with-evidence rate (target 100%)
+* ER ambiguity rate (track)
+* obligation dedupe rate (track)
+* runtime/cost per run (track)
+
+### V1
+
+* “coverage map completeness” for outline/reveals
+* contradiction rate per 10k words (trend down)
+* review queue staleness (trend down)
+
+---
+
+## 12) Tech Stack Guidance (Locked for MVP) — **UPDATED FOR LATEST TOOLING**
+
+### 12.1 Runtime baseline (latest usable)
+
+* **Python:** 3.14.x baseline (start on 3.14.2); keep a temporary fallback path to 3.13.x only if a critical dependency blocks 3.14.
+* **Orchestration runtime:** LangGraph v1 as the stage DAG engine (checkpoints, retries, interrupts).
+* **Harness:** Deep Agents for planning + filesystem tools + subagent delegation.
+* **LLM provider:** pluggable (provider-agnostic interface).
+
+### 12.2 Dependency + environment management (reproducible)
+
+* Use **uv** for:
+
+  * virtual env + install from lock
+  * committed lockfile (`uv.lock`)
+* Repo must be reproducible from scratch via a single command (e.g., `uv sync`).
+
+### 12.3 Contracts + schema enforcement (contract-first)
+
+* **Pydantic v2** for all formal artifacts and tool I/O:
+
+  * `DocumentUnit`, `PassageRecord`, `EvidenceAnchor`
+  * `Entity`, `AliasEntry`, `OverrideRule`
+  * `Obligation`, `ObligationGraphEdge`
+  * `Finding`, `MetricsReport`
+  * `RunManifest`, `DatasetManifest`
+* Generate and version **JSON Schema snapshots** into `schemas/` from Pydantic models.
+* Enforce at runtime (pipeline gates) + in CI:
+
+  * all written artifacts validate against schemas
+  * referential integrity checks pass (anchors/entities/aliases resolve)
+
+### 12.4 Quality gates + CI
+
+* **Unit + golden tests:** pytest
+
+  * Golden tests for determinism (IDs, ordering, stable dossier structure)
+  * Integrity tests (no dangling IDs, no obligations without evidence)
+* **Static checks:** Ruff (lint+format) + Pyright (type checking)
+* **CI:** GitHub Actions pipeline runs:
+
+  1. lint/format check
+  2. type check
+  3. unit tests
+  4. golden tests
+  5. schema validation + referential integrity
+  6. artifact packaging (optional)
+
+### 12.5 Storage formats (as product)
+
+* JSONL for append-only records: `passages.jsonl`, `evidence_index.jsonl`, `qa/findings.jsonl`, tool audit logs
+* JSON for registries: `entities.json`, `aliases.json`, `obligations.json`
+* SQLite for indexing/lookup: `canon/index.sqlite`
+
+---
+
+## 12A) Tooling Upgrade Discipline (keep “latest” without breaking determinism)
+
+### Policy
+
+* **Baseline remains latest stable Python 3.14.x**.
+* Dependency upgrades happen in a controlled cadence (e.g., monthly) and must pass golden tests.
+
+### Required controls
+
+* **Segmentation versioning**
+
+  * Store `segmentation_version` and ruleset hash in `run_manifest.json`.
+  * If segmentation changes, treat it as a migration (explicit version bump, expected ID shifts allowed only in that migration).
+* **Golden fixture corpus**
+
+  * Maintain a small fixture corpus in repo to validate:
+
+    * stable passage IDs
+    * stable obligation extraction categories
+    * stable export formatting and ordering
+
+### “Upgrade PR” acceptance bar
+
+* All CI gates pass
+* Golden deltas are explainable and approved (or blocked)
+
+---
+
+## 13) Risks & Mitigations (MVP-relevant)
+
+* Entity ambiguity (titles/artifacts): review queue + overrides + deterministic tie-break rules
+* Vehicle bloat: limiting rule (frequency/importance) + override mechanism
+* Hallucination risk: evidence gate + exports-from-stores-only rule
+* Scope creep: locked deliverable order (Dossier → Outline → Reveals → Twist Bank)
+
+---
+
+## 14) “PM-ready” milestone summary
+
+* v0.1 Dossier MVP shipped
+
+  * Repo uses uv lockfile; CI includes schema validation + golden tests + audit logs
+* v0.2 Master outline shipped
+* v0.3 Reveal ledger shipped
+* v0.4 Twist bank shipped
+* Passive mode (git hooks) lands alongside v0.2–v0.3 depending on engineering bandwidth (hooks-first remains the direction)
+
+| Expert(s)   | Agentic Systems Engineer; DataOps Engineer; MLOps Engineer                                                                                                                                                                 |
+| :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Question    | Write “Part 2” of the architecture: add sci-fi enhancements plus the core loops, protections, and user-only skip controls that enforce workflows.                                                                          |
+| Goal        | Extend the document with: (1) Sci-Fi authoring layer (WorldSpec + constraints + ideation loops), and (2) Control Plane (LoopController, gates, audits, overrides) that makes runs reliable and skippable only by the user. |
+| Plan        | Add sections: 13) Sci-Fi Enhancements, 14) Core Loops, 15) Protections & Gates, 16) User-only Skip Policy, 17) Harness Hooks, 18) Roadmap addendum + acceptance tests.                                                     |
+| Assumptions | We keep MVP focused (dossier). Sci-fi enhancements can ship as an “SF mode” extension without destabilizing the ASOIAF mining path.                                                                                        |
+
+---
+
+# Part 2 — Sci-Fi Enhancements + Core Loops + Protections (MVP → Final)
+
+## 13) Sci-Fi enhancement layer (greenfield story mode)
+
+**Purpose:** enable original sci-fi writing with the same “showrunner” rigor: stable world rules, constraint-consistent plot motion, controlled novelty, and long-horizon continuity.
+
+### 13.1 Sci-Fi artifacts (new product outputs)
+
+**World substrate artifacts**
+
+* `world/worldspec.json` — structured world bible (factions, tech primitives, resources, geography, comms/travel model)
+* `world/world_rules.md` — human-readable rules + invariants (what is cheap/expensive, what is impossible, what is rare)
+* `world/world_state.json` — dynamic state snapshot (stocks, alliances, locations, operational capacity)
+* `world/lexicon.md` — terms of art, slang, taboo words, naming conventions
+
+**Constraint & validation artifacts**
+
+* `world/constraints/` — constraint specs (travel/comms/energy/logistics/knowledge)
+* `qa/constraint_findings.json` — constraint violations + repair suggestions
+
+**Writer-facing SF exports**
+
+* `exports/world_bible.md`
+* `exports/tech_rules.md`
+* `exports/faction_dossier.md`
+* `exports/story_thesis.md`
+* `exports/idea_bank.md`
+* `exports/implications_report.md`
+* `exports/outline_series.md` (or `exports/outline_book_01.md`)
+* `exports/chapter_packets/` (final target)
+
+---
+
+### 13.2 Sci-Fi components (added modules)
+
+#### 13.2.1 WorldSpec Manager
+
+**Responsibilities**
+
+* Create and maintain `worldspec.json` as the single source of truth for the setting
+* Apply patches (canonization) to world rules and facts
+* Enforce schema + provenance (why a rule exists, when it was added)
+
+**Core rule**
+
+* No world fact/rule changes without a recorded patch entry in `run_manifest` (provenance).
+
+#### 13.2.2 Constraint Engine (pragmatic “physics”)
+
+**Responsibilities**
+
+* Validate proposed plot events and state transitions against constraints
+* Produce “repair suggestions” when a proposal violates constraints
+* Provide “feasible ranges” (e.g., travel time windows, comm delays)
+
+**MVP constraints (minimal but high leverage)**
+
+* travel time / delta-v budget proxy
+* comm latency / knowledge propagation
+* resource scarcity / logistics
+* “who can know what when” baseline legality (SF espionage consistency)
+
+#### 13.2.3 Ideation → Implications → Canonize Loop (SF novelty pipeline)
+
+**Responsibilities**
+
+* Generate concept candidates (tech, factions, threats, mysteries)
+* Run implication analysis (second-order effects; failure modes; incentives)
+* Canonize selected concepts into `worldspec.json` + `world_rules.md`
+
+**Core rule**
+
+* Nothing enters canon until it passes constraints and is committed to WorldSpec.
+
+#### 13.2.4 Mechanism-to-Plot Generator (twists from constraints)
+
+**Responsibilities**
+
+* Generate plot turns derived from world mechanics (economics, comms limits, resource bottlenecks)
+* Attach each twist to:
+
+  * impacted world rules
+  * affected factions/characters
+  * required bridging beats
+  * constraint check result
+
+---
+
+### 13.3 SF mode vs ASOIAF mode
+
+**ASOIAF mode:** retrieval-first mining → obligations/state → exports
+**SF mode:** world-first authoring → constraints → hierarchical outline → chapter packets
+
+Both share the same control plane (loops + protections).
+
+---
+
+## 14) Core loops (what must run to be “real”)
+
+### 14.1 The Run Spine Loop (non-skippable)
+
+**plan → execute → verify → export → checkpoint**
+
+* **Plan:** staged TODO locked to pipeline stages
+* **Execute:** stage DAG runs deterministically
+* **Verify:** gates must pass (schemas, evidence, invariants)
+* **Export:** renders only from validated stores
+* **Checkpoint:** saves resumable state + manifests
+
+### 14.2 Data construction loops (always necessary)
+
+* **Index loop:** corpus → passages/index → evidence anchors
+* **ER loop:** mentions → candidates → link → overrides → entities
+* **Obligations loop (ASOIAF):** extract → evidence → merge → status → ledger
+* **World loop (SF):** worldspec → patch → validate → commit
+
+### 14.3 Repair loop (always necessary)
+
+**fail gate → diagnose → propose fix → apply patch → re-verify**
+
+* repairs are recorded as patches, not silent edits
+
+### 14.4 Authoring loop (SF final target)
+
+**outline → scene draft → constraint check → state update → export**
+
+* each unit updates `world_state` and preserves continuity
+
+---
+
+## 15) Protections & gates (non-negotiable correctness posture)
+
+### 15.1 Non-skippable gates (hardwired)
+
+1. **Run Manifest Gate**
+
+* no run without `run_manifest.json` (input hashes, model IDs, prompt hashes, tool versions)
+
+2. **Evidence Gate (ASOIAF)**
+
+* no obligation or canon claim without ≥1 evidence anchor pointing into `canon/passages.jsonl`
+
+3. **Schema Gate**
+
+* all outputs validate (entities, obligations, state, worldspec)
+
+4. **Referential Integrity Gate**
+
+* every `entity_id`, `passage_id`, and edge reference resolves
+
+5. **Baseline Invariant Gate**
+
+* dead-but-acting, impossible location overlap, timeline contradictions (cheap checks)
+
+6. **Export Gate**
+
+* exports render only from validated stores (no “LLM wrote the dossier directly”)
+
+7. **Audit Gate**
+
+* `audit/tool_calls.jsonl` exists and matches run_id
+
+### 15.2 Optional gates (skippable by user only)
+
+* full contradiction sweep (expensive)
+* heavy belief-state legality checks (deep)
+* cross-model factuality checks
+* large golden-eval suite (release-only)
+
+---
+
+## 16) User-only skip policy (skip optional work safely)
+
+### 16.1 Policy-as-code
+
+* `run_policy.yaml` defines:
+
+  * required stages (non-skippable)
+  * optional stages (skippable)
+  * budgets per stage
+  * dev vs release mode
+
+### 16.2 User-only skip mechanism (MVP)
+
+**Interactive approval interrupts**
+
+* when an optional stage is next:
+
+  * system pauses and presents:
+
+    * cost estimate
+    * expected value
+    * risk of skipping
+* only the user can approve “skip” or “run”
+* decision is logged to `policy_decisions.json`
+
+### 16.3 User-only skip mechanism (production hardening)
+
+**Signed override file**
+
+* `overrides/skip.json` includes:
+
+  * run_id, stages_to_skip, reason, timestamp
+* signed by user key
+* pipeline verifies signature before skipping
+
+### 16.4 “Break-glass” limitations
+
+* you can skip optional stages
+* you cannot skip non-skippable gates
+* you cannot disable audit/provenance
+
+---
+
+## 17) Harness hooks (how enforcement is implemented)
+
+### 17.1 Supervisor hooks (Deep Agents harness)
+
+**Enforce**
+
+* plan must exist and match known stage DAG
+* filesystem working memory: artifacts must be written to disk
+* tool allowlist: agent cannot bypass gates with unauthorized operations
+
+### 17.2 Graph hooks (LangGraph execution)
+
+**Enforce**
+
+* stage entry: prerequisite checks
+* stage exit: artifact contract + schema gate + metrics gate
+* checkpoint after each stage
+* interrupts for user approval and high-severity findings
+* repair node routing when gates fail
+
+### 17.3 Runtime hooks (LangChain callbacks)
+
+**Enforce**
+
+* tool policy firewall (paths, tools, budgets)
+* audit log append on every tool call
+* retry limits and error classification
+* completion checks (required artifacts exist)
+
+---
+
+## 18) Architecture deltas (MVP → final) for SF enhancements
+
+### 18.1 SF MVP (minimal additional build)
+
+Goal: make SF “world-consistent planning” possible without building full chapter packets.
+
+**Ships**
+
+* `worldspec.json` + schema + patch tool
+* baseline constraints validator
+* ideation → implications → canonize loop
+* exports: world bible + idea bank + implications report + outline
+
+**Does not ship**
+
+* full chapter packets
+* deep multi-agent debate
+* heavy simulation
+
+### 18.2 SF Final product
+
+* robust constraint engine + repair suggestions
+* mechanism-to-plot generator (twists from constraints)
+* hierarchical authoring loop (TreeWriter-like)
+* chapter packet generator (scene beats + constraints + world state deltas)
+
+---
+
+## 19) Additional interfaces (SF tools)
+
+### World tools
+
+* `world_get(path) -> object`
+* `world_patch(patch) -> {applied, diff, provenance_id}`
+* `world_validate() -> list[Finding]`
+
+### Constraint tools
+
+* `validate_event(event, world_state) -> {pass, findings, repair_suggestions}`
+* `feasible_ranges(query) -> {ranges, assumptions}`
+
+### SF loop tools
+
+* `ideate_concepts(seed, targets) -> list[Concept]`
+* `analyze_implications(concept) -> ImplicationsReport`
+* `canonize_concept(concept, decision) -> patch`
+
+---
+
+## 20) SF acceptance tests (capability preserved, implementation simplified)
+
+1. **WorldSpec consistency**
+
+* schema-valid
+* patches recorded
+* exports match structured source
+
+2. **Constraint correctness**
+
+* at least N constraint classes enforced
+* violations produce repair suggestions
+
+3. **Canonization discipline**
+
+* no concept enters worldspec without passing validation
+
+4. **Outline coherence**
+
+* outline references world rules (not contradictory)
+* outline steps update world_state deltas
+
+---
+
+## 21) Updated risk register (SF-specific)
+
+* **Risk:** “cool tech” breaks story plausibility
+  **Mitigation:** constraints + implication report before canonization
+
+* **Risk:** world rules drift over time
+  **Mitigation:** worldspec patches + invariant checks + diff gates
+
+* **Risk:** ideation floods canon with junk
+  **Mitigation:** canonization gate + user approval + quotas per run
+
+* **Risk:** constraints too strict and kill creativity
+  **Mitigation:** constraints have “hard” vs “soft” classes; user can relax soft constraints via policy (logged)
+
+---
+
+### LETS make sure to stay in scope
+
+This Part 2 adds (1) **Sci-Fi enhancement modules** (WorldSpec, constraints, ideation→canonize, mechanism-to-plot) and their artifacts, and (2) the **core loops + protections** (non-skippable gates, repair loop, audit/provenance, user-only skip policy) with explicit harness hook points so the system reliably executes what must always be true while leaving optional passes skippable only by the user.
+
