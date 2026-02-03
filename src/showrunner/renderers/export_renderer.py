@@ -296,6 +296,10 @@ class ExportRenderer:
 
         return "".join(sections)
 
+    def render(self, obligations: list[Obligation]) -> str:
+        """Compatibility alias for render_dossier."""
+        return self.render_dossier(obligations)
+
     def write_dossier(
         self, obligations: list[Obligation], output_path: Path
     ) -> None:

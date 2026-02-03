@@ -40,6 +40,17 @@ class InputAdapterProtocol(Protocol):
         """
         ...
 
+    def load_files(self, files: list[Path]) -> list[DocumentUnit]:
+        """Load and normalize a specific list of files.
+
+        Args:
+            files: Explicit list of files to load
+
+        Returns:
+            List of normalized DocumentUnit objects
+        """
+        ...
+
 
 @runtime_checkable
 class CanonIndexerProtocol(Protocol):
@@ -224,6 +235,21 @@ class DedupeMergerProtocol(Protocol):
 class QualityGatesProtocol(Protocol):
     """Protocol for quality gate validation."""
 
+    def validate(
+        self,
+        passages: list[PassageRecord],
+        anchors: list[EvidenceAnchor],
+        entities: list[Entity],
+        aliases: list[AliasEntry],
+        obligations: list[Obligation],
+    ) -> tuple[bool, list[Finding]]:
+        """Validate all artifacts and return pass/fail plus findings.
+
+        Returns:
+            Tuple of (passed, findings)
+        """
+        ...
+
     def validate_schema(self, artifact: Any, schema_path: Path) -> list[Finding]:
         """Validate artifact against JSON schema.
 
@@ -361,6 +387,10 @@ class DossierFormatterProtocol(Protocol):
 @runtime_checkable
 class ExportRendererProtocol(Protocol):
     """Protocol for export rendering."""
+
+    def render(self, obligations: list[Obligation]):
+        """Render dossier output, returning content or path."""
+        ...
 
     def render_dossier(self, obligations: list[Obligation]) -> str:
         """Render the Unresolved Threads Dossier.
