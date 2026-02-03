@@ -25,6 +25,7 @@ from showrunner.contracts.obligation import (
 from showrunner.contracts.outline import Beat, ConvergencePoint, OutlineSection
 from showrunner.contracts.quality import Finding, FindingSeverity, MetricsReport
 from showrunner.contracts.reveal import CandidateTruth, RevealEntry
+from showrunner.contracts.twist import TwistProposal
 
 __all__ = [
     # Document
@@ -58,4 +59,6 @@ __all__ = [
     # Reveal
     "CandidateTruth",
     "RevealEntry",
+    # Twist
+    "TwistProposal",
 ]
