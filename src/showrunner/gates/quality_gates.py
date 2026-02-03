@@ -398,3 +398,21 @@ class QualityGates:
         passed = not has_errors
 
         return all_findings, passed
+
+    def validate(
+        self,
+        passages: list[PassageRecord],
+        anchors: list[EvidenceAnchor],
+        entities: list[Entity],
+        aliases: list[AliasEntry],
+        obligations: list[Obligation],
+    ) -> tuple[bool, list[Finding]]:
+        """Compatibility wrapper returning (passed, findings)."""
+        findings, passed = self.run_all_gates(
+            passages=passages,
+            anchors=anchors,
+            entities=entities,
+            aliases=aliases,
+            obligations=obligations,
+        )
+        return passed, findings
