@@ -13,20 +13,24 @@ def test_run_agent_starts_pipeline():
     assert response.status_code == 202
     assert response.json()["status"] == "starting"
 
+
 def test_get_run_status_initial():
     """Test retrieving status before any run."""
     # Reset state if possible or rely on default
     # This might require some way to reset global state in api.py for testing
     from showrunner.server import api
+
     api.PIPELINE_STATE["is_running"] = False
 
     response = client.get("/api/run/status")
     assert response.status_code == 200
     assert response.json()["is_running"] is False
 
+
 def test_get_run_status_running():
     """Test retrieving status while running."""
     from showrunner.server import api
+
     api.PIPELINE_STATE["is_running"] = True
     api.PIPELINE_STATE["progress"] = 0.5
     api.PIPELINE_STATE["message"] = "Processing..."

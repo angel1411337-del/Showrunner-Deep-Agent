@@ -7,6 +7,7 @@ from showrunner.server.main import app
 
 client = TestClient(app)
 
+
 def test_get_events_empty():
     """Test retrieving events when file is missing (graceful fallback)."""
     with patch("showrunner.server.api.read_json_file") as mock_read:
@@ -16,6 +17,7 @@ def test_get_events_empty():
         response = client.get("/api/wiki/events")
         assert response.status_code == 200
         assert response.json() == []
+
 
 def test_get_events_success():
     """Test retrieving events successfully."""
@@ -30,11 +32,10 @@ def test_get_events_success():
         assert response.json() == mock_events
         mock_read.assert_called_with("events/events.json")
 
+
 def test_get_relationships_success():
     """Test retrieving relationships successfully."""
-    mock_rels = [
-        {"relationship_id": "r1", "source_entity_id": "e1", "relation_type": "alliance"}
-    ]
+    mock_rels = [{"relationship_id": "r1", "source_entity_id": "e1", "relation_type": "alliance"}]
     with patch("showrunner.server.api.read_json_file") as mock_read:
         mock_read.return_value = mock_rels
         response = client.get("/api/wiki/relationships")

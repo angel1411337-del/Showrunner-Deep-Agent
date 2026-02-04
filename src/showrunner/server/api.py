@@ -16,6 +16,7 @@ PIPELINE_STATE = {
     "error": None,
 }
 
+
 async def run_pipeline_stub():
     """Stub background task to simulate pipeline steps."""
     global PIPELINE_STATE
@@ -49,6 +50,7 @@ async def run_pipeline_stub():
     finally:
         PIPELINE_STATE["is_running"] = False
 
+
 @router.post("/run", status_code=202)
 async def run_agent(background_tasks: BackgroundTasks):
     """Trigger a new agent run (simulated)."""
@@ -60,12 +62,16 @@ async def run_agent(background_tasks: BackgroundTasks):
         )
 
     background_tasks.add_task(run_pipeline_stub)
-    return Response(status_code=202, content=json.dumps({"status": "starting"}), media_type="application/json")
+    return Response(
+        status_code=202, content=json.dumps({"status": "starting"}), media_type="application/json"
+    )
+
 
 @router.get("/run/status")
 async def get_run_status():
     """Get the current status of the agent run."""
     return PIPELINE_STATE
+
 
 BASE_DIR = Path(os.getcwd())
 

@@ -116,7 +116,9 @@ def test_extract_returns_no_events_when_no_keywords() -> None:
         )
     ]
     extractor = EventExtractor()
-    events = extractor.extract(passages, _sample_entities(), _sample_obligations(), _sample_anchors())
+    events = extractor.extract(
+        passages, _sample_entities(), _sample_obligations(), _sample_anchors()
+    )
     assert events == []
 
 

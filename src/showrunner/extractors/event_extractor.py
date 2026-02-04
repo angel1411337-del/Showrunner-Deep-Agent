@@ -138,9 +138,7 @@ class EventExtractor:
     def _matches_any(self, text: str, patterns: list[re.Pattern[str]]) -> bool:
         return any(pattern.search(text) for pattern in patterns)
 
-    def _anchors_by_passage(
-        self, anchors: list[EvidenceAnchor]
-    ) -> dict[str, list[EvidenceAnchor]]:
+    def _anchors_by_passage(self, anchors: list[EvidenceAnchor]) -> dict[str, list[EvidenceAnchor]]:
         anchor_map: dict[str, list[EvidenceAnchor]] = {}
         for anchor in anchors:
             anchor_map.setdefault(anchor.passage_id, []).append(anchor)

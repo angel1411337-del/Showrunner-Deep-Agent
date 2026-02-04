@@ -19,7 +19,10 @@ class RelationshipExtractor:
     _RELATION_PATTERNS: list[tuple[RelationshipType, re.Pattern[str]]] = [
         (RelationshipType.ALLIANCE, re.compile(r"\ballied with\b", re.IGNORECASE)),
         (RelationshipType.ENMITY, re.compile(r"\benemy\b|\benmity\b", re.IGNORECASE)),
-        (RelationshipType.KINSHIP, re.compile(r"\bson of\b|\bdaughter of\b|\bbrother\b|\bsister\b", re.IGNORECASE)),
+        (
+            RelationshipType.KINSHIP,
+            re.compile(r"\bson of\b|\bdaughter of\b|\bbrother\b|\bsister\b", re.IGNORECASE),
+        ),
         (RelationshipType.OATH, re.compile(r"\bswore\b|\boath\b", re.IGNORECASE)),
         (RelationshipType.DEBT, re.compile(r"\bowed\b|\bdebt\b", re.IGNORECASE)),
         (RelationshipType.COMMAND, re.compile(r"\bcommanded\b|\bordered\b", re.IGNORECASE)),
@@ -91,9 +94,7 @@ class RelationshipExtractor:
                 return relation_type
         return None
 
-    def _anchors_by_passage(
-        self, anchors: list[EvidenceAnchor]
-    ) -> dict[str, list[EvidenceAnchor]]:
+    def _anchors_by_passage(self, anchors: list[EvidenceAnchor]) -> dict[str, list[EvidenceAnchor]]:
         anchor_map: dict[str, list[EvidenceAnchor]] = {}
         for anchor in anchors:
             anchor_map.setdefault(anchor.passage_id, []).append(anchor)
@@ -117,7 +118,11 @@ class RelationshipExtractor:
         return [entity_id for _idx, entity_id in mentions]
 
     def _build_description(
-        self, relation_type: RelationshipType, source_id: str, target_id: str, entities: list[Entity]
+        self,
+        relation_type: RelationshipType,
+        source_id: str,
+        target_id: str,
+        entities: list[Entity],
     ) -> str:
         source_name = self._entity_name(source_id, entities)
         target_name = self._entity_name(target_id, entities)
