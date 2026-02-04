@@ -1,5 +1,12 @@
 # Showrunner Orchestrator - Next Steps Specification
 
+## Related Docs
+- `docs/V1_SPEC.md`
+- `docs/V2_SPEC.md`
+- `docs/OUTPUTS_CONTRACT.md`
+- `docs/GUI_INPUT_CONTRACT.md`
+- `docs/LANGCHAIN_LANGGRAPH_UPGRADE.md`
+
 ## Current State: MVP v0.1 Complete
 
 | Artifact | Status |

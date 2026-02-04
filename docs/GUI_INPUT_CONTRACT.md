@@ -5,6 +5,12 @@ Define the file-based inputs the GUI should read in V1. This keeps the GUI
 decoupled from backend implementation details and lets it operate on exported
 artifacts.
 
+## Related Docs
+- `docs/V1_SPEC.md`
+- `docs/V2_SPEC.md`
+- `docs/OUTPUTS_CONTRACT.md`
+- `docs/LANGCHAIN_LANGGRAPH_UPGRADE.md`
+
 ## Expected Input Root
 The GUI should accept a path to an output directory produced by the pipeline.
 Example:
