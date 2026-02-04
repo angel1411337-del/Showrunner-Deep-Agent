@@ -87,3 +87,14 @@
 **Decision:** Event and relationship extractors must reference existing `EvidenceAnchor` IDs only; they do not emit new anchors in v1.
 
 **Consequences:** Extractors must select evidence from the existing anchor store. Anchor stores remain single-source-of-truth for provenance.
+
+---
+
+### 2026-02-04 - Research-Layer Capability Uplift Is Post-V1 and Layered
+**Status:** Accepted
+
+**Context:** We need to assess whether the proposed research-layered stack materially expands capabilities beyond the contract-first, evidence-gated MVP stack. "Capability" means reliably enabling new tasks or materially reducing errors and human cleanup.
+
+**Decision:** Treat the research-layered stack as post-V1 and evaluate it by layer. Prioritize layers that unlock new capabilities: RLM-style tool environment, GraphRAG with temporal memory, hierarchical outlining, and multi-agent evaluation. Treat hallucination detection and mind-map hardening as reliability improvements, and context caching/speculative decoding as performance-only (no new capabilities).
+
+**Consequences:** MVP remains contract-first with evidence gates. Future roadmap work must map each research layer to concrete new outputs or failure modes it fixes, and avoid spending on performance-only layers until scale demands it.

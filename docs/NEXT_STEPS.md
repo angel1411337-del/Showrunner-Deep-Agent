@@ -301,6 +301,23 @@ class ReviewQueueItem(BaseModel):
 
 Based on your research, here's the integration roadmap:
 
+### 6.0 Capability Uplift Assessment (Research Layered Stack)
+
+**Question:** Does the research-layered stack add real capabilities beyond the contract-first, evidence-gated MVP?  
+**Definition:** A "capability" either enables new tasks reliably or significantly reduces error rates and human cleanup.  
+**Decision:** Prioritize layers that unlock new tasks; treat reliability and performance layers as secondary.
+
+| Layer | Capability Uplift | New Outputs or Failure Modes It Fixes | Notes |
+|------|------------------|----------------------------------------|------|
+| RLM tool environment | Yes | Massive-corpus queries without context stuffing; deeper evidence-anchored searches | Enables recursive, multi-step analysis |
+| GraphRAG + graph backend | Yes | Multi-hop queries across entities, events, obligations; reduces manual joins | Strong cross-thread reasoning |
+| Temporal memory (Zep-like) | Yes | Tracks "what changed when"; detects drift over time | Essential for long-running writing |
+| Hierarchical outlining (DOME) | Yes | Long-horizon outline generation with conflict checks | More systematic than heuristics |
+| Multi-agent evaluation | Yes | Generates and scores alternatives; reduces "cool but breaks canon" | Improves selection quality |
+| Hallucination detection | Partial | Flags low-confidence claims for review | Reliability improvement |
+| Mind-map hardening | Partial | Dependency tracking and repair loops | Reliability improvement |
+| Context caching + speculative decoding | No | Faster and cheaper inference only | Performance, not new capability |
+
 ### 6.1 RLM (Recursive Language Model) Integration
 
 **Purpose:** Handle 1.7M word corpus without context limits
