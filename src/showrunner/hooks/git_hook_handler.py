@@ -6,7 +6,7 @@ import argparse
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from uuid import uuid4
 
 if TYPE_CHECKING:
@@ -19,6 +19,13 @@ from showrunner.hooks.incremental_runner import (
     resolve_output_dir,
     run_incremental,
 )
+
+ReviewCategory = Literal[
+    "ambiguous_entity",
+    "low_confidence_obligation",
+    "potential_contradiction",
+]
+ReviewSeverity = Literal["high", "medium", "low"]
 
 
 def _load_findings(findings_path: Path) -> list[Finding]:
@@ -41,7 +48,7 @@ def build_review_items(
     timestamp = created_at or datetime.now(tz=UTC)
     items: list[ReviewQueueItem] = []
     for finding in findings:
-        category_map = {
+        category_map: dict[str, ReviewCategory] = {
             "contradiction": "potential_contradiction",
             "alias": "ambiguous_entity",
             "entity_resolution": "ambiguous_entity",
@@ -50,13 +57,16 @@ def build_review_items(
             "schema": "low_confidence_obligation",
             "referential_integrity": "low_confidence_obligation",
         }
-        category = category_map.get(finding.category, "low_confidence_obligation")
-        severity_map = {
+        category: ReviewCategory = category_map.get(
+            finding.category,
+            "low_confidence_obligation",
+        )
+        severity_map: dict[FindingSeverity, ReviewSeverity] = {
             FindingSeverity.ERROR: "high",
             FindingSeverity.WARN: "medium",
             FindingSeverity.INFO: "low",
         }
-        severity = severity_map.get(finding.severity, "medium")
+        severity: ReviewSeverity = severity_map.get(finding.severity, "medium")
 
         items.append(
             ReviewQueueItem(

@@ -16,6 +16,7 @@ from showrunner.contracts import (
     DatasetManifest,
     DocumentUnit,
     Entity,
+    Event,
     EvidenceAnchor,
     EvidenceIndex,
     Finding,
@@ -25,14 +26,13 @@ from showrunner.contracts import (
     OutlineSection,
     OverrideRule,
     PassageRecord,
-    ReviewQueueItem,
+    Relationship,
     RevealEntry,
+    ReviewQueueItem,
     RunManifest,
     StoryOrder,
     StoryTime,
     TwistProposal,
-    Event,
-    Relationship,
 )
 
 SCHEMA_DIR = Path(__file__).parent.parent / "schemas"

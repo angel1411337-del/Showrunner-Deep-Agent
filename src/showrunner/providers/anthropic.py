@@ -10,13 +10,18 @@ from typing import Any, TypeVar, cast
 from showrunner.providers.base import BaseLLMProvider
 
 try:
-    from langchain_anthropic import ChatAnthropic
-    from langchain_core.messages import HumanMessage, SystemMessage
+    from langchain_anthropic import ChatAnthropic as _ChatAnthropic
+    from langchain_core.messages import HumanMessage as _HumanMessage
+    from langchain_core.messages import SystemMessage as _SystemMessage
 except Exception as exc:  # pragma: no cover - optional dependency
     raise ImportError(
         "langchain-anthropic is required for AnthropicProvider. "
         "Install with `uv sync --extra llm` or `pip install showrunner[llm]`."
     ) from exc
+
+ChatAnthropic = cast("Any", _ChatAnthropic)
+HumanMessage = cast("Any", _HumanMessage)
+SystemMessage = cast("Any", _SystemMessage)
 
 T = TypeVar("T")
 
@@ -51,7 +56,7 @@ class AnthropicProvider(BaseLLMProvider):
         super().__init__(model_name=model_name)
         self._api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
 
-    def _build_client(self, *, temperature: float, max_tokens: int) -> ChatAnthropic:
+    def _build_client(self, *, temperature: float, max_tokens: int) -> Any:
         if not self._api_key:
             raise ValueError(
                 "Anthropic API key is required. Provide api_key or set ANTHROPIC_API_KEY."
@@ -101,7 +106,7 @@ class AnthropicProvider(BaseLLMProvider):
         if system_prompt:
             messages.append(SystemMessage(content=system_prompt))
         messages.append(HumanMessage(content=prompt))
-        structured_builder = cast("Any", client).with_structured_output
+        structured_builder = client.with_structured_output
         structured = structured_builder(response_model)
         result = structured.invoke(messages)
         if isinstance(result, response_model):

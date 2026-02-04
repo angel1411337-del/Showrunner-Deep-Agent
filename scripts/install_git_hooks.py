@@ -7,7 +7,6 @@ import stat
 import subprocess
 from pathlib import Path
 
-
 PRE_COMMIT = """#!/usr/bin/env sh
 set -e
 

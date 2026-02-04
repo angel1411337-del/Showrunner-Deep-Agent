@@ -1,6 +1,6 @@
 """Wiki-oriented contracts for events, relationships, and temporal metadata."""
 
-from datetime import datetime
+from datetime import datetime  # noqa: TC003
 from enum import Enum
 
 from pydantic import BaseModel, Field, model_validator
@@ -23,7 +23,7 @@ class StoryTime(BaseModel):
     )
 
     @model_validator(mode="after")
-    def _require_time_info(self) -> "StoryTime":
+    def _require_time_info(self) -> StoryTime:
         if not any([self.time_label, self.time_start, self.time_end]):
             raise ValueError("StoryTime requires at least one of time_label, time_start, time_end.")
         return self
