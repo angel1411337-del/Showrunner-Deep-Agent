@@ -1,0 +1,61 @@
+{
+  "description": "One possible direction at an inflection point.",
+  "properties": {
+    "option_id": {
+      "description": "Unique option identifier",
+      "title": "Option Id",
+      "type": "string"
+    },
+    "title": {
+      "description": "Short option title",
+      "title": "Title",
+      "type": "string"
+    },
+    "description": {
+      "description": "What this option changes",
+      "title": "Description",
+      "type": "string"
+    },
+    "payoff_ids": {
+      "description": "Payoffs enabled or affected by this option",
+      "items": {
+        "type": "string"
+      },
+      "title": "Payoff Ids",
+      "type": "array"
+    },
+    "evidence_anchor_ids": {
+      "description": "Evidence anchors supporting this option",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Anchor Ids",
+      "type": "array"
+    },
+    "risk_notes": {
+      "description": "Continuity or thematic risks",
+      "items": {
+        "type": "string"
+      },
+      "title": "Risk Notes",
+      "type": "array"
+    },
+    "confidence": {
+      "description": "Confidence score",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    }
+  },
+  "required": [
+    "option_id",
+    "title",
+    "description",
+    "evidence_anchor_ids",
+    "confidence"
+  ],
+  "title": "InflectionOption",
+  "type": "object"
+}

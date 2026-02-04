@@ -23,6 +23,14 @@ from showrunner.contracts.obligation import (
     ObligationGraphEdge,
 )
 from showrunner.contracts.outline import Beat, ConvergencePoint, OutlineSection
+from showrunner.contracts.outline_variants import (
+    InflectionOption,
+    InflectionPoint,
+    MultiOutlinePack,
+    OutlineBeat,
+    OutlineVariant,
+    Payoff,
+)
 from showrunner.contracts.quality import Finding, FindingSeverity, MetricsReport
 from showrunner.contracts.reveal import CandidateTruth, RevealEntry
 from showrunner.contracts.review import ReviewQueueItem
@@ -64,6 +72,13 @@ __all__ = [
     "Beat",
     "ConvergencePoint",
     "OutlineSection",
+    # Outline Variants
+    "Payoff",
+    "InflectionOption",
+    "InflectionPoint",
+    "OutlineBeat",
+    "OutlineVariant",
+    "MultiOutlinePack",
     # Reveal
     "CandidateTruth",
     "RevealEntry",

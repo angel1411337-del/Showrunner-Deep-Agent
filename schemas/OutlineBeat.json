@@ -1,0 +1,163 @@
+{
+  "$defs": {
+    "StoryOrder": {
+      "description": "Narrative order metadata for an element.",
+      "properties": {
+        "order_index": {
+          "description": "Zero-based ordering within the narrative timeline",
+          "minimum": 0,
+          "title": "Order Index",
+          "type": "integer"
+        },
+        "order_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional narrative label (e.g., 'book2:3', 'chapter 12')",
+          "title": "Order Label"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional source document ID for the narrative order",
+          "title": "Source Id"
+        },
+        "passage_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional passage ID for the narrative order",
+          "title": "Passage Id"
+        }
+      },
+      "required": [
+        "order_index"
+      ],
+      "title": "StoryOrder",
+      "type": "object"
+    },
+    "StoryTime": {
+      "description": "In-world time metadata for an element.",
+      "properties": {
+        "time_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable in-world time label (e.g., '298 AC, late summer')",
+          "title": "Time Label"
+        },
+        "time_start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional in-world start time (ISO-like string or canon label)",
+          "title": "Time Start"
+        },
+        "time_end": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional in-world end time (ISO-like string or canon label)",
+          "title": "Time End"
+        }
+      },
+      "title": "StoryTime",
+      "type": "object"
+    }
+  },
+  "description": "A beat in an outline variant.",
+  "properties": {
+    "beat_id": {
+      "description": "Unique beat identifier",
+      "title": "Beat Id",
+      "type": "string"
+    },
+    "title": {
+      "description": "Short beat title",
+      "title": "Title",
+      "type": "string"
+    },
+    "description": {
+      "description": "Beat description",
+      "title": "Description",
+      "type": "string"
+    },
+    "obligation_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Obligation Ids",
+      "type": "array"
+    },
+    "payoff_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Payoff Ids",
+      "type": "array"
+    },
+    "evidence_anchor_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Anchor Ids",
+      "type": "array"
+    },
+    "story_time": {
+      "$ref": "#/$defs/StoryTime",
+      "description": "In-world time for beat"
+    },
+    "story_order": {
+      "$ref": "#/$defs/StoryOrder",
+      "description": "Narrative order for beat"
+    }
+  },
+  "required": [
+    "beat_id",
+    "title",
+    "description",
+    "evidence_anchor_ids",
+    "story_time",
+    "story_order"
+  ],
+  "title": "OutlineBeat",
+  "type": "object"
+}
