@@ -71,6 +71,37 @@ def test_build_review_items_maps_contradictions(tmp_path: Path) -> None:
     assert len(items) == 1
     assert items[0].category == "potential_contradiction"
     assert items[0].related_ids == ["obl_1", "obl_2"]
+    assert items[0].severity == "medium"
+
+
+def test_build_review_items_maps_severity_levels(tmp_path: Path) -> None:
+    findings = [
+        Finding(
+            finding_id="f-high",
+            severity=FindingSeverity.ERROR,
+            category="schema",
+            message="Schema error",
+            related_ids=["obl_1"],
+        ),
+        Finding(
+            finding_id="f-mid",
+            severity=FindingSeverity.WARN,
+            category="contradiction",
+            message="Potential contradiction",
+            related_ids=["obl_2"],
+        ),
+        Finding(
+            finding_id="f-low",
+            severity=FindingSeverity.INFO,
+            category="alias",
+            message="Alias note",
+            related_ids=["ent_1"],
+        ),
+    ]
+
+    items = build_review_items(findings)
+
+    assert [item.severity for item in items] == ["high", "medium", "low"]
 
 
 def test_append_review_queue_writes_jsonl(tmp_path: Path) -> None:

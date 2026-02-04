@@ -16,6 +16,9 @@ class ReviewQueueItem(BaseModel):
         "low_confidence_obligation",
         "potential_contradiction",
     ] = Field(..., description="Queue classification")
+    severity: Literal["high", "medium", "low"] = Field(
+        ..., description="UX-friendly severity level"
+    )
     description: str = Field(..., description="Summary of the issue")
     related_ids: list[str] = Field(
         default_factory=list, description="Related entity/obligation IDs"

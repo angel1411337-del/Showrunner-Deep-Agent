@@ -12,7 +12,7 @@ from uuid import uuid4
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
-from showrunner.contracts import Finding, ReviewQueueItem
+from showrunner.contracts import Finding, FindingSeverity, ReviewQueueItem
 from showrunner.hooks.change_detector import detect_changed_text_files
 from showrunner.hooks.incremental_runner import (
     resolve_corpus_root,
@@ -41,17 +41,29 @@ def build_review_items(
     timestamp = created_at or datetime.now(tz=UTC)
     items: list[ReviewQueueItem] = []
     for finding in findings:
-        category = "ambiguous_entity"
-        if finding.category == "contradiction":
-            category = "potential_contradiction"
-        elif finding.category in {"evidence_gate", "schema"}:
-            category = "low_confidence_obligation"
+        category_map = {
+            "contradiction": "potential_contradiction",
+            "alias": "ambiguous_entity",
+            "entity_resolution": "ambiguous_entity",
+            "er_ambiguity": "ambiguous_entity",
+            "evidence_gate": "low_confidence_obligation",
+            "schema": "low_confidence_obligation",
+            "referential_integrity": "low_confidence_obligation",
+        }
+        category = category_map.get(finding.category, "low_confidence_obligation")
+        severity_map = {
+            FindingSeverity.ERROR: "high",
+            FindingSeverity.WARN: "medium",
+            FindingSeverity.INFO: "low",
+        }
+        severity = severity_map.get(finding.severity, "medium")
 
         items.append(
             ReviewQueueItem(
                 item_id=f"review_{uuid4().hex[:8]}",
                 created_at=timestamp,
                 category=category,
+                severity=severity,
                 description=finding.message,
                 related_ids=list(finding.related_ids or []),
                 suggested_actions=["Review the evidence and confirm or dismiss the issue."],

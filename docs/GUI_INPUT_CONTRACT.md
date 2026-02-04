@@ -100,6 +100,7 @@ embedded in the pipeline outputs (if a separate anchors file is added later).
 - `item_id`: string
 - `created_at`: ISO timestamp
 - `category`: "ambiguous_entity" | "low_confidence_obligation" | "potential_contradiction"
+- `severity`: "high" | "medium" | "low"
 - `description`: string
 - `related_ids`: string[]
 - `suggested_actions`: string[]
