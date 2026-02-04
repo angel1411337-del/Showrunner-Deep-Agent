@@ -149,16 +149,18 @@
 **Owns:**
 - `src/showrunner/extractors/event_extractor.py`
 - `src/showrunner/extractors/relationship_extractor.py`
+- `src/showrunner/pipeline/orchestrator.py`
 - `tests/test_event_extractor.py`
 - `tests/test_relationship_extractor.py`
+- `tests/test_wiki_pipeline.py` (or add coverage in `tests/test_pipeline.py`)
 
 **Dependencies:**
 - Evidence anchors + entities + obligations contracts
 - Wiki contracts (StoryTime, StoryOrder, Event, Relationship)
 
 **Provides:**
-- Event extraction with provenance and story time/order fields
-- Relationship extraction with provenance and story time/order fields
-- JSON artifact outputs for events and relationships
+- Event extraction with provenance and story time/order fields (reusing existing anchors)
+- Relationship extraction with provenance and story time/order fields (reusing existing anchors)
+- Pipeline output to `output_dir/wiki/events.json` and `output_dir/wiki/relationships.json`
 
 **Estimated:** 4h

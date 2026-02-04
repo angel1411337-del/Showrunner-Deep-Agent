@@ -51,6 +51,8 @@ Showrunner is a contract-driven LangGraph pipeline that ingests narrative corpor
 - Relationship extractor emits entity relationships with evidence anchors.
 - StoryTime and StoryOrder provide in-world time and narrative order alongside real-world creation time.
 - Wiki exports are written as JSON artifacts for UI and graph ingestion.
+- Events and relationships must reference existing evidence anchors (no new anchors generated in v1).
+- Outputs are stored under `output_dir/wiki/` as `events.json` and `relationships.json`.
 
 ## Data Flow
 1. InputAdapter loads DocumentUnit list.
@@ -61,6 +63,7 @@ Showrunner is a contract-driven LangGraph pipeline that ingests narrative corpor
 6. QualityGates validate artifacts; on pass, ExportRenderer renders dossier.
 7. Planning modules consume obligations/entities/anchors to generate outline, reveal ledger, and twist bank outputs.
 8. Wiki extractors consume passages/entities/obligations/anchors to emit events and relationships with provenance.
+9. Pipeline writes wiki artifacts to `output_dir/wiki/events.json` and `output_dir/wiki/relationships.json`.
 
 ## Technology Stack
 - Python 3.14

@@ -65,3 +65,25 @@
 **Decision:** Introduce StoryTime and StoryOrder value objects and require `created_at` on Event and Relationship records. All events and relationships must carry evidence anchors for provenance.
 
 **Consequences:** Extraction logic must populate StoryTime, StoryOrder, and created_at. Schema validation and artifact exports must include these fields.
+
+---
+
+### 2026-02-04 - Wiki Artifact Output Location
+**Status:** Accepted
+
+**Context:** We need deterministic locations for wiki artifacts to support UI and graph ingestion without colliding with existing exports.
+
+**Decision:** Write wiki artifacts under `output_dir/wiki/` as `events.json` and `relationships.json`.
+
+**Consequences:** Pipeline orchestration must create the wiki folder and write JSON outputs there. UI/graph ingestion should read from this location.
+
+---
+
+### 2026-02-04 - Wiki Extractors Reuse Existing Evidence Anchors
+**Status:** Accepted
+
+**Context:** Evidence anchors are already produced by canon indexing and obligation/entity extraction. Adding new anchors in wiki extraction increases complexity and risks nondeterminism.
+
+**Decision:** Event and relationship extractors must reference existing `EvidenceAnchor` IDs only; they do not emit new anchors in v1.
+
+**Consequences:** Extractors must select evidence from the existing anchor store. Anchor stores remain single-source-of-truth for provenance.

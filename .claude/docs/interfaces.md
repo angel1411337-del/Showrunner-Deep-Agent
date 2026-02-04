@@ -131,7 +131,9 @@ class EventExtractorProtocol(Protocol):
         entities: list[Entity],
         obligations: list[Obligation],
         anchors: list[EvidenceAnchor],
-    ) -> tuple[list[Event], list[EvidenceAnchor]]: ...
+    ) -> list[Event]:
+        """Return events referencing existing evidence_anchor_ids only."""
+        ...
 ```
 
 ### RelationshipExtractorProtocol
@@ -143,7 +145,9 @@ class RelationshipExtractorProtocol(Protocol):
         entities: list[Entity],
         obligations: list[Obligation],
         anchors: list[EvidenceAnchor],
-    ) -> tuple[list[Relationship], list[EvidenceAnchor]]: ...
+    ) -> list[Relationship]:
+        """Return relationships referencing existing evidence_anchor_ids only."""
+        ...
 ```
 
 ## Incremental Hooks (v1)
