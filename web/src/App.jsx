@@ -11,8 +11,12 @@ function App() {
   const [relationships, setRelationships] = useState([]);
   const [obligations, setObligations] = useState([]);
 
-  useEffect(() => {
-    // Global pre-fetch for wiki integration
+  // Run Agent State
+  const [isRunning, setIsRunning] = useState(false);
+  const [runMessage, setRunMessage] = useState('');
+  const [runProgress, setRunProgress] = useState(0);
+
+  const fetchData = () => {
     Promise.all([
       fetch('http://localhost:8000/api/wiki/events').then(res => res.json().catch(() => [])),
       fetch('http://localhost:8000/api/wiki/relationships').then(res => res.json().catch(() => [])),
@@ -22,7 +26,47 @@ function App() {
       setRelationships(relData);
       setObligations(oblData);
     });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  const handleRunAgent = async () => {
+    try {
+      setIsRunning(true);
+      setRunMessage('Starting...');
+      setRunProgress(0);
+
+      const res = await fetch('http://localhost:8000/api/run', { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to start run');
+
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusRes = await fetch('http://localhost:8000/api/run/status');
+          const status = await statusRes.json();
+
+          setRunMessage(status.message);
+          setRunProgress(status.progress);
+
+          if (!status.is_running) {
+            clearInterval(pollInterval);
+            setIsRunning(false);
+            if (!status.error) {
+              fetchData(); // Refresh data on success
+            }
+          }
+        } catch (e) {
+          console.error('Poll failed', e);
+        }
+      }, 1000);
+
+    } catch (e) {
+      console.error(e);
+      setIsRunning(false);
+      setRunMessage('Error starting agent');
+    }
+  };
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -30,8 +74,6 @@ function App() {
     { id: 'entities', label: 'Entities', icon: Users },
     { id: 'all-obligations', label: 'All Obligations', icon: Activity },
   ];
-
-
 
   return (
     <div className="flex h-screen w-screen p-4 gap-4">
@@ -86,9 +128,28 @@ function App() {
               />
             </div>
 
-            <button className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-lg shadow-purple-500/20 transition-all active:scale-95">
-              <Play size={16} fill="currentColor" />
-              <span>Run Agent</span>
+            {isRunning && (
+              <div className="flex flex-col items-end mr-2">
+                <span className="text-xs text-slate-300 font-mono">{runMessage}</span>
+                <div className="w-32 h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 transition-all duration-300"
+                    style={{ width: `${runProgress * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleRunAgent}
+              disabled={isRunning}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-lg transition-all active:scale-95 ${isRunning
+                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-purple-500/20'
+                }`}
+            >
+              <Play size={16} fill="currentColor" className={isRunning ? "animate-pulse" : ""} />
+              <span>{isRunning ? 'Running...' : 'Run Agent'}</span>
             </button>
           </div>
         </header>

@@ -9,3 +9,4 @@ out*/
 sample_corpus/
 test_output*.txt
 test_run_output*.txt
+test_run*.txt
