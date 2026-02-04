@@ -17,11 +17,13 @@ from showrunner.contracts import (
     AliasEntry,
     DocumentUnit,
     Entity,
+    Event,
     EvidenceAnchor,
     Finding,
     Obligation,
     ObligationGraphEdge,
     PassageRecord,
+    Relationship,
     RunManifest,
 )
 
@@ -62,10 +64,12 @@ if TYPE_CHECKING:
         CanonIndexerProtocol,
         DedupeMergerProtocol,
         EntityResolverProtocol,
+        EventExtractorProtocol,
         ExportRendererProtocol,
         InputAdapterProtocol,
         ObligationExtractorProtocol,
         QualityGatesProtocol,
+        RelationshipExtractorProtocol,
     )
     from showrunner.providers.base import LLMProviderProtocol
 else:
@@ -74,10 +78,12 @@ else:
     CanonIndexerProtocol = _protocols.CanonIndexerProtocol
     DedupeMergerProtocol = _protocols.DedupeMergerProtocol
     EntityResolverProtocol = _protocols.EntityResolverProtocol
+    EventExtractorProtocol = _protocols.EventExtractorProtocol
     ExportRendererProtocol = _protocols.ExportRendererProtocol
     InputAdapterProtocol = _protocols.InputAdapterProtocol
     ObligationExtractorProtocol = _protocols.ObligationExtractorProtocol
     QualityGatesProtocol = _protocols.QualityGatesProtocol
+    RelationshipExtractorProtocol = _protocols.RelationshipExtractorProtocol
 
 
 class PipelineConfig(BaseModel):
@@ -100,6 +106,8 @@ class PipelineState(dict[str, Any]):
     evidence_anchors: list[EvidenceAnchor]
     obligations: list[Obligation]
     obligation_edges: list[ObligationGraphEdge]
+    events: list[Event]
+    relationships: list[Relationship]
     findings: list[Finding]
     dossier_content: str
     dossier_path: Path
@@ -165,6 +173,18 @@ class ComponentFactory:
         from showrunner.extractors.obligation_extractor import ObligationExtractor
 
         return ObligationExtractor(provider=self.provider)
+
+    def create_event_extractor(self) -> EventExtractorProtocol:
+        """Create an event extractor for wiki events."""
+        from showrunner.extractors.event_extractor import EventExtractor
+
+        return EventExtractor()
+
+    def create_relationship_extractor(self) -> RelationshipExtractorProtocol:
+        """Create a relationship extractor for wiki relationships."""
+        from showrunner.extractors.relationship_extractor import RelationshipExtractor
+
+        return RelationshipExtractor()
 
     def create_dedupe_merger(self) -> DedupeMergerProtocol:
         """Create a dedupe merger for obligation deduplication."""
@@ -236,6 +256,7 @@ class ShowrunnerPipeline:
             "extract_obligations",
             "merge_duplicates",
             "validate_gates",
+            "extract_wiki",
             "export_dossier",
             "handle_error",
         ]
@@ -255,6 +276,7 @@ class ShowrunnerPipeline:
         builder.add_node("extract_obligations", self._extract_obligations)
         builder.add_node("merge_duplicates", self._merge_duplicates)
         builder.add_node("validate_gates", self._validate_gates)
+        builder.add_node("extract_wiki", self._extract_wiki)
         builder.add_node("export_dossier", self._export_dossier)
         builder.add_node("handle_error", self._handle_error)
         builder.set_entry_point(self._entry_point)
@@ -264,8 +286,9 @@ class ShowrunnerPipeline:
         builder.add_edge("extract_obligations", "merge_duplicates")
         builder.add_edge("merge_duplicates", "validate_gates")
         builder.add_conditional_edges(
-            "validate_gates", self._check_gates, {"pass": "export_dossier", "fail": "handle_error"}
+            "validate_gates", self._check_gates, {"pass": "extract_wiki", "fail": "handle_error"}
         )
+        builder.add_edge("extract_wiki", "export_dossier")
         builder.add_edge("export_dossier", END)
         builder.add_edge("handle_error", END)
         self._graph = builder
@@ -303,6 +326,10 @@ class ShowrunnerPipeline:
             state.update(self._handle_error(state))
             return state
         if state.get("gates_passed", False):
+            state.update(self._extract_wiki(state))
+            if state.get("error"):
+                state.update(self._handle_error(state))
+                return state
             state.update(self._export_dossier(state))
         else:
             state.update(self._handle_error(state))
@@ -440,6 +467,43 @@ class ShowrunnerPipeline:
         except Exception as e:
             return PipelineState({"error": f"Failed to validate gates: {e}"})
 
+    def _extract_wiki(self, state: PipelineState) -> PipelineState:
+        self._report_progress("extract_wiki", 0.0)
+        if state.get("error"):
+            return state
+        try:
+            passages = state.get("passages", [])
+            entities = state.get("entities", [])
+            obligations = state.get("obligations", [])
+            anchors = state.get("evidence_anchors", [])
+
+            event_extractor = self._factory.create_event_extractor()
+            relationship_extractor = self._factory.create_relationship_extractor()
+
+            events = event_extractor.extract(passages, entities, obligations, anchors)
+            relationships = relationship_extractor.extract(passages, entities, obligations, anchors)
+
+            wiki_dir = self._config.output_dir / "wiki"
+            wiki_dir.mkdir(parents=True, exist_ok=True)
+            events_path = wiki_dir / "events.json"
+            relationships_path = wiki_dir / "relationships.json"
+
+            with open(events_path, "w") as f:
+                json.dump([event.model_dump() for event in events], f, indent=2, default=str)
+
+            with open(relationships_path, "w") as f:
+                json.dump(
+                    [relationship.model_dump() for relationship in relationships],
+                    f,
+                    indent=2,
+                    default=str,
+                )
+
+            self._report_progress("extract_wiki", 1.0)
+            return PipelineState({"events": events, "relationships": relationships})
+        except Exception as e:
+            return PipelineState({"error": f"Failed to extract wiki: {e}"})
+
     def _export_dossier(self, state: PipelineState) -> PipelineState:
         self._report_progress("export_dossier", 0.0)
         if state.get("error"):
@@ -498,11 +562,14 @@ class ShowrunnerPipeline:
 
     def _execute_graph(self, initial_state: PipelineState, thread_id: str) -> PipelineState:
         config = {"configurable": {"thread_id": thread_id}}
-        final_state: dict[str, PipelineState] | None = None
+        merged_state: dict[str, Any] = dict(initial_state)
         for state in self._compiled_graph.stream(initial_state, config):
-            final_state = state
-        actual_state = list(final_state.values())[0] if final_state else PipelineState()
-        return PipelineState(actual_state)
+            if not state:
+                continue
+            update = list(state.values())[0]
+            if isinstance(update, dict):
+                merged_state.update(cast("dict[str, Any]", update))
+        return PipelineState(merged_state)
 
     def run(self, thread_id: str | None = None) -> tuple[PipelineState, RunManifest]:
         start_time = datetime.now()

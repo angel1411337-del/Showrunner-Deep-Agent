@@ -1,21 +1,18 @@
-
-import pytest
-from fastapi.testclient import TestClient
 from unittest.mock import patch
+
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
 from showrunner.server.main import app
 
 client = TestClient(app)
-
-from fastapi import HTTPException
-
-# ... imports ...
 
 def test_get_events_empty():
     """Test retrieving events when file is missing (graceful fallback)."""
     with patch("showrunner.server.api.read_json_file") as mock_read:
         # Mocking HTTPException(404) as raised by read_json_file
         mock_read.side_effect = HTTPException(status_code=404, detail="File not found")
-        
+
         response = client.get("/api/wiki/events")
         assert response.status_code == 200
         assert response.json() == []
@@ -28,7 +25,7 @@ def test_get_events_success():
     with patch("showrunner.server.api.read_json_file") as mock_read:
         mock_read.return_value = mock_events
         response = client.get("/api/wiki/events")
-        
+
         assert response.status_code == 200
         assert response.json() == mock_events
         mock_read.assert_called_with("events/events.json")
@@ -41,7 +38,7 @@ def test_get_relationships_success():
     with patch("showrunner.server.api.read_json_file") as mock_read:
         mock_read.return_value = mock_rels
         response = client.get("/api/wiki/relationships")
-        
+
         assert response.status_code == 200
         assert response.json() == mock_rels
         mock_read.assert_called_with("relationships/relationships.json")

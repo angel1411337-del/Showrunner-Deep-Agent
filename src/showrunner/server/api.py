@@ -1,10 +1,10 @@
+import asyncio
 import json
 import os
 from pathlib import Path
 from typing import Any, cast
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from showrunner.pipeline.orchestrator import ShowrunnerPipeline, PipelineConfig
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Response
 
 router = APIRouter()
 
@@ -13,13 +13,8 @@ PIPELINE_STATE = {
     "is_running": False,
     "progress": 0.0,
     "message": "Idle",
-    "error": None
+    "error": None,
 }
-
-import asyncio
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Response
-
-# ... imports ...
 
 async def run_pipeline_stub():
     """Stub background task to simulate pipeline steps."""
@@ -33,21 +28,21 @@ async def run_pipeline_stub():
         steps = [
             ("Loading corpus...", 0.1),
             ("Indexing canon...", 0.3),
-            (" resolving entities...", 0.5),
+            ("Resolving entities...", 0.5),
             ("Extracting obligations...", 0.7),
             ("Merging duplicates...", 0.8),
             ("Validating gates...", 0.9),
-            ("Finalizing export...", 1.0)
+            ("Finalizing export...", 1.0),
         ]
-        
+
         for msg, prog in steps:
-            await asyncio.sleep(1) # Simulate work
+            await asyncio.sleep(1)  # Simulate work
             PIPELINE_STATE["message"] = msg
             PIPELINE_STATE["progress"] = prog
-        
+
         PIPELINE_STATE["message"] = "Completed"
         PIPELINE_STATE["progress"] = 1.0
-        
+
     except Exception as e:
         PIPELINE_STATE["error"] = str(e)
         PIPELINE_STATE["message"] = "Failed"
@@ -58,8 +53,12 @@ async def run_pipeline_stub():
 async def run_agent(background_tasks: BackgroundTasks):
     """Trigger a new agent run (simulated)."""
     if PIPELINE_STATE["is_running"]:
-        return Response(status_code=409, content=json.dumps({"status": "already_running"}), media_type="application/json")
-    
+        return Response(
+            status_code=409,
+            content=json.dumps({"status": "already_running"}),
+            media_type="application/json",
+        )
+
     background_tasks.add_task(run_pipeline_stub)
     return Response(status_code=202, content=json.dumps({"status": "starting"}), media_type="application/json")
 
@@ -166,36 +165,36 @@ def read_jsonl_file(subpath: str) -> list[dict[str, Any]]:
 
 
 @router.get("/aliases")
-async def get_aliases():
+async def get_aliases() -> list[dict[str, Any]]:
     """Get all aliases from the knowledge base."""
     # Try kb/aliases.json or aliases.json
     try:
-        return read_json_file("kb/aliases.json")
+        return cast("list[dict[str, Any]]", read_json_file("kb/aliases.json"))
     except HTTPException:
         return []
 
 
 @router.get("/wiki/events")
-async def get_events():
+async def get_events() -> list[dict[str, Any]]:
     """Get all events from the wiki."""
     # Try events/events.json or wiki/events.json
     try:
-        return read_json_file("events/events.json")
+        return cast("list[dict[str, Any]]", read_json_file("events/events.json"))
     except HTTPException:
         try:
-            return read_json_file("wiki/events.json")
+            return cast("list[dict[str, Any]]", read_json_file("wiki/events.json"))
         except HTTPException:
             return []
 
 
 @router.get("/wiki/relationships")
-async def get_relationships():
+async def get_relationships() -> list[dict[str, Any]]:
     """Get all relationships from the wiki."""
     try:
-        return read_json_file("relationships/relationships.json")
+        return cast("list[dict[str, Any]]", read_json_file("relationships/relationships.json"))
     except HTTPException:
         try:
-            return read_json_file("wiki/relationships.json")
+            return cast("list[dict[str, Any]]", read_json_file("wiki/relationships.json"))
         except HTTPException:
             return []
 

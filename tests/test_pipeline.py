@@ -374,6 +374,18 @@ class TestComponentInterfaces:
 
         assert hasattr(ObligationExtractorProtocol, "extract")
 
+    def test_event_extractor_interface_exists(self) -> None:
+        """EventExtractor abstract interface is defined."""
+        from showrunner.pipeline.orchestrator import EventExtractorProtocol
+
+        assert hasattr(EventExtractorProtocol, "extract")
+
+    def test_relationship_extractor_interface_exists(self) -> None:
+        """RelationshipExtractor abstract interface is defined."""
+        from showrunner.pipeline.orchestrator import RelationshipExtractorProtocol
+
+        assert hasattr(RelationshipExtractorProtocol, "extract")
+
     def test_dedupe_merger_interface_exists(self) -> None:
         """DedupeMerger abstract interface is defined."""
         from showrunner.pipeline.orchestrator import DedupeMergerProtocol
@@ -443,6 +455,28 @@ class TestComponentFactory:
         config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
         factory = ComponentFactory(config)
         extractor = factory.create_obligation_extractor()
+        assert extractor is not None
+
+    def test_factory_creates_event_extractor(
+        self, temp_input_dir: Path, temp_output_dir: Path
+    ) -> None:
+        """Factory creates EventExtractor component."""
+        from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
+
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
+        factory = ComponentFactory(config)
+        extractor = factory.create_event_extractor()
+        assert extractor is not None
+
+    def test_factory_creates_relationship_extractor(
+        self, temp_input_dir: Path, temp_output_dir: Path
+    ) -> None:
+        """Factory creates RelationshipExtractor component."""
+        from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig
+
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
+        factory = ComponentFactory(config)
+        extractor = factory.create_relationship_extractor()
         assert extractor is not None
 
     def test_factory_creates_dedupe_merger(
@@ -551,6 +585,8 @@ class TestDependencyInjection:
         mock_factory.create_canon_indexer.return_value = Mock()
         mock_factory.create_entity_resolver.return_value = Mock()
         mock_factory.create_obligation_extractor.return_value = Mock()
+        mock_factory.create_event_extractor.return_value = Mock()
+        mock_factory.create_relationship_extractor.return_value = Mock()
         mock_factory.create_dedupe_merger.return_value = Mock()
         mock_factory.create_quality_gates.return_value = Mock()
         mock_factory.create_export_renderer.return_value = Mock()
@@ -652,6 +688,7 @@ class TestProgressCallbacks:
             "extract_obligations",
             "merge_duplicates",
             "validate_gates",
+            "extract_wiki",
             "export_dossier",
         ]
         for expected in expected_stages:
@@ -697,6 +734,14 @@ class TestProgressCallbacks:
         mock_extractor = Mock()
         mock_extractor.extract.return_value = ([], [])
         mock_factory.create_obligation_extractor.return_value = mock_extractor
+
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
 
         mock_merger = Mock()
         mock_merger.merge.return_value = ([], [], 0.0)
@@ -747,6 +792,7 @@ class TestPipelineGraphConstruction:
             "extract_obligations",
             "merge_duplicates",
             "validate_gates",
+            "extract_wiki",
             "export_dossier",
         ]
         graph_nodes = pipeline.get_node_names()
@@ -885,6 +931,19 @@ class TestPipelineExecution:
         mock_gates.validate.side_effect = track_validate
         mock_factory.create_quality_gates.return_value = mock_gates
 
+        mock_event_extractor = Mock()
+
+        def track_extract_wiki(*args: object, **kwargs: object) -> list:
+            execution_order.append("extract_wiki")
+            return []
+
+        mock_event_extractor.extract.side_effect = track_extract_wiki
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
+
         mock_renderer = Mock()
 
         def track_render(*args: object, **kwargs: object) -> Path:
@@ -904,6 +963,7 @@ class TestPipelineExecution:
             "extract_obligations",
             "merge_duplicates",
             "validate_gates",
+            "extract_wiki",
             "export_dossier",
         ]
         assert execution_order == expected_order
@@ -939,6 +999,12 @@ class TestPipelineExecution:
         mock_extractor = Mock()
         mock_extractor.extract.return_value = ([], [])
         mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
 
         mock_merger = Mock()
         mock_merger.merge.return_value = ([], [], 0.0)
@@ -1067,6 +1133,12 @@ class TestIncrementalExecution:
         mock_extractor = Mock()
         mock_extractor.extract.return_value = ([], [])
         mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
 
         mock_merger = Mock()
         mock_merger.merge.return_value = ([], [], 0.0)
@@ -1145,6 +1217,8 @@ class TestErrorHandling:
         mock_factory.create_canon_indexer.return_value = Mock()
         mock_factory.create_entity_resolver.return_value = Mock()
         mock_factory.create_obligation_extractor.return_value = Mock()
+        mock_factory.create_event_extractor.return_value = Mock()
+        mock_factory.create_relationship_extractor.return_value = Mock()
         mock_factory.create_dedupe_merger.return_value = Mock()
         mock_factory.create_quality_gates.return_value = Mock()
         mock_factory.create_export_renderer.return_value = Mock()
@@ -1177,6 +1251,8 @@ class TestErrorHandling:
         mock_factory.create_canon_indexer.return_value = Mock()
         mock_factory.create_entity_resolver.return_value = Mock()
         mock_factory.create_obligation_extractor.return_value = Mock()
+        mock_factory.create_event_extractor.return_value = Mock()
+        mock_factory.create_relationship_extractor.return_value = Mock()
         mock_factory.create_dedupe_merger.return_value = Mock()
         mock_factory.create_quality_gates.return_value = Mock()
         mock_factory.create_export_renderer.return_value = Mock()
@@ -1248,6 +1324,12 @@ class TestArtifactWriting:
         mock_extractor = Mock()
         mock_extractor.extract.return_value = ([], [])
         mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
 
         mock_merger = Mock()
         mock_merger.merge.return_value = ([], [], 0.0)
@@ -1297,6 +1379,12 @@ class TestArtifactWriting:
         mock_extractor = Mock()
         mock_extractor.extract.return_value = ([], [])
         mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
 
         mock_merger = Mock()
         mock_merger.merge.return_value = ([], [], 0.0)
@@ -1346,6 +1434,12 @@ class TestArtifactWriting:
         mock_extractor = Mock()
         mock_extractor.extract.return_value = (sample_obligations, [])
         mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
 
         mock_merger = Mock()
         mock_merger.merge.return_value = (sample_obligations, [], 0.0)

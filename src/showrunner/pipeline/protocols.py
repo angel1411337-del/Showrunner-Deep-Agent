@@ -16,12 +16,14 @@ if TYPE_CHECKING:
         AliasEntry,
         DocumentUnit,
         Entity,
+        Event,
         EvidenceAnchor,
         Finding,
         Obligation,
         ObligationGraphEdge,
         OverrideRule,
         PassageRecord,
+        Relationship,
     )
 
 
@@ -168,6 +170,36 @@ class ObligationExtractorProtocol(Protocol):
         Returns:
             Tuple of (obligations, evidence_anchors)
         """
+        ...
+
+
+@runtime_checkable
+class EventExtractorProtocol(Protocol):
+    """Protocol for wiki event extractors."""
+
+    def extract(
+        self,
+        passages: list[PassageRecord],
+        entities: list[Entity],
+        obligations: list[Obligation],
+        anchors: list[EvidenceAnchor],
+    ) -> list[Event]:
+        """Extract events referencing existing evidence anchors only."""
+        ...
+
+
+@runtime_checkable
+class RelationshipExtractorProtocol(Protocol):
+    """Protocol for wiki relationship extractors."""
+
+    def extract(
+        self,
+        passages: list[PassageRecord],
+        entities: list[Entity],
+        obligations: list[Obligation],
+        anchors: list[EvidenceAnchor],
+    ) -> list[Relationship]:
+        """Extract relationships referencing existing evidence anchors only."""
         ...
 
 
