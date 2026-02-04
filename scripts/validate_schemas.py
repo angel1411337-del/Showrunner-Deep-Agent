@@ -44,6 +44,8 @@ ARTIFACT_SCHEMA_MAP: dict[str, str] = {
     "metrics.json": "MetricsReport.json",
     "run_manifest.json": "RunManifest.json",
     "dataset_manifest.json": "DatasetManifest.json",
+    "queue.jsonl": "ReviewQueueItem.json",
+    "queue.json": "ReviewQueueItem.json",
     "documents.json": "DocumentUnit.json",
     "documents.jsonl": "DocumentUnit.json",
     "overrides.json": "OverrideRule.json",

@@ -25,6 +25,7 @@ from showrunner.contracts import (
     OutlineSection,
     OverrideRule,
     PassageRecord,
+    ReviewQueueItem,
     RevealEntry,
     RunManifest,
     TwistProposal,
@@ -55,6 +56,7 @@ def generate_schemas() -> None:
         CandidateTruth,
         ConvergencePoint,
         OutlineSection,
+        ReviewQueueItem,
         RevealEntry,
         TwistProposal,
     ]

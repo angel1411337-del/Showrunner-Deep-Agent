@@ -1,0 +1,77 @@
+{
+  "description": "An item requiring human review.",
+  "properties": {
+    "item_id": {
+      "description": "Unique queue item identifier",
+      "title": "Item Id",
+      "type": "string"
+    },
+    "created_at": {
+      "description": "Timestamp when item was queued",
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "category": {
+      "description": "Queue classification",
+      "enum": [
+        "ambiguous_entity",
+        "low_confidence_obligation",
+        "potential_contradiction"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "severity": {
+      "description": "UX-friendly severity level",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "description": {
+      "description": "Summary of the issue",
+      "title": "Description",
+      "type": "string"
+    },
+    "related_ids": {
+      "description": "Related entity/obligation IDs",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Ids",
+      "type": "array"
+    },
+    "suggested_actions": {
+      "description": "Suggested human actions for review",
+      "items": {
+        "type": "string"
+      },
+      "title": "Suggested Actions",
+      "type": "array"
+    },
+    "status": {
+      "default": "pending",
+      "description": "Review status",
+      "enum": [
+        "pending",
+        "reviewed",
+        "dismissed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "item_id",
+    "created_at",
+    "category",
+    "severity",
+    "description"
+  ],
+  "title": "ReviewQueueItem",
+  "type": "object"
+}
