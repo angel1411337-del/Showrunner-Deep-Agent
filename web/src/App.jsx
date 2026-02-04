@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Users, FileText, Activity, Search, Settings, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dashboard } from './components/Dashboard';
@@ -7,13 +7,31 @@ import { Dossier } from './components/Dossier';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [events, setEvents] = useState([]);
+  const [relationships, setRelationships] = useState([]);
+  const [obligations, setObligations] = useState([]);
+
+  useEffect(() => {
+    // Global pre-fetch for wiki integration
+    Promise.all([
+      fetch('http://localhost:8000/api/wiki/events').then(res => res.json().catch(() => [])),
+      fetch('http://localhost:8000/api/wiki/relationships').then(res => res.json().catch(() => [])),
+      fetch('http://localhost:8000/api/obligations').then(res => res.json().catch(() => []))
+    ]).then(([evData, relData, oblData]) => {
+      setEvents(evData);
+      setRelationships(relData);
+      setObligations(oblData);
+    });
+  }, []);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'dossier', label: 'Dossier', icon: FileText },
     { id: 'entities', label: 'Entities', icon: Users },
-    { id: 'obligations', label: 'All Obligations', icon: Activity },
+    { id: 'all-obligations', label: 'All Obligations', icon: Activity },
   ];
+
+
 
   return (
     <div className="flex h-screen w-screen p-4 gap-4">
@@ -88,8 +106,8 @@ function App() {
             >
               {activeTab === 'dashboard' && <Dashboard />}
               {activeTab === 'dossier' && <Dossier filterResolved={true} />}
-              {activeTab === 'entities' && <Entities />}
-              {activeTab === 'obligations' && <Dossier filterResolved={false} />}
+              {activeTab === 'entities' && <Entities events={events} relationships={relationships} obligations={obligations} />}
+              {activeTab === 'all-obligations' && <Dossier filterResolved={false} />}
             </motion.div>
           </AnimatePresence>
         </div>

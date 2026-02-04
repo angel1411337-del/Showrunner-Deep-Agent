@@ -106,7 +106,37 @@ def read_jsonl_file(subpath: str) -> list[dict[str, Any]]:
 
 @router.get("/aliases")
 async def get_aliases():
-    return read_json_file("kb/aliases.json")
+    """Get all aliases from the knowledge base."""
+    # Try kb/aliases.json or aliases.json
+    try:
+        return read_json_file("kb/aliases.json")
+    except HTTPException:
+        return []
+
+
+@router.get("/wiki/events")
+async def get_events():
+    """Get all events from the wiki."""
+    # Try events/events.json or wiki/events.json
+    try:
+        return read_json_file("events/events.json")
+    except HTTPException:
+        try:
+             return read_json_file("wiki/events.json")
+        except HTTPException:
+            return []
+
+
+@router.get("/wiki/relationships")
+async def get_relationships():
+    """Get all relationships from the wiki."""
+    try:
+        return read_json_file("relationships/relationships.json")
+    except HTTPException:
+        try:
+            return read_json_file("wiki/relationships.json")
+        except HTTPException:
+            return []
 
 
 def get_passages_data() -> list[dict[str, Any]]:
