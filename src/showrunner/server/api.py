@@ -3,9 +3,70 @@ import os
 from pathlib import Path
 from typing import Any, cast
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
+from showrunner.pipeline.orchestrator import ShowrunnerPipeline, PipelineConfig
 
 router = APIRouter()
+
+# Global state to track pipeline progress
+PIPELINE_STATE = {
+    "is_running": False,
+    "progress": 0.0,
+    "message": "Idle",
+    "error": None
+}
+
+import asyncio
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Response
+
+# ... imports ...
+
+async def run_pipeline_stub():
+    """Stub background task to simulate pipeline steps."""
+    global PIPELINE_STATE
+    PIPELINE_STATE["is_running"] = True
+    PIPELINE_STATE["progress"] = 0.0
+    PIPELINE_STATE["message"] = "Initializing..."
+    PIPELINE_STATE["error"] = None
+
+    try:
+        steps = [
+            ("Loading corpus...", 0.1),
+            ("Indexing canon...", 0.3),
+            (" resolving entities...", 0.5),
+            ("Extracting obligations...", 0.7),
+            ("Merging duplicates...", 0.8),
+            ("Validating gates...", 0.9),
+            ("Finalizing export...", 1.0)
+        ]
+        
+        for msg, prog in steps:
+            await asyncio.sleep(1) # Simulate work
+            PIPELINE_STATE["message"] = msg
+            PIPELINE_STATE["progress"] = prog
+        
+        PIPELINE_STATE["message"] = "Completed"
+        PIPELINE_STATE["progress"] = 1.0
+        
+    except Exception as e:
+        PIPELINE_STATE["error"] = str(e)
+        PIPELINE_STATE["message"] = "Failed"
+    finally:
+        PIPELINE_STATE["is_running"] = False
+
+@router.post("/run", status_code=202)
+async def run_agent(background_tasks: BackgroundTasks):
+    """Trigger a new agent run (simulated)."""
+    if PIPELINE_STATE["is_running"]:
+        return Response(status_code=409, content=json.dumps({"status": "already_running"}), media_type="application/json")
+    
+    background_tasks.add_task(run_pipeline_stub)
+    return Response(status_code=202, content=json.dumps({"status": "starting"}), media_type="application/json")
+
+@router.get("/run/status")
+async def get_run_status():
+    """Get the current status of the agent run."""
+    return PIPELINE_STATE
 
 BASE_DIR = Path(os.getcwd())
 
@@ -122,7 +183,7 @@ async def get_events():
         return read_json_file("events/events.json")
     except HTTPException:
         try:
-             return read_json_file("wiki/events.json")
+            return read_json_file("wiki/events.json")
         except HTTPException:
             return []
 
