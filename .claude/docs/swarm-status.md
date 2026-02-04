@@ -11,6 +11,7 @@
 | 5. Reveal Ledger (v0.3) | unit-5-reveal-ledger | Complete | 2026-02-03 15:46 | 2026-02-03 15:46 |
 | 6. Twist Bank (v0.4) | unit-6-twist-bank | Complete | 2026-02-03 21:05 | 2026-02-03 21:07 |
 | 7. Passive Hooks (v1) | unit-7-hooks | Complete | 2026-02-04 00:45 | 2026-02-04 00:45 |
+| 8. Wiki Event/Relationship Extraction | unit-8-wiki-extraction | Not Started | - | - |
 
 ## Sync Log
 

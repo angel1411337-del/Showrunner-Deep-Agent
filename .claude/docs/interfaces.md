@@ -120,6 +120,32 @@ class TwistPlanner(Protocol):
     def plan(self, obligations: list[Obligation], anchors: list[EvidenceAnchor]) -> list[TwistProposal]: ...
 ```
 
+## Wiki Extraction (v1+)
+
+### EventExtractorProtocol
+```python
+class EventExtractorProtocol(Protocol):
+    def extract(
+        self,
+        passages: list[PassageRecord],
+        entities: list[Entity],
+        obligations: list[Obligation],
+        anchors: list[EvidenceAnchor],
+    ) -> tuple[list[Event], list[EvidenceAnchor]]: ...
+```
+
+### RelationshipExtractorProtocol
+```python
+class RelationshipExtractorProtocol(Protocol):
+    def extract(
+        self,
+        passages: list[PassageRecord],
+        entities: list[Entity],
+        obligations: list[Obligation],
+        anchors: list[EvidenceAnchor],
+    ) -> tuple[list[Relationship], list[EvidenceAnchor]]: ...
+```
+
 ## Incremental Hooks (v1)
 
 ### ChangeDetector

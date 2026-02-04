@@ -54,3 +54,14 @@
 **Decision:** Add a tests-first guard (pre-commit hook + CI step) that blocks `src/` changes without corresponding `tests/` updates. Document the rule in the constitution.
 
 **Consequences:** Commits that modify production code without tests will fail locally and in CI unless tests are added.
+
+---
+
+### 2026-02-04 - Wiki Events and Relationships With Dual Time Axes
+**Status:** Accepted
+
+**Context:** We need wiki-ready artifacts that preserve provenance and distinguish in-world time, narrative order, and real-world creation time.
+
+**Decision:** Introduce StoryTime and StoryOrder value objects and require `created_at` on Event and Relationship records. All events and relationships must carry evidence anchors for provenance.
+
+**Consequences:** Extraction logic must populate StoryTime, StoryOrder, and created_at. Schema validation and artifact exports must include these fields.

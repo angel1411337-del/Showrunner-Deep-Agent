@@ -46,6 +46,12 @@ Showrunner is a contract-driven LangGraph pipeline that ingests narrative corpor
 - Pre-commit detects changed files and runs incremental analysis.
 - Post-commit updates the review queue.
 
+### 11. Wiki Extraction (v1+)
+- Event extractor emits canonical events with evidence anchors.
+- Relationship extractor emits entity relationships with evidence anchors.
+- StoryTime and StoryOrder provide in-world time and narrative order alongside real-world creation time.
+- Wiki exports are written as JSON artifacts for UI and graph ingestion.
+
 ## Data Flow
 1. InputAdapter loads DocumentUnit list.
 2. CanonIndexer segments passages and persists canon artifacts.
@@ -54,6 +60,7 @@ Showrunner is a contract-driven LangGraph pipeline that ingests narrative corpor
 5. DedupeMerger merges obligations and writes obligation graph edges.
 6. QualityGates validate artifacts; on pass, ExportRenderer renders dossier.
 7. Planning modules consume obligations/entities/anchors to generate outline, reveal ledger, and twist bank outputs.
+8. Wiki extractors consume passages/entities/obligations/anchors to emit events and relationships with provenance.
 
 ## Technology Stack
 - Python 3.14
@@ -92,6 +99,11 @@ graph TD
 
     Providers[LLM Providers] --> Resolver
     Providers --> Extractor
+    Providers --> WikiExtractors[Event/Relationship Extractors]
+
+    Extractor --> WikiExtractors
+    Resolver --> WikiExtractors
+    WikiExtractors --> WikiExports[Events/Relationships JSON]
 ```
 
 ## Data Model (Core)
@@ -102,3 +114,4 @@ graph TD
 - OutlineSection, ConvergencePoint, Beat (v0.2)
 - RevealEntry, CandidateTruth (v0.3)
 - TwistProposal (v0.4)
+- StoryTime, StoryOrder, Event, Relationship (v1+)

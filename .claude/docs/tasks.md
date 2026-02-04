@@ -138,3 +138,27 @@
 - review queue contract + queue writer for human review items
 
 **Estimated:** 3h
+
+---
+
+## Unit 8: Wiki Event/Relationship Extraction (v1+)
+**Agent:** tdd-oop
+**Status:** Not Started
+**Branch:** unit-8-wiki-extraction
+
+**Owns:**
+- `src/showrunner/extractors/event_extractor.py`
+- `src/showrunner/extractors/relationship_extractor.py`
+- `tests/test_event_extractor.py`
+- `tests/test_relationship_extractor.py`
+
+**Dependencies:**
+- Evidence anchors + entities + obligations contracts
+- Wiki contracts (StoryTime, StoryOrder, Event, Relationship)
+
+**Provides:**
+- Event extraction with provenance and story time/order fields
+- Relationship extraction with provenance and story time/order fields
+- JSON artifact outputs for events and relationships
+
+**Estimated:** 4h
