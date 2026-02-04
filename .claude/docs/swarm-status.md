@@ -10,13 +10,14 @@
 | 4. Outline Planning (v0.2) | unit-4-outline | Complete | 2026-02-03 07:45 | 2026-02-03 07:45 |
 | 5. Reveal Ledger (v0.3) | unit-5-reveal-ledger | Complete | 2026-02-03 15:46 | 2026-02-03 15:46 |
 | 6. Twist Bank (v0.4) | unit-6-twist-bank | Complete | 2026-02-03 21:05 | 2026-02-03 21:07 |
-| 7. Passive Hooks (v1) | unit-7-hooks | Not Started | - | - |
+| 7. Passive Hooks (v1) | unit-7-hooks | Complete | 2026-02-04 00:45 | 2026-02-04 00:45 |
 
 ## Sync Log
 
 | Time | Action | Notes |
 |------|--------|-------|
 | 2026-02-03 21:07 | Unit 6 completed | Twist bank contracts, planner, and tests added |
+| 2026-02-04 00:45 | Unit 7 completed | Passive hooks modules, review queue contract, and tests added |
 | 2026-02-03 15:46 | Unit 5 completed | Reveal ledger contracts, planner, and tests added |
 | 2026-02-03 07:45 | Unit 4 completed | Outline planner and contracts merged |
 | 2026-02-03 01:13 | Units 1-3 completed | Providers, input formats, pipeline fixes merged |

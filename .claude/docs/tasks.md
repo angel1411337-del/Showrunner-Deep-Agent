@@ -123,7 +123,7 @@
 
 ## Unit 7: Passive Hooks (v1)
 **Agent:** api-layer
-**Status:** Not Started
+**Status:** Complete
 **Branch:** unit-7-hooks
 
 **Owns:**
@@ -135,5 +135,6 @@
 
 **Provides:**
 - pre-commit / post-commit hooks for incremental updates
+- review queue contract + queue writer for human review items
 
 **Estimated:** 3h
