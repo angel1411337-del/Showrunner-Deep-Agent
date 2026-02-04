@@ -6,6 +6,7 @@
 - `docs/OUTPUTS_CONTRACT.md`
 - `docs/GUI_INPUT_CONTRACT.md`
 - `docs/LANGCHAIN_LANGGRAPH_UPGRADE.md`
+- `docs/AGENTIC_TRAVERSAL.md`
 
 ## Current State: MVP v0.1 Complete
 
