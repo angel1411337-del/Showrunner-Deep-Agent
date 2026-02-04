@@ -52,6 +52,10 @@ corresponding UI without error.
    - Optional diagnostics.
 5. `run_manifest.json`
    - Run metadata (timestamp, git sha, config hash).
+6. `events/events.json` or `events.json`
+   - Event records for wiki views.
+7. `relationships/relationships.json` or `relationships.json`
+   - Relationship records for wiki views.
 
 ## File Schemas (High-Level)
 Refer to contracts in `src/showrunner/contracts/` for canonical fields.
@@ -105,6 +109,41 @@ embedded in the pipeline outputs (if a separate anchors file is added later).
 - `related_ids`: string[]
 - `suggested_actions`: string[]
 - `status`: "pending" | "reviewed" | "dismissed"
+
+### Event (events.json)
+- `event_id`: string
+- `event_type`: "battle" | "death" | "treaty" | "betrayal" | "marriage" | "coronation" | "travel" | "discovery" | "other"
+- `title`: string
+- `description`: string
+- `participant_entity_ids`: string[]
+- `location_entity_id`: string | null
+- `related_obligation_ids`: string[]
+- `evidence_anchor_ids`: string[]
+- `story_time`: StoryTime
+- `story_order`: StoryOrder
+- `created_at`: ISO timestamp
+
+### Relationship (relationships.json)
+- `relationship_id`: string
+- `relation_type`: "alliance" | "enmity" | "kinship" | "oath" | "debt" | "command" | "membership" | "ownership" | "other"
+- `source_entity_id`: string
+- `target_entity_id`: string
+- `description`: string
+- `evidence_anchor_ids`: string[]
+- `story_time`: StoryTime
+- `story_order`: StoryOrder
+- `created_at`: ISO timestamp
+
+### StoryTime (embedded)
+- `time_label`: string | null
+- `time_start`: string | null
+- `time_end`: string | null
+
+### StoryOrder (embedded)
+- `order_index`: number
+- `order_label`: string | null
+- `source_id`: string | null
+- `passage_id`: string | null
 
 ## Required Behaviors
 1. Graceful fallback if optional files are missing.

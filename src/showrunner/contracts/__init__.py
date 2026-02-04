@@ -27,6 +27,7 @@ from showrunner.contracts.quality import Finding, FindingSeverity, MetricsReport
 from showrunner.contracts.reveal import CandidateTruth, RevealEntry
 from showrunner.contracts.review import ReviewQueueItem
 from showrunner.contracts.twist import TwistProposal
+from showrunner.contracts.wiki import Event, Relationship, StoryOrder, StoryTime
 
 __all__ = [
     # Document
@@ -51,6 +52,11 @@ __all__ = [
     "FindingSeverity",
     "MetricsReport",
     "ReviewQueueItem",
+    # Wiki
+    "StoryTime",
+    "StoryOrder",
+    "Event",
+    "Relationship",
     # Manifest
     "RunManifest",
     "DatasetManifest",

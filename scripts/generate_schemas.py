@@ -28,7 +28,11 @@ from showrunner.contracts import (
     ReviewQueueItem,
     RevealEntry,
     RunManifest,
+    StoryOrder,
+    StoryTime,
     TwistProposal,
+    Event,
+    Relationship,
 )
 
 SCHEMA_DIR = Path(__file__).parent.parent / "schemas"
@@ -59,6 +63,10 @@ def generate_schemas() -> None:
         ReviewQueueItem,
         RevealEntry,
         TwistProposal,
+        StoryTime,
+        StoryOrder,
+        Event,
+        Relationship,
     ]
 
     for model in models:

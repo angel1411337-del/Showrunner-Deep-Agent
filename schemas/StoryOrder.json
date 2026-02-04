@@ -1,0 +1,55 @@
+{
+  "description": "Narrative order metadata for an element.",
+  "properties": {
+    "order_index": {
+      "description": "Zero-based ordering within the narrative timeline",
+      "minimum": 0,
+      "title": "Order Index",
+      "type": "integer"
+    },
+    "order_label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional narrative label (e.g., 'book2:3', 'chapter 12')",
+      "title": "Order Label"
+    },
+    "source_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional source document ID for the narrative order",
+      "title": "Source Id"
+    },
+    "passage_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional passage ID for the narrative order",
+      "title": "Passage Id"
+    }
+  },
+  "required": [
+    "order_index"
+  ],
+  "title": "StoryOrder",
+  "type": "object"
+}

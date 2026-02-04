@@ -1,0 +1,46 @@
+{
+  "description": "In-world time metadata for an element.",
+  "properties": {
+    "time_label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Human-readable in-world time label (e.g., '298 AC, late summer')",
+      "title": "Time Label"
+    },
+    "time_start": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional in-world start time (ISO-like string or canon label)",
+      "title": "Time Start"
+    },
+    "time_end": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional in-world end time (ISO-like string or canon label)",
+      "title": "Time End"
+    }
+  },
+  "title": "StoryTime",
+  "type": "object"
+}
