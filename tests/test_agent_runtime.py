@@ -1,14 +1,26 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from showrunner.agent import tools
+from showrunner.agent.deepagents_runtime import DeepagentsRuntime
+from showrunner.agent.langchain_runtime import LangChainRuntime
 from showrunner.agent.runtime import AgentRuntime, RuntimeMode, parse_runtime_mode
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+
+class DummySession:
+    def __init__(self, result: list[dict[str, Any]] | None = None) -> None:
+        self.result = result or []
+        self.calls: list[tuple[str, dict[str, Any] | None]] = []
+
+    def run(self, query: str, parameters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        self.calls.append((query, parameters))
+        return self.result
 
 
 def _write_sample_corpus(input_dir: Path) -> None:
@@ -77,6 +89,32 @@ def test_agent_runtime_deepagents_runs_pipeline(tmp_path: Path) -> None:
 
     assert result.status == "completed"
     assert (output_dir / "exports" / "Unresolved_Threads_Dossier.md").exists()
+
+
+def test_agent_runtime_query_graph_langchain() -> None:
+    session = DummySession(result=[{"event_id": "evt-1"}])
+    runtime = AgentRuntime(
+        mode="langchain",
+        langchain_runtime=LangChainRuntime(graph_session=session),
+    )
+
+    result = runtime.query_graph(query="events_for_entity", parameters={"entity_id": "entity-1"})
+
+    assert result == [{"event_id": "evt-1"}]
+    assert session.calls
+
+
+def test_agent_runtime_query_graph_deepagents() -> None:
+    session = DummySession(result=[{"event_id": "evt-2"}])
+    runtime = AgentRuntime(
+        mode="deepagents",
+        deepagents_runtime=DeepagentsRuntime(graph_session=session),
+    )
+
+    result = runtime.query_graph(query="events_for_entity", parameters={"entity_id": "entity-2"})
+
+    assert result == [{"event_id": "evt-2"}]
+    assert session.calls
 
 
 def test_agent_runtime_unsupported_modes_raise(tmp_path: Path) -> None:

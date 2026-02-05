@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from showrunner.agent.deepagents_runtime import DeepagentsRuntime
 from showrunner.agent.harness import AgentHarness, AgentRunResult, runtime_capabilities
@@ -71,6 +71,18 @@ class AgentRuntime:
                 output_dir=output_dir, relative_path=relative_path
             )
         return self._harness.read_artifact(output_dir=output_dir, relative_path=relative_path)
+
+    def query_graph(
+        self,
+        *,
+        query: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        if self._mode is RuntimeMode.LANGCHAIN:
+            return self._langchain.query_graph(query=query, parameters=parameters)
+        if self._mode is RuntimeMode.DEEPAGENTS:
+            return self._deepagents.query_graph(query=query, parameters=parameters)
+        raise NotImplementedError(f"{self._mode.value} runtime does not support graph queries")
 
     def capabilities(self) -> dict[str, bool]:
         return runtime_capabilities()
