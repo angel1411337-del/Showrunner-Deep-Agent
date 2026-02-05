@@ -15,11 +15,14 @@ from pydantic import BaseModel, Field
 
 from showrunner.contracts import (
     AliasEntry,
+    DatasetManifest,
     DocumentUnit,
     Entity,
     Event,
     EvidenceAnchor,
+    EvidenceIndex,
     Finding,
+    MetricsReport,
     Obligation,
     ObligationGraphEdge,
     OutlineSection,
@@ -109,6 +112,7 @@ class PipelineState(dict[str, Any]):
     evidence_anchors: list[EvidenceAnchor]
     obligations: list[Obligation]
     obligation_edges: list[ObligationGraphEdge]
+    dedupe_rate: float
     events: list[Event]
     relationships: list[Relationship]
     outline: list[OutlineSection]
@@ -437,13 +441,26 @@ class ShowrunnerPipeline:
         try:
             merger = self._factory.create_dedupe_merger()
             obligations = state.get("obligations", [])
-            merged, edges, _dedupe_rate = merger.merge(obligations)
+            merged, edges, dedupe_rate = merger.merge(obligations)
             obl_path = self._config.output_dir / "obligations" / "obligations.json"
             obl_path.parent.mkdir(parents=True, exist_ok=True)
             with open(obl_path, "w") as f:
                 json.dump([o.model_dump() for o in merged], f, indent=2, default=str)
+
+            evidence_path = self._config.output_dir / "canon" / "evidence_index.jsonl"
+            evidence_path.parent.mkdir(parents=True, exist_ok=True)
+            evidence_index = self._build_evidence_index(merged)
+            with open(evidence_path, "w") as f:
+                for entry in evidence_index:
+                    f.write(json.dumps(entry.model_dump(), default=str) + "\n")
             self._report_progress("merge_duplicates", 1.0)
-            return PipelineState({"obligations": merged, "obligation_edges": edges})
+            return PipelineState(
+                {
+                    "obligations": merged,
+                    "obligation_edges": edges,
+                    "dedupe_rate": dedupe_rate,
+                }
+            )
         except Exception as e:
             return PipelineState({"error": f"Failed to merge duplicates: {e}"})
 
@@ -546,6 +563,22 @@ class ShowrunnerPipeline:
         except Exception as e:
             return PipelineState({"error": f"Failed to export dossier: {e}"})
 
+    def _build_evidence_index(self, obligations: list[Obligation]) -> list[EvidenceIndex]:
+        entries: list[EvidenceIndex] = []
+        for obligation in obligations:
+            if not obligation.evidence_anchor_ids:
+                continue
+            index_id = self._compute_hash(f"obligation|{obligation.obligation_id}")
+            entries.append(
+                EvidenceIndex(
+                    index_id=f"idx_{index_id.split(':', 1)[-1]}",
+                    target_type="obligation",
+                    target_id=obligation.obligation_id,
+                    anchor_ids=list(obligation.evidence_anchor_ids),
+                )
+            )
+        return entries
+
     def _export_planning_artifacts(self, state: PipelineState) -> PipelineState:
         self._report_progress("export_planning_artifacts", 0.0)
         if state.get("error"):
@@ -634,6 +667,95 @@ class ShowrunnerPipeline:
     def _compute_hash(self, content: str) -> str:
         return f"sha256:{hashlib.sha256(content.encode()).hexdigest()[:16]}"
 
+    def _write_dataset_manifest(
+        self, *, documents: list[DocumentUnit], created_at: datetime
+    ) -> Path:
+        source_files = sorted({doc.source_path for doc in documents})
+        total_characters = sum(len(doc.raw_text or "") for doc in documents)
+        content_blob = "\n".join(f"{doc.source_path}:{doc.raw_text}" for doc in documents)
+        content_hash = self._compute_hash(content_blob)
+        manifest_id = f"dataset_{content_hash.split(':', 1)[-1]}"
+        manifest = DatasetManifest(
+            manifest_id=manifest_id,
+            total_documents=len(documents),
+            total_characters=total_characters,
+            source_files=source_files,
+            content_hash=content_hash,
+            created_at=created_at,
+        )
+        manifest_path = self._config.output_dir / "dataset_manifest.json"
+        with open(manifest_path, "w") as f:
+            json.dump(manifest.model_dump(), f, indent=2, default=str)
+        return manifest_path
+
+    def _write_metrics(
+        self,
+        *,
+        run_id: str,
+        state: PipelineState,
+        started_at: datetime,
+        finished_at: datetime,
+    ) -> Path:
+        obligations = list(state.get("obligations", []))
+        entities = list(state.get("entities", []))
+        passages = list(state.get("passages", []))
+        findings = list(state.get("findings", []))
+
+        total_obligations = len(obligations)
+        with_evidence = sum(1 for obl in obligations if obl.evidence_anchor_ids)
+        obligations_with_evidence_rate = (
+            1.0 if total_obligations == 0 else with_evidence / total_obligations
+        )
+
+        dedupe_rate = float(state.get("dedupe_rate", 0.0) or 0.0)
+        contradiction_findings = [f for f in findings if f.category == "contradiction"]
+        total_words = sum(len(p.text.split()) for p in passages) or 0
+        contradiction_rate = None
+        if total_words:
+            contradiction_rate = (len(contradiction_findings) / total_words) * 10000
+
+        metrics = MetricsReport(
+            run_id=run_id,
+            timestamp=finished_at,
+            obligations_with_evidence_rate=obligations_with_evidence_rate,
+            er_ambiguity_rate=0.0,
+            obligation_dedupe_rate=dedupe_rate,
+            total_passages=len(passages),
+            total_entities=len(entities),
+            total_obligations=total_obligations,
+            runtime_seconds=(finished_at - started_at).total_seconds(),
+            contradiction_rate=contradiction_rate,
+        )
+        metrics_path = self._config.output_dir / "qa" / "metrics.json"
+        metrics_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(metrics_path, "w") as f:
+            json.dump(metrics.model_dump(), f, indent=2, default=str)
+        return metrics_path
+
+    def _write_tool_call_audit(
+        self,
+        *,
+        run_id: str,
+        status: str,
+        started_at: datetime,
+        finished_at: datetime,
+    ) -> Path:
+        audit_path = self._config.output_dir / "tool_call_audit.jsonl"
+        entry = {
+            "timestamp": finished_at.isoformat(),
+            "tool": "pipeline.run",
+            "status": status,
+            "details": {
+                "run_id": run_id,
+                "started_at": started_at.isoformat(),
+                "finished_at": finished_at.isoformat(),
+                "stages": list(self._node_names),
+            },
+        }
+        with open(audit_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+        return audit_path
+
     def _execute_graph(self, initial_state: PipelineState, thread_id: str) -> PipelineState:
         config = {"configurable": {"thread_id": thread_id}}
         merged_state: dict[str, Any] = dict(initial_state)
@@ -653,6 +775,8 @@ class ShowrunnerPipeline:
         initial_state = PipelineState()
         actual_state = self._execute_graph(initial_state, actual_thread_id)
         end_time = datetime.now()
+        documents = list(actual_state.get("documents", []))
+        self._write_dataset_manifest(documents=documents, created_at=end_time)
         manifest = RunManifest(
             run_id=run_id,
             timestamp=start_time,
@@ -667,6 +791,18 @@ class ShowrunnerPipeline:
         manifest_path = self._config.output_dir / "run_manifest.json"
         with open(manifest_path, "w") as f:
             json.dump(manifest.model_dump(), f, indent=2, default=str)
+        self._write_metrics(
+            run_id=run_id,
+            state=actual_state,
+            started_at=start_time,
+            finished_at=end_time,
+        )
+        self._write_tool_call_audit(
+            run_id=run_id,
+            status=manifest.status,
+            started_at=start_time,
+            finished_at=end_time,
+        )
         self._checkpoint_states[actual_thread_id] = actual_state
         return actual_state, manifest
 

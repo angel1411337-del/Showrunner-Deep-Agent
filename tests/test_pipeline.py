@@ -1314,6 +1314,7 @@ class TestArtifactWriting:
         mock_factory.create_input_adapter.return_value = mock_adapter
 
         mock_indexer = Mock()
+        mock_indexer.segment_paragraphs.return_value = sample_passages
         mock_indexer.index.return_value = (sample_passages, [])
         mock_factory.create_canon_indexer.return_value = mock_indexer
 
@@ -1479,6 +1480,272 @@ class TestArtifactWriting:
         with manifest_path.open() as f:
             data = json.load(f)
             assert "run_id" in data
+
+    def test_writes_evidence_index_jsonl(
+        self,
+        temp_input_dir: Path,
+        temp_output_dir: Path,
+        sample_documents: list[DocumentUnit],
+        sample_passages: list[PassageRecord],
+        sample_entities: list[Entity],
+        sample_aliases: list[AliasEntry],
+        sample_evidence_anchors: list[EvidenceAnchor],
+        sample_obligations: list[Obligation],
+    ) -> None:
+        """Pipeline writes canon/evidence_index.jsonl."""
+        from showrunner.pipeline.orchestrator import (
+            ComponentFactory,
+            PipelineConfig,
+            ShowrunnerPipeline,
+        )
+
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
+        mock_factory = Mock(spec=ComponentFactory)
+        mock_factory.config = config
+
+        mock_adapter = Mock()
+        mock_adapter.load.return_value = sample_documents
+        mock_factory.create_input_adapter.return_value = mock_adapter
+
+        mock_indexer = Mock()
+        mock_indexer.segment_paragraphs.return_value = sample_passages
+        mock_indexer.index.return_value = (sample_passages, [])
+        mock_factory.create_canon_indexer.return_value = mock_indexer
+
+        mock_resolver = Mock()
+        mock_resolver.resolve.return_value = (
+            sample_entities,
+            sample_aliases,
+            sample_evidence_anchors,
+        )
+        mock_factory.create_entity_resolver.return_value = mock_resolver
+
+        mock_extractor = Mock()
+        mock_extractor.extract.return_value = (sample_obligations, sample_evidence_anchors)
+        mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
+
+        mock_merger = Mock()
+        mock_merger.merge.return_value = (sample_obligations, [], 0.0)
+        mock_factory.create_dedupe_merger.return_value = mock_merger
+
+        mock_gates = Mock()
+        mock_gates.validate.return_value = (True, [])
+        mock_factory.create_quality_gates.return_value = mock_gates
+
+        mock_renderer = Mock()
+        mock_renderer.render.return_value = temp_output_dir / "exports" / "dossier.md"
+        mock_factory.create_export_renderer.return_value = mock_renderer
+
+        pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
+        pipeline.run()
+
+        evidence_path = temp_output_dir / "canon" / "evidence_index.jsonl"
+        assert evidence_path.exists()
+
+        entries = [
+            json.loads(line) for line in evidence_path.read_text().splitlines() if line.strip()
+        ]
+        assert entries
+        assert entries[0]["target_type"] == "obligation"
+        assert entries[0]["target_id"] == sample_obligations[0].obligation_id
+
+    def test_writes_dataset_manifest_json(
+        self,
+        temp_input_dir: Path,
+        temp_output_dir: Path,
+        sample_documents: list[DocumentUnit],
+        sample_passages: list[PassageRecord],
+    ) -> None:
+        """Pipeline writes dataset_manifest.json."""
+        from showrunner.pipeline.orchestrator import (
+            ComponentFactory,
+            PipelineConfig,
+            ShowrunnerPipeline,
+        )
+
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
+        mock_factory = Mock(spec=ComponentFactory)
+        mock_factory.config = config
+
+        mock_adapter = Mock()
+        mock_adapter.load.return_value = sample_documents
+        mock_factory.create_input_adapter.return_value = mock_adapter
+
+        mock_indexer = Mock()
+        mock_indexer.segment_paragraphs.return_value = sample_passages
+        mock_indexer.index.return_value = (sample_passages, [])
+        mock_factory.create_canon_indexer.return_value = mock_indexer
+
+        mock_resolver = Mock()
+        mock_resolver.resolve.return_value = ([], [], [])
+        mock_factory.create_entity_resolver.return_value = mock_resolver
+
+        mock_extractor = Mock()
+        mock_extractor.extract.return_value = ([], [])
+        mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
+
+        mock_merger = Mock()
+        mock_merger.merge.return_value = ([], [], 0.0)
+        mock_factory.create_dedupe_merger.return_value = mock_merger
+
+        mock_gates = Mock()
+        mock_gates.validate.return_value = (True, [])
+        mock_factory.create_quality_gates.return_value = mock_gates
+
+        mock_renderer = Mock()
+        mock_renderer.render.return_value = temp_output_dir / "exports" / "dossier.md"
+        mock_factory.create_export_renderer.return_value = mock_renderer
+
+        pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
+        pipeline.run()
+
+        manifest_path = temp_output_dir / "dataset_manifest.json"
+        assert manifest_path.exists()
+
+        data = json.loads(manifest_path.read_text())
+        assert data["total_documents"] == len(sample_documents)
+        assert all(
+            path in data["source_files"] for path in [d.source_path for d in sample_documents]
+        )
+
+    def test_writes_metrics_json(
+        self,
+        temp_input_dir: Path,
+        temp_output_dir: Path,
+        sample_documents: list[DocumentUnit],
+        sample_passages: list[PassageRecord],
+        sample_entities: list[Entity],
+        sample_obligations: list[Obligation],
+    ) -> None:
+        """Pipeline writes qa/metrics.json."""
+        from showrunner.pipeline.orchestrator import (
+            ComponentFactory,
+            PipelineConfig,
+            ShowrunnerPipeline,
+        )
+
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
+        mock_factory = Mock(spec=ComponentFactory)
+        mock_factory.config = config
+
+        mock_adapter = Mock()
+        mock_adapter.load.return_value = sample_documents
+        mock_factory.create_input_adapter.return_value = mock_adapter
+
+        mock_indexer = Mock()
+        mock_indexer.segment_paragraphs.return_value = sample_passages
+        mock_indexer.index.return_value = (sample_passages, [])
+        mock_factory.create_canon_indexer.return_value = mock_indexer
+
+        mock_resolver = Mock()
+        mock_resolver.resolve.return_value = (sample_entities, [], [])
+        mock_factory.create_entity_resolver.return_value = mock_resolver
+
+        mock_extractor = Mock()
+        mock_extractor.extract.return_value = (sample_obligations, [])
+        mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
+
+        mock_merger = Mock()
+        mock_merger.merge.return_value = (sample_obligations, [], 0.0)
+        mock_factory.create_dedupe_merger.return_value = mock_merger
+
+        mock_gates = Mock()
+        mock_gates.validate.return_value = (True, [])
+        mock_factory.create_quality_gates.return_value = mock_gates
+
+        mock_renderer = Mock()
+        mock_renderer.render.return_value = temp_output_dir / "exports" / "dossier.md"
+        mock_factory.create_export_renderer.return_value = mock_renderer
+
+        pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
+        pipeline.run()
+
+        metrics_path = temp_output_dir / "qa" / "metrics.json"
+        assert metrics_path.exists()
+
+        data = json.loads(metrics_path.read_text())
+        assert data["total_obligations"] == len(sample_obligations)
+        assert data["total_entities"] == len(sample_entities)
+
+    def test_writes_tool_call_audit_jsonl(
+        self,
+        temp_input_dir: Path,
+        temp_output_dir: Path,
+        sample_documents: list[DocumentUnit],
+        sample_passages: list[PassageRecord],
+    ) -> None:
+        """Pipeline writes tool_call_audit.jsonl."""
+        from showrunner.pipeline.orchestrator import (
+            ComponentFactory,
+            PipelineConfig,
+            ShowrunnerPipeline,
+        )
+
+        config = PipelineConfig(input_source=temp_input_dir, output_dir=temp_output_dir)
+        mock_factory = Mock(spec=ComponentFactory)
+        mock_factory.config = config
+
+        mock_adapter = Mock()
+        mock_adapter.load.return_value = sample_documents
+        mock_factory.create_input_adapter.return_value = mock_adapter
+
+        mock_indexer = Mock()
+        mock_indexer.index.return_value = (sample_passages, [])
+        mock_factory.create_canon_indexer.return_value = mock_indexer
+
+        mock_resolver = Mock()
+        mock_resolver.resolve.return_value = ([], [], [])
+        mock_factory.create_entity_resolver.return_value = mock_resolver
+
+        mock_extractor = Mock()
+        mock_extractor.extract.return_value = ([], [])
+        mock_factory.create_obligation_extractor.return_value = mock_extractor
+        mock_event_extractor = Mock()
+        mock_event_extractor.extract.return_value = []
+        mock_factory.create_event_extractor.return_value = mock_event_extractor
+        mock_relationship_extractor = Mock()
+        mock_relationship_extractor.extract.return_value = []
+        mock_factory.create_relationship_extractor.return_value = mock_relationship_extractor
+
+        mock_merger = Mock()
+        mock_merger.merge.return_value = ([], [], 0.0)
+        mock_factory.create_dedupe_merger.return_value = mock_merger
+
+        mock_gates = Mock()
+        mock_gates.validate.return_value = (True, [])
+        mock_factory.create_quality_gates.return_value = mock_gates
+
+        mock_renderer = Mock()
+        mock_renderer.render.return_value = temp_output_dir / "exports" / "dossier.md"
+        mock_factory.create_export_renderer.return_value = mock_renderer
+
+        pipeline = ShowrunnerPipeline(config=config, factory=mock_factory)
+        pipeline.run()
+
+        audit_path = temp_output_dir / "tool_call_audit.jsonl"
+        assert audit_path.exists()
+
+        entries = [json.loads(line) for line in audit_path.read_text().splitlines() if line.strip()]
+        assert entries
+        assert entries[0]["tool"] == "pipeline.run"
 
 
 # =============================================================================

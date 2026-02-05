@@ -11,8 +11,8 @@ and resolving entities from passages. It supports:
 
 from __future__ import annotations
 
+import hashlib
 import re
-import uuid
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -164,9 +164,20 @@ class EntityResolver:
         elif override.action == OverrideAction.ASSIGN and override.target_entity_id:
             self._forced_assignments[override.target_alias] = override.target_entity_id
 
-    def _generate_id(self, prefix: str) -> str:
-        """Generate a unique ID with prefix."""
-        return f"{prefix}_{uuid.uuid4().hex[:8]}"
+    def _hash_id(self, prefix: str, *parts: str) -> str:
+        """Generate a deterministic ID using a content hash."""
+        normalized = "|".join(part.strip().lower() for part in parts)
+        digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:12]
+        return f"{prefix}_{digest}"
+
+    def _generate_entity_id(self, canonical_name: str, entity_type: EntityType) -> str:
+        return self._hash_id("entity", canonical_name, entity_type.value)
+
+    def _generate_alias_id(self, alias_text: str, entity_id: str) -> str:
+        return self._hash_id("alias", alias_text, entity_id)
+
+    def _generate_anchor_id(self, passage_id: str, char_start: int, char_end: int) -> str:
+        return self._hash_id("anchor", passage_id, str(char_start), str(char_end))
 
     def _is_ignored(self, text: str) -> bool:
         """Check if text should be ignored due to override."""
@@ -524,7 +535,7 @@ class EntityResolver:
         # Convert to Entity objects
         entities: list[Entity] = []
         for canonical_name, mention in filtered.items():
-            entity_id = self._generate_id("entity")
+            entity_id = self._generate_entity_id(mention.canonical_name, mention.entity_type)
 
             # Check if there's a forced assignment for this name
             if canonical_name in self._forced_assignments:
@@ -564,7 +575,7 @@ class EntityResolver:
             # Check for forced assignment override
             if entity.canonical_name in self._forced_assignments:
                 alias = AliasEntry(
-                    alias_id=self._generate_id("alias"),
+                    alias_id=self._generate_alias_id(entity.canonical_name, entity.entity_id),
                     alias_text=entity.canonical_name,
                     entity_id=self._forced_assignments[entity.canonical_name],
                     confidence=1.0,
@@ -573,7 +584,7 @@ class EntityResolver:
             else:
                 # Create alias for canonical name itself
                 alias = AliasEntry(
-                    alias_id=self._generate_id("alias"),
+                    alias_id=self._generate_alias_id(entity.canonical_name, entity.entity_id),
                     alias_text=entity.canonical_name,
                     entity_id=entity.entity_id,
                     confidence=1.0,
@@ -587,7 +598,7 @@ class EntityResolver:
                 first_name = name_parts[0]
                 if first_name not in COMMON_WORDS and first_name not in entity_map:
                     alias = AliasEntry(
-                        alias_id=self._generate_id("alias"),
+                        alias_id=self._generate_alias_id(first_name, entity.entity_id),
                         alias_text=first_name,
                         entity_id=entity.entity_id,
                         confidence=0.8,
@@ -599,7 +610,7 @@ class EntityResolver:
                     last_name = name_parts[-1]
                     if last_name not in COMMON_WORDS:
                         alias = AliasEntry(
-                            alias_id=self._generate_id("alias"),
+                            alias_id=self._generate_alias_id(last_name, entity.entity_id),
                             alias_text=last_name,
                             entity_id=entity.entity_id,
                             confidence=0.7,
@@ -628,7 +639,7 @@ class EntityResolver:
         for mention in mentions.values():
             for passage_id, char_start, char_end, excerpt in mention.mentions:
                 anchor = EvidenceAnchor(
-                    anchor_id=self._generate_id("anchor"),
+                    anchor_id=self._generate_anchor_id(passage_id, char_start, char_end),
                     passage_id=passage_id,
                     char_start=char_start,
                     char_end=char_end,
@@ -673,7 +684,7 @@ class EntityResolver:
         # Build entities
         entities: list[Entity] = []
         for canonical_name, mention in filtered.items():
-            entity_id = self._generate_id("entity")
+            entity_id = self._generate_entity_id(mention.canonical_name, mention.entity_type)
 
             if canonical_name in self._forced_assignments:
                 entity_id = self._forced_assignments[canonical_name]

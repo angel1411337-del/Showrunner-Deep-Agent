@@ -10,12 +10,11 @@ Implements quality gates for the Showrunner Orchestrator:
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from pydantic import BaseModel
 
 from showrunner.contracts import (
@@ -38,6 +37,9 @@ class QualityGates:
     - Evidence gate (ERROR if obligation has no evidence)
     - Contradiction detection (WARN only in MVP)
     """
+
+    def __init__(self, schema_dir: Path | None = None) -> None:
+        self._schema_dir = schema_dir or Path(__file__).resolve().parents[3] / "schemas"
 
     def validate_schema(
         self,
@@ -392,6 +394,16 @@ class QualityGates:
         """
         all_findings: list[Finding] = []
 
+        # Run schema validation checks
+        schema_findings = self._run_schema_checks(
+            passages=passages,
+            anchors=anchors,
+            entities=entities,
+            aliases=aliases,
+            obligations=obligations,
+        )
+        all_findings.extend(schema_findings)
+
         # Run referential integrity checks
         integrity_findings = self.check_referential_integrity(
             passages=passages,
@@ -415,6 +427,40 @@ class QualityGates:
         passed = not has_errors
 
         return all_findings, passed
+
+    def _run_schema_checks(
+        self,
+        *,
+        passages: list[PassageRecord],
+        anchors: list[EvidenceAnchor],
+        entities: list[Entity],
+        aliases: list[AliasEntry],
+        obligations: list[Obligation],
+    ) -> list[Finding]:
+        if not self._schema_dir.exists():
+            return [
+                Finding(
+                    finding_id=f"schema-{uuid4().hex[:8]}",
+                    severity=FindingSeverity.ERROR,
+                    category="schema",
+                    message=f"Schemas directory not found: {self._schema_dir}",
+                    related_ids=[],
+                )
+            ]
+
+        schema_map: list[tuple[Path, list[Any]]] = [
+            (self._schema_dir / "PassageRecord.json", list(passages)),
+            (self._schema_dir / "EvidenceAnchor.json", list(anchors)),
+            (self._schema_dir / "Entity.json", list(entities)),
+            (self._schema_dir / "AliasEntry.json", list(aliases)),
+            (self._schema_dir / "Obligation.json", list(obligations)),
+        ]
+
+        findings: list[Finding] = []
+        for schema_path, records in schema_map:
+            for record in records:
+                findings.extend(self.validate_schema(record, schema_path))
+        return findings
 
     def validate(
         self,

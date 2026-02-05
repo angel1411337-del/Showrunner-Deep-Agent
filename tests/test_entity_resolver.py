@@ -868,6 +868,34 @@ class TestResolve:
         assert aliases == []
         assert anchors == []
 
+    def test_resolve_is_deterministic(self, resolver: EntityResolver) -> None:
+        """resolve() should return stable IDs across identical runs."""
+        passages = [
+            PassageRecord(
+                passage_id="book1:0",
+                source_id="book1",
+                paragraph_index=0,
+                text="Jon Snow walked to Winterfell.",
+                char_start=0,
+                char_end=31,
+            ),
+            PassageRecord(
+                passage_id="book1:1",
+                source_id="book1",
+                paragraph_index=1,
+                text="Arya Stark met Jon Snow by the Wall.",
+                char_start=32,
+                char_end=72,
+            ),
+        ]
+
+        entities_a, aliases_a, anchors_a = resolver.resolve(passages)
+        entities_b, aliases_b, anchors_b = resolver.resolve(passages)
+
+        assert [e.entity_id for e in entities_a] == [e.entity_id for e in entities_b]
+        assert [a.alias_id for a in aliases_a] == [a.alias_id for a in aliases_b]
+        assert sorted(a.anchor_id for a in anchors_a) == sorted(a.anchor_id for a in anchors_b)
+
     def test_resolve_includes_all_types(
         self, resolver: EntityResolver, sample_passages: list[PassageRecord]
     ) -> None:
