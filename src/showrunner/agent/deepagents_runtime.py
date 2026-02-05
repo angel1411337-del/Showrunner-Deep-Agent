@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from showrunner.agent import tools
+from showrunner.agent.loop import AgentLoop, AgentLoopResult
 from showrunner.rlm.memory_store import MemoryStore
 from showrunner.rlm.rlm_runner import RLMRunner
 
@@ -25,11 +26,14 @@ class DeepagentsRuntime:
         graph_session: Neo4jSessionProtocol | None = None,
         query_layer: Neo4jQueryLayer | None = None,
         memory_store: MemoryStore | None = None,
+        loop: AgentLoop | None = None,
+        environment_root: Path | None = None,
     ) -> None:
         self._available = _deepagents_available()
         self._graph_session = graph_session
         self._query_layer = query_layer
         self._memory_store = memory_store or MemoryStore()
+        self._loop = loop or AgentLoop(environment_root=environment_root)
         self._rlm_runner = RLMRunner(
             tools=self._build_tools(),
             memory_store=self._memory_store,
@@ -41,6 +45,9 @@ class DeepagentsRuntime:
 
     def run(self, *, input_source: Path, output_dir: Path) -> AgentRunResult:
         return tools.run_pipeline(input_source=input_source, output_dir=output_dir)
+
+    def run_loop(self, *, input_source: Path, output_dir: Path) -> AgentLoopResult:
+        return self._loop.run(input_source=input_source, output_dir=output_dir)
 
     def list_artifacts(self, *, output_dir: Path) -> list[str]:
         return tools.list_artifacts(output_dir=output_dir)
