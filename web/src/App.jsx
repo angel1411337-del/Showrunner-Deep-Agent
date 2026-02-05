@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, FileText, Activity, Search, Settings, Play } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { LayoutDashboard, Users, FileText, Activity, Search, Settings, Play, GitMerge } from 'lucide-react';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Dashboard } from './components/Dashboard';
 import { Entities } from './components/Entities';
 import { Dossier } from './components/Dossier';
+import { PlanningOutputs } from './components/PlanningOutputs';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -71,6 +72,7 @@ function App() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'dossier', label: 'Dossier', icon: FileText },
+    { id: 'planning', label: 'Planning Outputs', icon: GitMerge },
     { id: 'entities', label: 'Entities', icon: Users },
     { id: 'all-obligations', label: 'All Obligations', icon: Activity },
   ];
@@ -157,7 +159,7 @@ function App() {
         {/* Content View */}
         <div className="flex-1 glass-panel rounded-2xl p-6 overflow-hidden relative">
           <AnimatePresence mode="wait">
-            <motion.div
+            <Motion.div
               key={activeTab}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -167,9 +169,10 @@ function App() {
             >
               {activeTab === 'dashboard' && <Dashboard />}
               {activeTab === 'dossier' && <Dossier filterResolved={true} />}
+              {activeTab === 'planning' && <PlanningOutputs />}
               {activeTab === 'entities' && <Entities events={events} relationships={relationships} obligations={obligations} />}
               {activeTab === 'all-obligations' && <Dossier filterResolved={false} />}
-            </motion.div>
+            </Motion.div>
           </AnimatePresence>
         </div>
       </main>

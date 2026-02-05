@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { X, Calendar, Link as LinkIcon, AlertTriangle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 
 export function EntityDrawer({ entity, isOpen, onClose, events = [], relationships = [], obligations = [] }) {
     if (!entity) return null;
@@ -19,14 +19,14 @@ export function EntityDrawer({ entity, isOpen, onClose, events = [], relationshi
         <AnimatePresence>
             {isOpen && (
                 <>
-                    <motion.div
+                    <Motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
                     />
-                    <motion.div
+                    <Motion.div
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
@@ -116,7 +116,7 @@ export function EntityDrawer({ entity, isOpen, onClose, events = [], relationshi
                                 )}
                             </section>
                         </div>
-                    </motion.div>
+                    </Motion.div>
                 </>
             )}
         </AnimatePresence>
