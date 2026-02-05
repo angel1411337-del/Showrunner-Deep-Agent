@@ -29,7 +29,9 @@ def parse_runtime_mode(value: str | RuntimeMode) -> RuntimeMode:
 class AgentRuntime:
     """Facade that routes runtime calls by mode."""
 
-    def __init__(self, mode: RuntimeMode | str = RuntimeMode.PIPELINE, harness: AgentHarness | None = None) -> None:
+    def __init__(
+        self, mode: RuntimeMode | str = RuntimeMode.PIPELINE, harness: AgentHarness | None = None
+    ) -> None:
         self._mode = parse_runtime_mode(mode)
         self._harness = harness or AgentHarness()
 
