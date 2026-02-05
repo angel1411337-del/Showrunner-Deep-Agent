@@ -103,6 +103,18 @@ def read_json_file(subpath: str) -> Any:
         return json.load(f)
 
 
+def read_text_file(subpath: str) -> str:
+    out_dir = get_latest_output_dir()
+    if not out_dir:
+        raise HTTPException(status_code=404, detail="No output directory found")
+
+    file_path = out_dir / subpath
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {subpath}")
+
+    return file_path.read_text(encoding="utf-8")
+
+
 @router.get("/status")
 async def get_status():
     out_dir = get_latest_output_dir()
@@ -203,6 +215,60 @@ async def get_relationships() -> list[dict[str, Any]]:
             return cast("list[dict[str, Any]]", read_json_file("wiki/relationships.json"))
         except HTTPException:
             return []
+
+
+@router.get("/exports/outline")
+async def get_outline_export() -> Response:
+    try:
+        content = read_text_file("exports/master_outline_books_6_7.md")
+    except HTTPException:
+        try:
+            content = read_text_file("exports/master_outline.md")
+        except HTTPException:
+            content = ""
+    return Response(content=content, media_type="text/markdown")
+
+
+@router.get("/exports/reveals")
+async def get_reveals_export() -> Response:
+    try:
+        content = read_text_file("exports/mysteries_reveals_table.csv")
+    except HTTPException:
+        content = ""
+    return Response(content=content, media_type="text/csv")
+
+
+@router.get("/exports/twists")
+async def get_twists_export() -> Response:
+    try:
+        content = read_text_file("exports/twist_bank.md")
+    except HTTPException:
+        content = ""
+    return Response(content=content, media_type="text/markdown")
+
+
+@router.get("/plans/outline")
+async def get_outline_plan() -> list[dict[str, Any]]:
+    try:
+        return cast("list[dict[str, Any]]", read_json_file("plans/outline.json"))
+    except HTTPException:
+        return []
+
+
+@router.get("/plans/reveals")
+async def get_reveals_plan() -> list[dict[str, Any]]:
+    try:
+        return cast("list[dict[str, Any]]", read_json_file("plans/reveals.json"))
+    except HTTPException:
+        return []
+
+
+@router.get("/plans/twists")
+async def get_twists_plan() -> list[dict[str, Any]]:
+    try:
+        return cast("list[dict[str, Any]]", read_json_file("plans/twists.json"))
+    except HTTPException:
+        return []
 
 
 def get_passages_data() -> list[dict[str, Any]]:
