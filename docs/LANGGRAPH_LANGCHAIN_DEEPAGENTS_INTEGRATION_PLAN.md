@@ -196,6 +196,18 @@ Acceptance:
 | 9. Temporal memory store | data-models | 7,8 | Timeline memory backend | 4h |
 | 10. CI runtime matrix + parity tests | devops | 3,5,7 | Runtime-mode gates | 3h |
 
+## Dependency Graph (Unit 9 as Root)
+
+```mermaid
+graph TD
+  U9[Unit 9: Runtime Facade] --> U10[Unit 10: LangChain Runtime + API]
+  U9 --> U11[Unit 11: Deepagents Scaffold]
+  U9 --> U12[Unit 12: Graph + RLM Tools]
+  U10 --> U13[Unit 13: CI Runtime Matrix]
+  U11 --> U13
+  U12 --> U13
+```
+
 ## Definition of Done
 
 1. LangGraph + LangChain + Deepagents modes available behind one runtime facade.
