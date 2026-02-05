@@ -208,6 +208,36 @@ def test_build_graph_contains_required_nodes_edges_and_provenance_fields() -> No
     assert "created_at" in event_node.properties
 
 
+def test_build_graph_uses_neo4j_compatible_property_types_only() -> None:
+    loader = Neo4jGraphLoader()
+    entities, events, relationships, obligations, passages, anchors = _sample_data()
+    nodes, edges = loader.build_graph(
+        entities=entities,
+        events=events,
+        relationships=relationships,
+        obligations=obligations,
+        passages=passages,
+        anchors=anchors,
+    )
+
+    def _assert_neo4j_value(value: object) -> None:
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return
+        if isinstance(value, list):
+            for item in value:
+                assert item is None or isinstance(item, (str, int, float, bool))
+            return
+        raise AssertionError(f"Non-neo4j property value type: {type(value).__name__}")
+
+    for node in nodes:
+        for value in node.properties.values():
+            _assert_neo4j_value(value)
+
+    for edge in edges:
+        for value in edge.properties.values():
+            _assert_neo4j_value(value)
+
+
 def test_edge_ids_are_deterministic_for_same_inputs() -> None:
     loader = Neo4jGraphLoader()
     entities, events, relationships, obligations, passages, anchors = _sample_data()

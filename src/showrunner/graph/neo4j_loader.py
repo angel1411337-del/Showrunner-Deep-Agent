@@ -7,6 +7,7 @@ relationships and uses MERGE-based upserts so the loader is safe to rerun.
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol
 
@@ -120,6 +121,11 @@ class Neo4jGraphLoader:
         edge_map: dict[str, GraphEdge] = {}
 
         for passage in passages:
+            passage_story_order = {
+                "order_index": passage.paragraph_index,
+                "passage_id": passage.passage_id,
+                "source_id": passage.source_id,
+            }
             self._put_node(
                 node_map,
                 GraphNode(
@@ -132,11 +138,7 @@ class Neo4jGraphLoader:
                         "char_start": passage.char_start,
                         "char_end": passage.char_end,
                         "story_time": None,
-                        "story_order": {
-                            "order_index": passage.paragraph_index,
-                            "passage_id": passage.passage_id,
-                            "source_id": passage.source_id,
-                        },
+                        "story_order": self._serialize_json(passage_story_order),
                         "story_time_label": None,
                         "story_time_start": None,
                         "story_time_end": None,
@@ -294,8 +296,8 @@ class Neo4jGraphLoader:
                         "title": event.title,
                         "description": event.description,
                         "location_entity_id": event.location_entity_id,
-                        "story_time": event_story_time,
-                        "story_order": event_story_order,
+                        "story_time": self._serialize_json(event_story_time),
+                        "story_order": self._serialize_json(event_story_order),
                         "story_time_label": event.story_time.time_label,
                         "story_time_start": event.story_time.time_start,
                         "story_time_end": event.story_time.time_end,
@@ -392,8 +394,8 @@ class Neo4jGraphLoader:
                         "source_entity_id": relationship.source_entity_id,
                         "target_entity_id": relationship.target_entity_id,
                         "description": relationship.description,
-                        "story_time": rel_story_time,
-                        "story_order": rel_story_order,
+                        "story_time": self._serialize_json(rel_story_time),
+                        "story_order": self._serialize_json(rel_story_order),
                         "story_time_label": relationship.story_time.time_label,
                         "story_time_start": relationship.story_time.time_start,
                         "story_time_end": relationship.story_time.time_end,
@@ -537,8 +539,8 @@ class Neo4jGraphLoader:
             target_id=target_id,
             edge_id=edge_id,
             properties={
-                "story_time": story_time,
-                "story_order": story_order,
+                "story_time": self._serialize_json(story_time),
+                "story_order": self._serialize_json(story_order),
                 "story_time_label": self._nested_value(story_time, "time_label"),
                 "story_time_start": self._nested_value(story_time, "time_start"),
                 "story_time_end": self._nested_value(story_time, "time_end"),
@@ -572,3 +574,8 @@ class Neo4jGraphLoader:
         if payload is None:
             return None
         return payload.get(key)
+
+    def _serialize_json(self, payload: dict[str, Any] | None) -> str | None:
+        if payload is None:
+            return None
+        return json.dumps(payload, sort_keys=True, separators=(",", ":"))
