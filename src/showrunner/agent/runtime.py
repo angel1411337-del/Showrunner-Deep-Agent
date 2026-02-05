@@ -12,6 +12,8 @@ from showrunner.agent.langchain_runtime import LangChainRuntime
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from showrunner.rlm.repl_executor import RLMRunResult
+
 
 class RuntimeMode(str, Enum):
     PIPELINE = "pipeline"
@@ -83,6 +85,11 @@ class AgentRuntime:
         if self._mode is RuntimeMode.DEEPAGENTS:
             return self._deepagents.query_graph(query=query, parameters=parameters)
         raise NotImplementedError(f"{self._mode.value} runtime does not support graph queries")
+
+    def run_repl_program(self, *, prompt: str, code: str) -> RLMRunResult:
+        if self._mode is RuntimeMode.DEEPAGENTS:
+            return self._deepagents.run_repl_program(prompt=prompt, code=code)
+        raise NotImplementedError(f"{self._mode.value} runtime does not support REPL programs")
 
     def capabilities(self) -> dict[str, bool]:
         return runtime_capabilities()

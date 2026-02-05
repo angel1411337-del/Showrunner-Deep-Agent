@@ -117,6 +117,35 @@ def test_agent_runtime_query_graph_deepagents() -> None:
     assert session.calls
 
 
+def test_agent_runtime_repl_program_deepagents() -> None:
+    session = DummySession(result=[{"event_id": "evt-3"}])
+    runtime = AgentRuntime(
+        mode="deepagents",
+        deepagents_runtime=DeepagentsRuntime(graph_session=session),
+    )
+
+    result = runtime.run_repl_program(
+        prompt="alpha",
+        code=(
+            "env.emit_tool_call("
+            "'query_graph', "
+            "query='events_for_entity', "
+            "parameters={'entity_id': 'entity-3'}"
+            ")"
+        ),
+    )
+
+    assert result.outputs == [[{"event_id": "evt-3"}]]
+    assert session.calls
+
+
+def test_agent_runtime_repl_program_unsupported() -> None:
+    runtime = AgentRuntime(mode="pipeline")
+
+    with pytest.raises(NotImplementedError):
+        runtime.run_repl_program(prompt="alpha", code="env.emit_tool_call('noop')")
+
+
 def test_agent_runtime_unsupported_modes_raise(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         AgentRuntime(mode="unknown")

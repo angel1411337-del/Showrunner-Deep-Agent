@@ -5,12 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from showrunner.agent import tools
+from showrunner.rlm.memory_store import MemoryStore
+from showrunner.rlm.rlm_runner import RLMRunner
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from showrunner.agent.harness import AgentRunResult
     from showrunner.graph.queries import Neo4jQueryLayer, Neo4jSessionProtocol
+    from showrunner.rlm.repl_executor import RLMRunResult
 
 
 class DeepagentsRuntime:
@@ -21,10 +24,16 @@ class DeepagentsRuntime:
         *,
         graph_session: Neo4jSessionProtocol | None = None,
         query_layer: Neo4jQueryLayer | None = None,
+        memory_store: MemoryStore | None = None,
     ) -> None:
         self._available = _deepagents_available()
         self._graph_session = graph_session
         self._query_layer = query_layer
+        self._memory_store = memory_store or MemoryStore()
+        self._rlm_runner = RLMRunner(
+            tools=self._build_tools(),
+            memory_store=self._memory_store,
+        )
 
     @property
     def available(self) -> bool:
@@ -50,6 +59,17 @@ class DeepagentsRuntime:
             session=self._graph_session,
             query_layer=self._query_layer,
         )
+
+    def run_repl_program(self, *, prompt: str, code: str) -> RLMRunResult:
+        return self._rlm_runner.run_program(prompt=prompt, code=code)
+
+    def _build_tools(self) -> dict[str, Any]:
+        return {
+            "run_pipeline": self.run,
+            "list_artifacts": self.list_artifacts,
+            "read_artifact": self.read_artifact,
+            "query_graph": self.query_graph,
+        }
 
 
 def _deepagents_available() -> bool:
