@@ -7,24 +7,35 @@
 - `docs/GUI_INPUT_CONTRACT.md`
 - `docs/LANGCHAIN_LANGGRAPH_UPGRADE.md`
 - `docs/AGENTIC_TRAVERSAL.md`
+- `docs/AGENT_RUNTIME_STATUS.md`
+- `docs/AGENT_V1.md`
 
-## Current State: MVP v0.1 Complete
+## Current State: v0.1-v0.4 Pipeline Pack Complete
 
 | Artifact | Status |
 |----------|--------|
-| Unresolved Threads Dossier | ✅ Complete |
-| Canon Indexer (paragraph passages) | ✅ Complete |
-| Entity Resolution v1 | ✅ Complete |
-| Obligation Extraction (4 categories) | ✅ Complete |
-| Evidence Gates (hard) | ✅ Complete |
-| Contradiction Detection (WARN) | ✅ Complete |
-| JSON Schema Validation | ✅ Complete |
-| Golden Determinism Tests | ✅ Complete |
-| CI Pipeline | ✅ Complete |
+| Unresolved Threads Dossier (v0.1) | Complete |
+| Master Outline export + store (v0.2) | Complete |
+| Reveal Ledger export + store (v0.3) | Complete |
+| Twist Bank export + store (v0.4) | Complete |
+| Wiki Events/Relationships extraction | Complete |
+| Neo4j graph schema + loader + query layer | Complete |
+| Evidence Gates (hard) + Contradiction WARN | Complete |
+| JSON Schema + determinism + CI guard for v0.1-v0.4 exports | Complete |
+
+### Runtime Integration Status
+
+| Runtime Layer | Status | Notes |
+|---------------|--------|-------|
+| LangGraph | Active | Primary orchestration runtime in `ShowrunnerPipeline` |
+| LangChain | Partial | Used at provider layer, not as full agent loop runtime |
+| Deepagents | Planned | No `src/showrunner/agent/` runtime integration yet |
 
 ---
 
 ## Phase 1: Immediate Refinements (1-2 days)
+
+Status: mostly completed. Keep this section as historical implementation notes.
 
 ### 1.1 Fix Pipeline Test Interface Mismatches
 

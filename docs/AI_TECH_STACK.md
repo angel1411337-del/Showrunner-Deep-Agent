@@ -6,11 +6,15 @@ system architecture used by the Showrunner Deep Agent codebase. It is intended
 to help future AI assistants or collaborators reason about the system without
 guesswork.
 
+For a direct implemented-vs-planned runtime map, see
+`docs/AGENT_RUNTIME_STATUS.md`.
+
 ## Tech Stack
 - Language: Python 3.14.x (project requires >= 3.14.2)
 - Packaging: PEP 621 + Hatchling
-- Core libraries: Pydantic v2, LangGraph v1, LangChain, LangChain Core
-- Optional LLM integrations: langchain-anthropic, langchain-openai
+- Core libraries: Pydantic v2, LangGraph v1
+- LLM integration layer: LangChain + LangChain Core provider wrappers
+- Optional LLM provider backends: langchain-anthropic, langchain-openai
 - Data formats: JSON, JSONL, Markdown, SQLite
 - Dev tooling: pytest, pytest-cov, ruff, pyright, jsonschema, pre-commit
 - Environment tool: uv (lockfile present)
@@ -26,6 +30,13 @@ plus additional planning artifacts.
 The main orchestration layer is `ShowrunnerPipeline` in
 `src/showrunner/pipeline/orchestrator.py`. It runs a LangGraph DAG when
 available and falls back to a sequential runner if LangGraph is unavailable.
+
+## Agent Runtime Status
+- LangGraph: active orchestration runtime in production pipeline.
+- LangChain: active as provider integration boundary (for Anthropic/OpenAI adapters).
+- Minimal agent harness: available in `src/showrunner/agent/harness.py`.
+- Deepagents: not integrated yet as an execution runtime. Planned for a later
+  integration phase.
 
 ## Key Layers and Components
 ### Contracts (Pydantic Models)
@@ -48,7 +59,9 @@ Pipeline stages are composed as nodes in a DAG:
 - extract_obligations
 - merge_duplicates
 - validate_gates
+- extract_wiki
 - export_dossier
+- export_planning_artifacts
 
 Each stage is implemented via a component that conforms to a protocol in
 `src/showrunner/pipeline/protocols.py`. Components are created by

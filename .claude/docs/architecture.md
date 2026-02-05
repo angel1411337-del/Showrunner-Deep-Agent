@@ -42,11 +42,16 @@ Showrunner is a contract-driven LangGraph pipeline that ingests narrative corpor
 - Reveal ledger planner produces mysteries and candidate truths.
 - Twist bank planner produces twist proposals with evidence congruence.
 
-### 10. Passive Mode Hooks (v1)
+### 10. Agent Harness (v1)
+- `src/showrunner/agent/harness.py` exposes a minimal wrapper around pipeline execution.
+- Supports: run pipeline, list artifacts, read artifacts, and runtime capability checks.
+- Deepagents execution runtime is not integrated yet; harness is a stable staging point.
+
+### 11. Passive Mode Hooks (v1)
 - Pre-commit detects changed files and runs incremental analysis.
 - Post-commit updates the review queue.
 
-### 11. Wiki Extraction (v1+)
+### 12. Wiki Extraction (v1+)
 - Event extractor emits canonical events with evidence anchors.
 - Relationship extractor emits entity relationships with evidence anchors.
 - StoryTime and StoryOrder provide in-world time and narrative order alongside real-world creation time.

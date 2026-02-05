@@ -88,6 +88,19 @@ class LLMProviderProtocol(Protocol):
     def complete_structured(self, prompt: str, response_model: type, system_prompt: str | None = None, temperature: float = 0.0): ...
 ```
 
+## Agent Harness (v1)
+
+### AgentHarnessProtocol
+**Provided by:** agent/harness
+**Consumed by:** future runtime integration, CLI/API wrappers
+
+```python
+class AgentHarnessProtocol(Protocol):
+    def run_pipeline(self, input_source: Path, output_dir: Path) -> AgentRunResult: ...
+    def list_artifacts(self, output_dir: Path) -> list[str]: ...
+    def read_artifact(self, output_dir: Path, relative_path: str) -> str: ...
+```
+
 ## Planning Modules (v0.2+)
 
 ### OutlinePlanner

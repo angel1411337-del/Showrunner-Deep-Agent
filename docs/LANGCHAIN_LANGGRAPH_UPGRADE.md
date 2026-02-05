@@ -3,6 +3,12 @@
 **Scope**
 This is a repo-specific checklist to upgrade LangChain/LangGraph usage for Showrunner and stage deep-agent capabilities in two phases.
 
+**Current baseline**
+- LangGraph pipeline runtime: implemented.
+- LangChain provider layer: implemented.
+- Deepagents runtime: not yet integrated.
+- Source of truth for status: `docs/AGENT_RUNTIME_STATUS.md`.
+
 **V1 Checklist (Minimal, Safe)**
 1. Pin versions in `pyproject.toml` for `langchain`, `langchain-core`, `langgraph`, and `deepagents`.
 2. Ensure `langchain-core` is at a patched version (>=1.2.5) to avoid serialization vulnerabilities.
@@ -17,6 +23,10 @@ This is a repo-specific checklist to upgrade LangChain/LangGraph usage for Showr
 11. Unit tests for tool wrappers.
 12. Integration test: agent runs the pipeline and produces the dossier artifacts.
 13. Add `docs/AGENT_V1.md` describing capabilities and limits.
+
+**V1 Checklist status**
+- Done: 3 (minimal entrypoint scaffold in `src/showrunner/agent/harness.py`).
+- Pending: 1-2, 4-13 (except where already covered by existing pipeline tests and docs).
 
 **V2 Checklist (Deep Agent + Research Layer)**
 1. Enable planning with `write_todos` and `read_todos`.
