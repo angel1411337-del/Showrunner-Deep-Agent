@@ -152,6 +152,30 @@ def test_schema_queries_cover_required_nodes_and_edges() -> None:
     ):
         assert any(edge_type in query for query in queries)
 
+    for node_label in (
+        "Entity",
+        "Event",
+        "Relationship",
+        "Obligation",
+        "Passage",
+        "EvidenceAnchor",
+    ):
+        assert any(f"FOR (n:{node_label}) REQUIRE n.id IS UNIQUE" in query for query in queries)
+
+
+def test_schema_queries_define_indexes_for_time_and_lookup_fields() -> None:
+    queries = Neo4jGraphLoader.schema_queries()
+
+    expected_index_tokens = (
+        "event_story_order_index",
+        "relationship_story_order_index",
+        "obligation_last_seen_passage_index",
+        "passage_source_id_index",
+        "anchor_passage_id_index",
+    )
+    for token in expected_index_tokens:
+        assert any(token in query for query in queries)
+
 
 def test_build_graph_contains_required_nodes_edges_and_provenance_fields() -> None:
     loader = Neo4jGraphLoader()

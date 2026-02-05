@@ -137,3 +137,61 @@ def test_run_hook_returns_zero_on_handler_error(tmp_path: Path, monkeypatch) -> 
     result = git_hook_handler.run_hook("pre-commit", repo_root=tmp_path)
 
     assert result == 0
+
+
+def test_handle_pre_commit_triggers_incremental_graph_sync(tmp_path: Path, monkeypatch) -> None:
+    repo_root = tmp_path
+    changed_file = repo_root / "corpus" / "book1.txt"
+    changed_file.parent.mkdir(parents=True, exist_ok=True)
+    changed_file.write_text("Arya fought.")
+    state: dict[str, object] = {"entities": [], "events": []}
+
+    monkeypatch.setattr(
+        git_hook_handler,
+        "detect_changed_text_files",
+        lambda *_args, **_kwargs: [changed_file],
+    )
+    monkeypatch.setattr(git_hook_handler, "run_incremental", lambda *_args, **_kwargs: state)
+
+    observed: dict[str, object] = {}
+
+    def _fake_sync(*, state: object, changed_files: list[Path]) -> None:
+        observed["state"] = state
+        observed["changed_files"] = changed_files
+
+    monkeypatch.setattr(git_hook_handler, "sync_incremental_graph_update", _fake_sync)
+
+    result = git_hook_handler._handle_pre_commit(repo_root)
+
+    assert result == 0
+    assert observed["state"] is state
+    assert observed["changed_files"] == [changed_file]
+
+
+def test_handle_pre_commit_skips_graph_sync_when_no_state(tmp_path: Path, monkeypatch) -> None:
+    repo_root = tmp_path
+    changed_file = repo_root / "corpus" / "book1.txt"
+    changed_file.parent.mkdir(parents=True, exist_ok=True)
+    changed_file.write_text("Arya fought.")
+
+    monkeypatch.setattr(
+        git_hook_handler,
+        "detect_changed_text_files",
+        lambda *_args, **_kwargs: [changed_file],
+    )
+    monkeypatch.setattr(git_hook_handler, "run_incremental", lambda *_args, **_kwargs: None)
+
+    called = False
+
+    def _fake_sync(*, state: object, changed_files: list[Path]) -> None:  # pragma: no cover
+        del state
+        del changed_files
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(git_hook_handler, "sync_incremental_graph_update", _fake_sync)
+
+    result = git_hook_handler._handle_pre_commit(repo_root)
+
+    assert result == 0
+    assert called is False

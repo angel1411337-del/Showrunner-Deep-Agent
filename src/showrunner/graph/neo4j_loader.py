@@ -84,7 +84,26 @@ class Neo4jGraphLoader:
             )
             for edge_type in _EDGE_TYPES
         ]
-        return node_queries + edge_queries
+        index_queries = [
+            (
+                "CREATE INDEX event_story_order_index IF NOT EXISTS "
+                "FOR (n:Event) ON (n.story_order_index)"
+            ),
+            (
+                "CREATE INDEX relationship_story_order_index IF NOT EXISTS "
+                "FOR (n:Relationship) ON (n.story_order_index)"
+            ),
+            (
+                "CREATE INDEX obligation_last_seen_passage_index IF NOT EXISTS "
+                "FOR (n:Obligation) ON (n.last_seen_passage_id)"
+            ),
+            ("CREATE INDEX passage_source_id_index IF NOT EXISTS FOR (n:Passage) ON (n.source_id)"),
+            (
+                "CREATE INDEX anchor_passage_id_index IF NOT EXISTS "
+                "FOR (n:EvidenceAnchor) ON (n.passage_id)"
+            ),
+        ]
+        return node_queries + edge_queries + index_queries
 
     def build_graph(
         self,
@@ -118,6 +137,13 @@ class Neo4jGraphLoader:
                             "passage_id": passage.passage_id,
                             "source_id": passage.source_id,
                         },
+                        "story_time_label": None,
+                        "story_time_start": None,
+                        "story_time_end": None,
+                        "story_order_index": passage.paragraph_index,
+                        "story_order_label": None,
+                        "story_order_source_id": passage.source_id,
+                        "story_order_passage_id": passage.passage_id,
                         "created_at": None,
                     },
                 ),
@@ -136,6 +162,13 @@ class Neo4jGraphLoader:
                         "excerpt": anchor.excerpt,
                         "story_time": None,
                         "story_order": None,
+                        "story_time_label": None,
+                        "story_time_start": None,
+                        "story_time_end": None,
+                        "story_order_index": None,
+                        "story_order_label": None,
+                        "story_order_source_id": None,
+                        "story_order_passage_id": None,
                         "created_at": None,
                     },
                 ),
@@ -166,6 +199,13 @@ class Neo4jGraphLoader:
                         "description": entity.description,
                         "story_time": None,
                         "story_order": None,
+                        "story_time_label": None,
+                        "story_time_start": None,
+                        "story_time_end": None,
+                        "story_order_index": None,
+                        "story_order_label": None,
+                        "story_order_source_id": None,
+                        "story_order_passage_id": None,
                         "created_at": None,
                     },
                 ),
@@ -196,6 +236,13 @@ class Neo4jGraphLoader:
                         "resolution_passage_id": obligation.resolution_passage_id,
                         "story_time": None,
                         "story_order": None,
+                        "story_time_label": None,
+                        "story_time_start": None,
+                        "story_time_end": None,
+                        "story_order_index": None,
+                        "story_order_label": None,
+                        "story_order_source_id": None,
+                        "story_order_passage_id": None,
                         "created_at": None,
                     },
                 ),
@@ -249,6 +296,13 @@ class Neo4jGraphLoader:
                         "location_entity_id": event.location_entity_id,
                         "story_time": event_story_time,
                         "story_order": event_story_order,
+                        "story_time_label": event.story_time.time_label,
+                        "story_time_start": event.story_time.time_start,
+                        "story_time_end": event.story_time.time_end,
+                        "story_order_index": event.story_order.order_index,
+                        "story_order_label": event.story_order.order_label,
+                        "story_order_source_id": event.story_order.source_id,
+                        "story_order_passage_id": event.story_order.passage_id,
                         "created_at": event_created_at,
                     },
                 ),
@@ -340,6 +394,13 @@ class Neo4jGraphLoader:
                         "description": relationship.description,
                         "story_time": rel_story_time,
                         "story_order": rel_story_order,
+                        "story_time_label": relationship.story_time.time_label,
+                        "story_time_start": relationship.story_time.time_start,
+                        "story_time_end": relationship.story_time.time_end,
+                        "story_order_index": relationship.story_order.order_index,
+                        "story_order_label": relationship.story_order.order_label,
+                        "story_order_source_id": relationship.story_order.source_id,
+                        "story_order_passage_id": relationship.story_order.passage_id,
                         "created_at": rel_created_at,
                     },
                 ),
@@ -478,6 +539,13 @@ class Neo4jGraphLoader:
             properties={
                 "story_time": story_time,
                 "story_order": story_order,
+                "story_time_label": self._nested_value(story_time, "time_label"),
+                "story_time_start": self._nested_value(story_time, "time_start"),
+                "story_time_end": self._nested_value(story_time, "time_end"),
+                "story_order_index": self._nested_value(story_order, "order_index"),
+                "story_order_label": self._nested_value(story_order, "order_label"),
+                "story_order_source_id": self._nested_value(story_order, "source_id"),
+                "story_order_passage_id": self._nested_value(story_order, "passage_id"),
                 "created_at": created_at,
             },
         )
@@ -499,3 +567,8 @@ class Neo4jGraphLoader:
 
     def _datetime_to_iso(self, value: datetime) -> str:
         return value.isoformat()
+
+    def _nested_value(self, payload: dict[str, Any] | None, key: str) -> Any:
+        if payload is None:
+            return None
+        return payload.get(key)

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
 from showrunner.contracts import Finding, FindingSeverity, ReviewQueueItem
+from showrunner.graph.incremental_sync import sync_incremental_graph_update
 from showrunner.hooks.change_detector import detect_changed_text_files
 from showrunner.hooks.incremental_runner import (
     resolve_corpus_root,
@@ -95,6 +96,8 @@ def _handle_pre_commit(repo_root: Path) -> int:
     output_dir = resolve_output_dir(repo_root)
     changed_files = detect_changed_text_files(repo_root, corpus_root=corpus_root, staged=True)
     state = run_incremental(changed_files, corpus_root=corpus_root, output_dir=output_dir)
+    if state:
+        sync_incremental_graph_update(state=state, changed_files=changed_files)
     if state and state.get("findings"):
         items = build_review_items(state.get("findings", []))
         queue_path = repo_root / "review" / "queue.jsonl"
@@ -117,6 +120,7 @@ def _handle_post_commit(repo_root: Path) -> int:
         )
         state = run_incremental(changed_files, corpus_root=corpus_root, output_dir=output_dir)
         if state:
+            sync_incremental_graph_update(state=state, changed_files=changed_files)
             findings = list(state.get("findings", []))
 
     if findings:

@@ -22,9 +22,12 @@ from showrunner.contracts import (
     Finding,
     Obligation,
     ObligationGraphEdge,
+    OutlineSection,
     PassageRecord,
     Relationship,
+    RevealEntry,
     RunManifest,
+    TwistProposal,
 )
 
 _langgraph_memory_saver: type[Any]
@@ -108,9 +111,15 @@ class PipelineState(dict[str, Any]):
     obligation_edges: list[ObligationGraphEdge]
     events: list[Event]
     relationships: list[Relationship]
+    outline: list[OutlineSection]
+    reveals: list[RevealEntry]
+    twists: list[TwistProposal]
     findings: list[Finding]
     dossier_content: str
     dossier_path: Path
+    outline_path: Path
+    reveals_path: Path
+    twists_path: Path
     error: str | None
     gates_passed: bool
 
@@ -258,6 +267,7 @@ class ShowrunnerPipeline:
             "validate_gates",
             "extract_wiki",
             "export_dossier",
+            "export_planning_artifacts",
             "handle_error",
         ]
         self._entry_point = "load_input"
@@ -289,7 +299,9 @@ class ShowrunnerPipeline:
             "validate_gates", self._check_gates, {"pass": "extract_wiki", "fail": "handle_error"}
         )
         builder.add_edge("extract_wiki", "export_dossier")
-        builder.add_edge("export_dossier", END)
+        builder.add_node("export_planning_artifacts", self._export_planning_artifacts)
+        builder.add_edge("export_dossier", "export_planning_artifacts")
+        builder.add_edge("export_planning_artifacts", END)
         builder.add_edge("handle_error", END)
         self._graph = builder
         return builder.compile(checkpointer=self._checkpointer)
@@ -331,6 +343,10 @@ class ShowrunnerPipeline:
                 state.update(self._handle_error(state))
                 return state
             state.update(self._export_dossier(state))
+            if state.get("error"):
+                state.update(self._handle_error(state))
+                return state
+            state.update(self._export_planning_artifacts(state))
         else:
             state.update(self._handle_error(state))
         return state
@@ -529,6 +545,64 @@ class ShowrunnerPipeline:
             return PipelineState({"dossier_content": dossier_content, "dossier_path": dossier_path})
         except Exception as e:
             return PipelineState({"error": f"Failed to export dossier: {e}"})
+
+    def _export_planning_artifacts(self, state: PipelineState) -> PipelineState:
+        self._report_progress("export_planning_artifacts", 0.0)
+        if state.get("error"):
+            return state
+
+        try:
+            from showrunner.planners import OutlinePlanner, RevealPlanner, TwistPlanner
+
+            obligations = state.get("obligations", [])
+            entities = state.get("entities", [])
+            anchors = state.get("evidence_anchors", [])
+
+            outline_planner = OutlinePlanner()
+            reveal_planner = RevealPlanner()
+            twist_planner = TwistPlanner()
+
+            outline = outline_planner.plan(obligations, entities)
+            reveals = reveal_planner.plan(obligations, anchors)
+            twists = twist_planner.plan(obligations, anchors)
+
+            exports_dir = self._config.output_dir / "exports"
+            exports_dir.mkdir(parents=True, exist_ok=True)
+            plans_dir = self._config.output_dir / "plans"
+            plans_dir.mkdir(parents=True, exist_ok=True)
+
+            outline_path = exports_dir / "master_outline_books_6_7.md"
+            reveals_path = exports_dir / "mysteries_reveals_table.csv"
+            twists_path = exports_dir / "twist_bank.md"
+
+            outline_planner.export_outline(outline, obligations, outline_path)
+            reveal_planner.export_csv(reveals, reveals_path)
+            twist_planner.export_markdown(twists, twists_path)
+
+            outline_store_path = plans_dir / "outline.json"
+            reveals_store_path = plans_dir / "reveals.json"
+            twists_store_path = plans_dir / "twists.json"
+
+            with open(outline_store_path, "w") as f:
+                json.dump([section.model_dump() for section in outline], f, indent=2, default=str)
+            with open(reveals_store_path, "w") as f:
+                json.dump([entry.model_dump() for entry in reveals], f, indent=2, default=str)
+            with open(twists_store_path, "w") as f:
+                json.dump([entry.model_dump() for entry in twists], f, indent=2, default=str)
+
+            self._report_progress("export_planning_artifacts", 1.0)
+            return PipelineState(
+                {
+                    "outline": outline,
+                    "reveals": reveals,
+                    "twists": twists,
+                    "outline_path": outline_path,
+                    "reveals_path": reveals_path,
+                    "twists_path": twists_path,
+                }
+            )
+        except Exception as e:
+            return PipelineState({"error": f"Failed to export planning artifacts: {e}"})
 
     def _handle_error(self, state: PipelineState) -> PipelineState:
         error = state.get("error", "Unknown error")
