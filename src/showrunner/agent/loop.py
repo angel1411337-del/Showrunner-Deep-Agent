@@ -5,9 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Literal
+from uuid import uuid4
 
 from showrunner.contracts import Finding, FindingSeverity
 from showrunner.gates.quality_gates import QualityGates
+from showrunner.hooks.git_hook_handler import append_review_queue, build_review_items
 from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig, ShowrunnerPipeline
 
 if TYPE_CHECKING:
@@ -36,6 +38,26 @@ class AgentLoopResult:
 class AgentLoop:
     """Minimal deep-agent loop scaffold (plan -> propose -> validate -> repair -> persist)."""
 
+    _REQUIRED_ARTIFACTS = [
+        "exports/Unresolved_Threads_Dossier.md",
+        "exports/master_outline_books_6_7.md",
+        "exports/mysteries_reveals_table.csv",
+        "exports/twist_bank.md",
+        "wiki/events.json",
+        "wiki/relationships.json",
+        "canon/passages.jsonl",
+        "canon/evidence_index.jsonl",
+        "canon/index.sqlite",
+        "kb/entities.json",
+        "kb/aliases.json",
+        "obligations/obligations.json",
+        "qa/findings.jsonl",
+        "qa/metrics.json",
+        "run_manifest.json",
+        "dataset_manifest.json",
+        "tool_call_audit.jsonl",
+    ]
+
     def __init__(
         self,
         *,
@@ -58,14 +80,17 @@ class AgentLoop:
         report_path: Path | None = None
 
         plan_start = datetime.now(tz=UTC)
+        required_artifacts = list(self._REQUIRED_ARTIFACTS)
         plan_details = {
             "tasks": [
                 "run_pipeline",
                 "validate_outputs",
+                "queue_review_items",
                 "persist_report",
             ],
             "input_source": str(input_source),
             "output_dir": str(output_dir),
+            "required_artifacts": required_artifacts,
         }
         steps.append(
             LoopStep(
@@ -79,6 +104,7 @@ class AgentLoop:
 
         propose_start = datetime.now(tz=UTC)
         pipeline_state = None
+        run_manifest_path: Path | None = None
         try:
             config = PipelineConfig(input_source=input_source, output_dir=output_dir)
             factory = ComponentFactory(config=config, provider=self._provider)
@@ -86,11 +112,13 @@ class AgentLoop:
                 config=config,
                 factory=factory,
             ).run()
+            run_manifest_path = output_dir / "run_manifest.json"
             propose_status: Literal["completed", "failed"] = (
                 "failed" if pipeline_state.get("error") else "completed"
             )
             propose_details = {
                 "error": pipeline_state.get("error"),
+                "run_manifest_path": str(run_manifest_path),
             }
         except Exception as exc:
             propose_status = "failed"
@@ -108,8 +136,19 @@ class AgentLoop:
         validate_start = datetime.now(tz=UTC)
         validate_status: Literal["completed", "failed", "skipped"] = "completed"
         validate_details: dict[str, Any] = {}
+        missing_artifacts: list[str] = []
         if pipeline_state is None or pipeline_state.get("error"):
-            validate_status = "skipped"
+            validate_status = "failed"
+            pipeline_error = pipeline_state.get("error") if pipeline_state else "pipeline_failed"
+            findings.append(
+                Finding(
+                    finding_id=f"pipeline-{uuid4().hex[:8]}",
+                    severity=FindingSeverity.ERROR,
+                    category="pipeline_error",
+                    message=str(pipeline_error),
+                    related_ids=[],
+                )
+            )
             validate_details["reason"] = "pipeline_failed"
         else:
             gates = QualityGates(schema_dir=self._schema_dir)
@@ -121,9 +160,20 @@ class AgentLoop:
                 obligations=pipeline_state.get("obligations", []),
             )
             findings.extend(gate_findings)
+
+            extra_schema_findings = self._validate_additional_schemas(gates, pipeline_state)
+            findings.extend(extra_schema_findings)
+
+            missing_artifacts = self._find_missing_artifacts(output_dir)
+            findings.extend(self._build_missing_artifact_findings(missing_artifacts))
+
+            has_errors = any(f.severity == FindingSeverity.ERROR for f in findings)
+            passed = passed and not has_errors
             validate_details = {
                 "passed": passed,
-                "finding_count": len(gate_findings),
+                "finding_count": len(findings),
+                "schema_errors": len([f for f in findings if f.category == "schema"]),
+                "missing_artifacts": missing_artifacts,
             }
             if not passed:
                 validate_status = "failed"
@@ -139,10 +189,16 @@ class AgentLoop:
 
         repair_start = datetime.now(tz=UTC)
         repair_status: Literal["completed", "failed", "skipped"] = "skipped"
-        repair_details: dict[str, Any] = {"reason": "no_repair_strategy"}
-        if any(f.severity == FindingSeverity.ERROR for f in findings):
-            repair_status = "failed"
-            repair_details = {"reason": "manual_intervention_required"}
+        repair_details: dict[str, Any] = {"reason": "no_findings"}
+        if findings:
+            items = build_review_items(findings)
+            queue_path = output_dir / "review" / "queue.jsonl"
+            append_review_queue(items, queue_path)
+            repair_status = "completed"
+            repair_details = {
+                "queued_items": len(items),
+                "review_queue_path": str(queue_path),
+            }
         steps.append(
             LoopStep(
                 name="repair",
@@ -171,6 +227,8 @@ class AgentLoop:
 
         status: Literal["completed", "failed"] = "completed"
         if any(step.status == "failed" for step in steps):
+            status = "failed"
+        if any(f.severity == FindingSeverity.ERROR for f in findings):
             status = "failed"
 
         return AgentLoopResult(
@@ -217,6 +275,47 @@ class AgentLoop:
             raise ValueError(
                 f"Path '{resolved_path}' is outside environment root '{resolved_root}'"
             ) from exc
+
+    def _find_missing_artifacts(self, output_dir: Path) -> list[str]:
+        missing: list[str] = []
+        for rel_path in self._REQUIRED_ARTIFACTS:
+            if not (output_dir / rel_path).exists():
+                missing.append(rel_path)
+        return missing
+
+    def _build_missing_artifact_findings(self, missing: list[str]) -> list[Finding]:
+        findings: list[Finding] = []
+        for rel_path in missing:
+            findings.append(
+                Finding(
+                    finding_id=f"artifact-{uuid4().hex[:8]}",
+                    severity=FindingSeverity.ERROR,
+                    category="artifact_missing",
+                    message=f"Missing required artifact: {rel_path}",
+                    related_ids=[rel_path],
+                )
+            )
+        return findings
+
+    def _validate_additional_schemas(
+        self,
+        gates: QualityGates,
+        pipeline_state: dict[str, Any],
+    ) -> list[Finding]:
+        schema_dir = self._schema_dir or gates._schema_dir  # type: ignore[attr-defined]
+        schema_map: list[tuple[str, list[Any]]] = [
+            ("Event.json", list(pipeline_state.get("events", []))),
+            ("Relationship.json", list(pipeline_state.get("relationships", []))),
+            ("OutlineSection.json", list(pipeline_state.get("outline", []))),
+            ("RevealEntry.json", list(pipeline_state.get("reveals", []))),
+            ("TwistProposal.json", list(pipeline_state.get("twists", []))),
+        ]
+        findings: list[Finding] = []
+        for schema_name, records in schema_map:
+            schema_path = schema_dir / schema_name
+            for record in records:
+                findings.extend(gates.validate_schema(record, schema_path))
+        return findings
 
 
 def json_dumps(payload: dict[str, Any]) -> str:

@@ -28,10 +28,17 @@ def test_agent_loop_runs_and_writes_report(tmp_path: Path):
     assert result.report_path is not None
     assert result.report_path.exists()
     assert (output_dir / "qa" / "agent_loop.json").exists()
-    assert any(step.name == "plan" for step in result.steps)
-    assert any(step.name == "propose" for step in result.steps)
-    assert any(step.name == "validate" for step in result.steps)
-    assert any(step.name == "persist" for step in result.steps)
+    plan_step = _get_step(result.steps, "plan")
+    propose_step = _get_step(result.steps, "propose")
+    validate_step = _get_step(result.steps, "validate")
+    repair_step = _get_step(result.steps, "repair")
+    _get_step(result.steps, "persist")
+
+    assert plan_step.details.get("required_artifacts")
+    assert propose_step.status == "completed"
+    assert validate_step.details.get("missing_artifacts") == []
+    assert validate_step.details.get("schema_errors") == 0
+    assert repair_step.status == "skipped"
 
 
 def test_agent_loop_fails_when_schema_dir_missing(tmp_path: Path):
@@ -45,3 +52,14 @@ def test_agent_loop_fails_when_schema_dir_missing(tmp_path: Path):
     assert result.status == "failed"
     assert result.findings
     assert any(f.category == "schema" for f in result.findings)
+    repair_step = _get_step(result.steps, "repair")
+    assert repair_step.status == "completed"
+    assert repair_step.details.get("queued_items", 0) > 0
+    assert (output_dir / "review" / "queue.jsonl").exists()
+
+
+def _get_step(steps: list[object], name: str):
+    for step in steps:
+        if getattr(step, "name", None) == name:
+            return step
+    raise AssertionError(f"Missing step: {name}")
