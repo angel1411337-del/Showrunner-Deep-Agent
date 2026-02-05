@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Response
+from pydantic import BaseModel
 
 from showrunner.hooks.incremental_runner import resolve_corpus_root, resolve_output_dir
 from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
@@ -17,6 +18,10 @@ PIPELINE_STATE = {
     "message": "Idle",
     "error": None,
 }
+
+
+class RunRequest(BaseModel):
+    environment_id: str | None = None
 
 
 def run_pipeline_task(*, corpus_root: Path, output_dir: Path) -> None:
@@ -51,7 +56,7 @@ def run_pipeline_task(*, corpus_root: Path, output_dir: Path) -> None:
 
 
 @router.post("/run", status_code=202)
-async def run_agent(background_tasks: BackgroundTasks):
+async def run_agent(background_tasks: BackgroundTasks, request: RunRequest | None = None):
     """Trigger a new agent run."""
     if PIPELINE_STATE["is_running"]:
         return Response(
@@ -60,14 +65,16 @@ async def run_agent(background_tasks: BackgroundTasks):
             media_type="application/json",
         )
 
-    corpus_root = resolve_corpus_root(BASE_DIR)
-    output_dir = resolve_output_dir(BASE_DIR)
+    environment_id = request.environment_id if request else None
+    corpus_root = resolve_corpus_root(BASE_DIR, environment_id=environment_id)
+    output_dir = resolve_output_dir(BASE_DIR, environment_id=environment_id)
     if not corpus_root.exists():
         fallback = BASE_DIR / "sample_corpus"
         if fallback.exists():
             corpus_root = fallback
         else:
             raise HTTPException(status_code=404, detail=f"Corpus not found: {corpus_root}")
+    PIPELINE_STATE["environment_id"] = environment_id
     background_tasks.add_task(run_pipeline_task, corpus_root=corpus_root, output_dir=output_dir)
     return Response(
         status_code=202, content=json.dumps({"status": "starting"}), media_type="application/json"
@@ -95,22 +102,24 @@ async def get_agent_status_alias():
 BASE_DIR = Path(os.getcwd())
 
 
-def get_latest_output_dir() -> Path | None:
-    # Try generic 'out' first
-    if (BASE_DIR / "out").exists():
-        return BASE_DIR / "out"
+def get_latest_output_dir(*, environment_id: str | None = None) -> Path | None:
+    out_base = resolve_output_dir(BASE_DIR, environment_id=environment_id)
+    if out_base.exists():
+        return out_base
 
-    # Logic to find latest out_YYYYMMDD_HHMMSS
+    parent = out_base.parent
     out_dirs = sorted(
-        [d for d in BASE_DIR.glob("out_*") if d.is_dir()], key=lambda x: x.name, reverse=True
+        [d for d in parent.glob("out_*") if d.is_dir()],
+        key=lambda x: x.name,
+        reverse=True,
     )
     if out_dirs:
         return out_dirs[0]
     return None
 
 
-def read_json_file(subpath: str) -> Any:
-    out_dir = get_latest_output_dir()
+def read_json_file(subpath: str, *, environment_id: str | None = None) -> Any:
+    out_dir = get_latest_output_dir(environment_id=environment_id)
     if not out_dir:
         raise HTTPException(status_code=404, detail="No output directory found")
 
@@ -122,8 +131,8 @@ def read_json_file(subpath: str) -> Any:
         return json.load(f)
 
 
-def read_text_file(subpath: str) -> str:
-    out_dir = get_latest_output_dir()
+def read_text_file(subpath: str, *, environment_id: str | None = None) -> str:
+    out_dir = get_latest_output_dir(environment_id=environment_id)
     if not out_dir:
         raise HTTPException(status_code=404, detail="No output directory found")
 
@@ -134,8 +143,8 @@ def read_text_file(subpath: str) -> str:
     return file_path.read_text(encoding="utf-8")
 
 
-def list_artifacts() -> list[str]:
-    out_dir = get_latest_output_dir()
+def list_artifacts(*, environment_id: str | None = None) -> list[str]:
+    out_dir = get_latest_output_dir(environment_id=environment_id)
     if not out_dir:
         return []
     files = [path for path in out_dir.rglob("*") if path.is_file()]
@@ -144,14 +153,14 @@ def list_artifacts() -> list[str]:
 
 
 @router.get("/agent/artifacts")
-async def get_agent_artifacts() -> dict[str, list[str]]:
+async def get_agent_artifacts(environment_id: str | None = None) -> dict[str, list[str]]:
     """List artifacts under the latest output directory."""
-    return {"artifacts": list_artifacts()}
+    return {"artifacts": list_artifacts(environment_id=environment_id)}
 
 
 @router.get("/status")
-async def get_status():
-    out_dir = get_latest_output_dir()
+async def get_status(environment_id: str | None = None):
+    out_dir = get_latest_output_dir(environment_id=environment_id)
     return {
         "status": "online",
         "agent": "showrunner",
@@ -160,24 +169,27 @@ async def get_status():
 
 
 @router.get("/obligations")
-async def get_obligations() -> Any:
-    return read_json_file("obligations/obligations.json")
+async def get_obligations(environment_id: str | None = None) -> Any:
+    return read_json_file("obligations/obligations.json", environment_id=environment_id)
 
 
 @router.get("/entities")
-async def get_entities() -> Any:
-    return read_json_file("kb/entities.json")
+async def get_entities(environment_id: str | None = None) -> Any:
+    return read_json_file("kb/entities.json", environment_id=environment_id)
 
 
 @router.get("/stats")
-async def get_stats() -> dict[str, int]:
+async def get_stats(environment_id: str | None = None) -> dict[str, int]:
     # Aggregate some basic stats for the dashboard
     try:
         obligations = cast(
             "list[dict[str, Any]]",
-            read_json_file("obligations/obligations.json"),
+            read_json_file("obligations/obligations.json", environment_id=environment_id),
         )
-        entities = cast("list[dict[str, Any]]", read_json_file("kb/entities.json"))
+        entities = cast(
+            "list[dict[str, Any]]",
+            read_json_file("kb/entities.json", environment_id=environment_id),
+        )
 
         unresolved = [o for o in obligations if not o.get("is_resolved", False)]
         high_confidence = [o for o in obligations if o.get("confidence", 0) > 0.8]
@@ -197,8 +209,8 @@ async def get_stats() -> dict[str, int]:
         }
 
 
-def read_jsonl_file(subpath: str) -> list[dict[str, Any]]:
-    out_dir = get_latest_output_dir()
+def read_jsonl_file(subpath: str, *, environment_id: str | None = None) -> list[dict[str, Any]]:
+    out_dir = get_latest_output_dir(environment_id=environment_id)
     if not out_dir:
         raise HTTPException(status_code=404, detail="No output directory found")
 
@@ -217,101 +229,131 @@ def read_jsonl_file(subpath: str) -> list[dict[str, Any]]:
 
 
 @router.get("/aliases")
-async def get_aliases() -> list[dict[str, Any]]:
+async def get_aliases(environment_id: str | None = None) -> list[dict[str, Any]]:
     """Get all aliases from the knowledge base."""
     # Try kb/aliases.json or aliases.json
     try:
-        return cast("list[dict[str, Any]]", read_json_file("kb/aliases.json"))
+        return cast(
+            "list[dict[str, Any]]",
+            read_json_file("kb/aliases.json", environment_id=environment_id),
+        )
     except HTTPException:
         return []
 
 
 @router.get("/wiki/events")
-async def get_events() -> list[dict[str, Any]]:
+async def get_events(environment_id: str | None = None) -> list[dict[str, Any]]:
     """Get all events from the wiki."""
     # Try events/events.json or wiki/events.json
     try:
-        return cast("list[dict[str, Any]]", read_json_file("events/events.json"))
+        return cast(
+            "list[dict[str, Any]]",
+            read_json_file("events/events.json", environment_id=environment_id),
+        )
     except HTTPException:
         try:
-            return cast("list[dict[str, Any]]", read_json_file("wiki/events.json"))
+            return cast(
+                "list[dict[str, Any]]",
+                read_json_file("wiki/events.json", environment_id=environment_id),
+            )
         except HTTPException:
             return []
 
 
 @router.get("/wiki/relationships")
-async def get_relationships() -> list[dict[str, Any]]:
+async def get_relationships(environment_id: str | None = None) -> list[dict[str, Any]]:
     """Get all relationships from the wiki."""
     try:
-        return cast("list[dict[str, Any]]", read_json_file("relationships/relationships.json"))
+        return cast(
+            "list[dict[str, Any]]",
+            read_json_file("relationships/relationships.json", environment_id=environment_id),
+        )
     except HTTPException:
         try:
-            return cast("list[dict[str, Any]]", read_json_file("wiki/relationships.json"))
+            return cast(
+                "list[dict[str, Any]]",
+                read_json_file("wiki/relationships.json", environment_id=environment_id),
+            )
         except HTTPException:
             return []
 
 
 @router.get("/exports/outline")
-async def get_outline_export() -> Response:
+async def get_outline_export(environment_id: str | None = None) -> Response:
     try:
-        content = read_text_file("exports/master_outline_books_6_7.md")
+        content = read_text_file(
+            "exports/master_outline_books_6_7.md",
+            environment_id=environment_id,
+        )
     except HTTPException:
         try:
-            content = read_text_file("exports/master_outline.md")
+            content = read_text_file("exports/master_outline.md", environment_id=environment_id)
         except HTTPException:
             content = ""
     return Response(content=content, media_type="text/markdown")
 
 
 @router.get("/exports/reveals")
-async def get_reveals_export() -> Response:
+async def get_reveals_export(environment_id: str | None = None) -> Response:
     try:
-        content = read_text_file("exports/mysteries_reveals_table.csv")
+        content = read_text_file(
+            "exports/mysteries_reveals_table.csv",
+            environment_id=environment_id,
+        )
     except HTTPException:
         content = ""
     return Response(content=content, media_type="text/csv")
 
 
 @router.get("/exports/twists")
-async def get_twists_export() -> Response:
+async def get_twists_export(environment_id: str | None = None) -> Response:
     try:
-        content = read_text_file("exports/twist_bank.md")
+        content = read_text_file("exports/twist_bank.md", environment_id=environment_id)
     except HTTPException:
         content = ""
     return Response(content=content, media_type="text/markdown")
 
 
 @router.get("/plans/outline")
-async def get_outline_plan() -> list[dict[str, Any]]:
+async def get_outline_plan(environment_id: str | None = None) -> list[dict[str, Any]]:
     try:
-        return cast("list[dict[str, Any]]", read_json_file("plans/outline.json"))
+        return cast(
+            "list[dict[str, Any]]",
+            read_json_file("plans/outline.json", environment_id=environment_id),
+        )
     except HTTPException:
         return []
 
 
 @router.get("/plans/reveals")
-async def get_reveals_plan() -> list[dict[str, Any]]:
+async def get_reveals_plan(environment_id: str | None = None) -> list[dict[str, Any]]:
     try:
-        return cast("list[dict[str, Any]]", read_json_file("plans/reveals.json"))
+        return cast(
+            "list[dict[str, Any]]",
+            read_json_file("plans/reveals.json", environment_id=environment_id),
+        )
     except HTTPException:
         return []
 
 
 @router.get("/plans/twists")
-async def get_twists_plan() -> list[dict[str, Any]]:
+async def get_twists_plan(environment_id: str | None = None) -> list[dict[str, Any]]:
     try:
-        return cast("list[dict[str, Any]]", read_json_file("plans/twists.json"))
+        return cast(
+            "list[dict[str, Any]]",
+            read_json_file("plans/twists.json", environment_id=environment_id),
+        )
     except HTTPException:
         return []
 
 
-def get_passages_data() -> list[dict[str, Any]]:
-    return read_jsonl_file("canon/passages.jsonl")
+def get_passages_data(*, environment_id: str | None = None) -> list[dict[str, Any]]:
+    return read_jsonl_file("canon/passages.jsonl", environment_id=environment_id)
 
 
 @router.get("/passages/{passage_id}")
-async def get_passage(passage_id: str) -> dict[str, Any]:
-    passages = get_passages_data()
+async def get_passage(passage_id: str, environment_id: str | None = None) -> dict[str, Any]:
+    passages = get_passages_data(environment_id=environment_id)
     for p in passages:
         if p.get("passage_id") == passage_id:
             return p

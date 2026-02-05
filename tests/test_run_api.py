@@ -45,3 +45,26 @@ def test_get_run_status_running():
     assert data["message"] == "Processing..."
     # Cleanup
     api.PIPELINE_STATE["is_running"] = False
+
+
+def test_run_agent_accepts_environment_id(tmp_path):
+    """Test that POST /api/run can accept an environment id."""
+    from showrunner.server import api
+
+    corpus_root = tmp_path / "corpus"
+    output_dir = tmp_path / "out"
+    corpus_root.mkdir()
+    output_dir.mkdir()
+
+    with patch("showrunner.server.api.resolve_corpus_root") as mock_corpus, patch(
+        "showrunner.server.api.resolve_output_dir"
+    ) as mock_output, patch("showrunner.server.api.run_pipeline_task") as mock_task:
+        mock_corpus.return_value = corpus_root
+        mock_output.return_value = output_dir
+        response = client.post("/api/run", json={"environment_id": "winterfell"})
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "starting"
+    mock_corpus.assert_called_once_with(api.BASE_DIR, environment_id="winterfell")
+    mock_output.assert_called_once_with(api.BASE_DIR, environment_id="winterfell")
+    mock_task.assert_called

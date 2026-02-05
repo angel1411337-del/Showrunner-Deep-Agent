@@ -15,7 +15,10 @@ def test_get_master_outline_success() -> None:
 
         assert response.status_code == 200
         assert response.text == "# Master Outline\n"
-        mock_read.assert_called_once_with("exports/master_outline_books_6_7.md")
+    mock_read.assert_called_once_with(
+        "exports/master_outline_books_6_7.md",
+        environment_id=None,
+    )
 
 
 def test_get_master_outline_falls_back_to_generic_name() -> None:
@@ -40,7 +43,10 @@ def test_get_reveal_ledger_csv_success() -> None:
 
         assert response.status_code == 200
         assert response.text == "reveal_id,mystery_obligation_id\n"
-        mock_read.assert_called_once_with("exports/mysteries_reveals_table.csv")
+    mock_read.assert_called_once_with(
+        "exports/mysteries_reveals_table.csv",
+        environment_id=None,
+    )
 
 
 def test_get_twist_bank_returns_empty_when_missing() -> None:
@@ -60,7 +66,10 @@ def test_get_outline_plan_json_success() -> None:
 
         assert response.status_code == 200
         assert response.json() == plan
-        mock_read.assert_called_once_with("plans/outline.json")
+    mock_read.assert_called_once_with(
+        "plans/outline.json",
+        environment_id=None,
+    )
 
 
 def test_get_reveals_plan_json_returns_empty_when_missing() -> None:

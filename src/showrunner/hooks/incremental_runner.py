@@ -12,18 +12,31 @@ if TYPE_CHECKING:
 from showrunner.pipeline.orchestrator import PipelineConfig, PipelineState, ShowrunnerPipeline
 
 
-def resolve_corpus_root(repo_root: Path) -> Path:
+def _resolve_environment_id(environment_id: str | None = None) -> str | None:
+    return environment_id or os.getenv("SHOWRUNNER_ENV")
+
+
+def _resolve_environment_root(repo_root: Path, *, environment_id: str | None = None) -> Path:
+    resolved = _resolve_environment_id(environment_id)
+    if resolved:
+        return repo_root / "environments" / resolved
+    return repo_root
+
+
+def resolve_corpus_root(repo_root: Path, *, environment_id: str | None = None) -> Path:
     env_value = os.getenv("SHOWRUNNER_CORPUS_DIR")
     if env_value:
         return Path(env_value)
-    return repo_root / "corpus"
+    environment_root = _resolve_environment_root(repo_root, environment_id=environment_id)
+    return environment_root / "corpus"
 
 
-def resolve_output_dir(repo_root: Path) -> Path:
+def resolve_output_dir(repo_root: Path, *, environment_id: str | None = None) -> Path:
     env_value = os.getenv("SHOWRUNNER_OUTPUT_DIR")
     if env_value:
         return Path(env_value)
-    return repo_root / "out"
+    environment_root = _resolve_environment_root(repo_root, environment_id=environment_id)
+    return environment_root / "out"
 
 
 def run_incremental(

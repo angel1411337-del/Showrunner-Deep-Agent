@@ -30,7 +30,7 @@ def test_get_events_success():
 
         assert response.status_code == 200
         assert response.json() == mock_events
-        mock_read.assert_called_with("events/events.json")
+    mock_read.assert_called_with("events/events.json", environment_id=None)
 
 
 def test_get_relationships_success():
@@ -42,4 +42,4 @@ def test_get_relationships_success():
 
         assert response.status_code == 200
         assert response.json() == mock_rels
-        mock_read.assert_called_with("relationships/relationships.json")
+    mock_read.assert_called_with("relationships/relationships.json", environment_id=None)

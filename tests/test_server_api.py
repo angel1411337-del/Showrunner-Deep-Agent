@@ -17,7 +17,7 @@ def test_get_aliases():
 
         assert response.status_code == 200
         assert response.json() == mock_aliases
-        mock_read.assert_called_with("kb/aliases.json")
+    mock_read.assert_called_with("kb/aliases.json", environment_id=None)
 
 
 def test_get_passage_by_id():
