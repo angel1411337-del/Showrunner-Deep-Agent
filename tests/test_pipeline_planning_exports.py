@@ -48,6 +48,30 @@ def test_run_writes_planning_exports(tmp_path: Path) -> None:
     assert twist_path.read_text(encoding="utf-8").startswith("# Twist Bank")
 
 
+def test_run_produces_v0_release_exports_contract(tmp_path: Path) -> None:
+    """CI guard: a sample run must produce all v0.1-v0.4 writer-facing exports."""
+    input_dir = tmp_path / "corpus"
+    output_dir = tmp_path / "out"
+    _write_sample_corpus(input_dir)
+
+    config = PipelineConfig(input_source=input_dir, output_dir=output_dir)
+    state, _manifest = ShowrunnerPipeline(config=config).run()
+
+    assert state.get("error") is None
+
+    expected_exports = {
+        "v0.1_dossier": output_dir / "exports" / "Unresolved_Threads_Dossier.md",
+        "v0.2_outline": output_dir / "exports" / "master_outline_books_6_7.md",
+        "v0.3_reveals": output_dir / "exports" / "mysteries_reveals_table.csv",
+        "v0.4_twists": output_dir / "exports" / "twist_bank.md",
+    }
+
+    for release_name, export_path in expected_exports.items():
+        assert export_path.exists(), f"{release_name} missing: {export_path}"
+        content = export_path.read_text(encoding="utf-8").strip()
+        assert content, f"{release_name} export is empty: {export_path}"
+
+
 def test_run_writes_planning_structured_stores(tmp_path: Path) -> None:
     input_dir = tmp_path / "corpus"
     output_dir = tmp_path / "out"
