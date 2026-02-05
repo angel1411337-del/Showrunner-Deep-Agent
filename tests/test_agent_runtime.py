@@ -66,15 +66,22 @@ def test_agent_runtime_langchain_runs_pipeline(tmp_path: Path) -> None:
     assert (output_dir / "exports" / "Unresolved_Threads_Dossier.md").exists()
 
 
-def test_agent_runtime_unsupported_modes_raise(tmp_path: Path) -> None:
+def test_agent_runtime_deepagents_runs_pipeline(tmp_path: Path) -> None:
     input_dir = tmp_path / "corpus"
     output_dir = tmp_path / "out"
     _write_sample_corpus(input_dir)
 
     runtime = AgentRuntime(mode="deepagents")
 
-    with pytest.raises(NotImplementedError):
-        runtime.run(input_source=input_dir, output_dir=output_dir)
+    result = runtime.run(input_source=input_dir, output_dir=output_dir)
+
+    assert result.status == "completed"
+    assert (output_dir / "exports" / "Unresolved_Threads_Dossier.md").exists()
+
+
+def test_agent_runtime_unsupported_modes_raise(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        AgentRuntime(mode="unknown")
 
 
 def test_agent_tools_run_and_read(tmp_path: Path) -> None:
