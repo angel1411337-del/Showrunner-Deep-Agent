@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
+
 from showrunner.agent.deepagents_runtime import DeepagentsRuntime
 
 
@@ -51,3 +55,37 @@ def test_deepagents_runtime_runs_repl_program() -> None:
 
     assert result.outputs == [[{"event_id": "evt-1"}]]
     assert session.calls
+
+
+def test_deepagents_runtime_requires_env_root_when_model_set(tmp_path: Path) -> None:
+    input_dir, output_dir = _write_sample_corpus(tmp_path)
+    runtime = DeepagentsRuntime(model="openai:gpt-4o")
+
+    with pytest.raises(RuntimeError):
+        runtime.run(input_source=input_dir, output_dir=output_dir)
+
+
+def test_deepagents_runtime_invokes_agent_when_model_set(tmp_path: Path, monkeypatch) -> None:
+    input_dir, output_dir = _write_sample_corpus(tmp_path)
+
+    class DummyAgent:
+        def __init__(self) -> None:
+            self.invoked = False
+
+        def invoke(self, _payload):
+            self.invoked = True
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / "run_manifest.json").write_text("{}", encoding="utf-8")
+            exports_dir = output_dir / "exports"
+            exports_dir.mkdir(parents=True, exist_ok=True)
+            (exports_dir / "Unresolved_Threads_Dossier.md").write_text("ok", encoding="utf-8")
+            return {"messages": []}
+
+    runtime = DeepagentsRuntime(model="openai:gpt-4o", environment_root=tmp_path)
+    dummy_agent = DummyAgent()
+    monkeypatch.setattr(runtime, "_build_agent", lambda: dummy_agent)
+
+    result = runtime.run(input_source=input_dir, output_dir=output_dir)
+
+    assert dummy_agent.invoked
+    assert result.status == "completed"
