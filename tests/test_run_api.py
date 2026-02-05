@@ -7,10 +7,17 @@ from showrunner.server.main import app
 client = TestClient(app)
 
 
-def test_run_agent_starts_pipeline():
+def test_run_agent_starts_pipeline(tmp_path, monkeypatch):
     """Test that POST /api/run triggers the pipeline."""
+    from showrunner.server import api
+
+    env_id = "winterfell"
+    corpus_root = tmp_path / "environments" / env_id / "corpus"
+    corpus_root.mkdir(parents=True)
+    monkeypatch.setattr(api, "BASE_DIR", tmp_path)
+
     with patch("showrunner.server.api.run_pipeline_task") as mock_task:
-        response = client.post("/api/run")
+        response = client.post("/api/run", json={"environment_id": env_id})
     assert response.status_code == 202
     assert response.json()["status"] == "starting"
     assert mock_task.called

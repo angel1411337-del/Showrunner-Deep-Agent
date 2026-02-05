@@ -7,7 +7,15 @@ from showrunner.server.main import app
 client = TestClient(app)
 
 
-def test_agent_run_aliases_pipeline_run():
+def test_agent_run_aliases_pipeline_run(tmp_path, monkeypatch):
+    from showrunner.server import api
+
+    env_id = "winterfell"
+    corpus_root = tmp_path / "environments" / env_id / "corpus"
+    corpus_root.mkdir(parents=True)
+    monkeypatch.setattr(api, "BASE_DIR", tmp_path)
+    monkeypatch.setenv("SHOWRUNNER_ENV", env_id)
+
     with patch("showrunner.server.api.run_pipeline_task") as mock_task:
         response = client.post("/api/agent/run")
     assert response.status_code == 202
