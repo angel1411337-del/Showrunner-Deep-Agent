@@ -8,9 +8,11 @@ client = TestClient(app)
 
 
 def test_agent_run_aliases_pipeline_run():
-    response = client.post("/api/agent/run")
+    with patch("showrunner.server.api.run_pipeline_task") as mock_task:
+        response = client.post("/api/agent/run")
     assert response.status_code == 202
     assert response.json()["status"] == "starting"
+    assert mock_task.called
 
 
 def test_agent_status_aliases_pipeline_status():

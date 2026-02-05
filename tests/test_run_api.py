@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 
 from showrunner.server.main import app
@@ -7,11 +9,11 @@ client = TestClient(app)
 
 def test_run_agent_starts_pipeline():
     """Test that POST /api/run triggers the pipeline."""
-    # We don't need to mock ShowrunnerPipeline anymore since we stubbed the task.
-    # We just want to ensure it accepts the request.
-    response = client.post("/api/run")
+    with patch("showrunner.server.api.run_pipeline_task") as mock_task:
+        response = client.post("/api/run")
     assert response.status_code == 202
     assert response.json()["status"] == "starting"
+    assert mock_task.called
 
 
 def test_get_run_status_initial():

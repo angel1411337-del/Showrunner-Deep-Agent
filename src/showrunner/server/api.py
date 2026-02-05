@@ -1,10 +1,12 @@
-import asyncio
 import json
 import os
 from pathlib import Path
 from typing import Any, cast
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Response
+
+from showrunner.hooks.incremental_runner import resolve_corpus_root, resolve_output_dir
+from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
 router = APIRouter()
 
@@ -17,43 +19,40 @@ PIPELINE_STATE = {
 }
 
 
-async def run_pipeline_stub():
-    """Stub background task to simulate pipeline steps."""
+def run_pipeline_task(*, corpus_root: Path, output_dir: Path) -> None:
+    """Background task to run the real pipeline and update status."""
     global PIPELINE_STATE
     PIPELINE_STATE["is_running"] = True
     PIPELINE_STATE["progress"] = 0.0
     PIPELINE_STATE["message"] = "Initializing..."
     PIPELINE_STATE["error"] = None
+    PIPELINE_STATE["output_dir"] = str(output_dir)
+
+    def _progress(stage: str, progress: float) -> None:
+        PIPELINE_STATE["message"] = stage
+        PIPELINE_STATE["progress"] = progress
 
     try:
-        steps = [
-            ("Loading corpus...", 0.1),
-            ("Indexing canon...", 0.3),
-            ("Resolving entities...", 0.5),
-            ("Extracting obligations...", 0.7),
-            ("Merging duplicates...", 0.8),
-            ("Validating gates...", 0.9),
-            ("Finalizing export...", 1.0),
-        ]
-
-        for msg, prog in steps:
-            await asyncio.sleep(1)  # Simulate work
-            PIPELINE_STATE["message"] = msg
-            PIPELINE_STATE["progress"] = prog
-
-        PIPELINE_STATE["message"] = "Completed"
-        PIPELINE_STATE["progress"] = 1.0
-
-    except Exception as e:
-        PIPELINE_STATE["error"] = str(e)
+        config = PipelineConfig(input_source=corpus_root, output_dir=output_dir)
+        state, manifest = ShowrunnerPipeline(config=config, on_progress=_progress).run()
+        if manifest.status == "failed":
+            PIPELINE_STATE["error"] = state.get("error") or "Pipeline failed"
+            PIPELINE_STATE["message"] = "Failed"
+            PIPELINE_STATE["progress"] = 1.0
+        else:
+            PIPELINE_STATE["message"] = "Completed"
+            PIPELINE_STATE["progress"] = 1.0
+    except Exception as exc:
+        PIPELINE_STATE["error"] = str(exc)
         PIPELINE_STATE["message"] = "Failed"
+        PIPELINE_STATE["progress"] = 1.0
     finally:
         PIPELINE_STATE["is_running"] = False
 
 
 @router.post("/run", status_code=202)
 async def run_agent(background_tasks: BackgroundTasks):
-    """Trigger a new agent run (simulated)."""
+    """Trigger a new agent run."""
     if PIPELINE_STATE["is_running"]:
         return Response(
             status_code=409,
@@ -61,7 +60,15 @@ async def run_agent(background_tasks: BackgroundTasks):
             media_type="application/json",
         )
 
-    background_tasks.add_task(run_pipeline_stub)
+    corpus_root = resolve_corpus_root(BASE_DIR)
+    output_dir = resolve_output_dir(BASE_DIR)
+    if not corpus_root.exists():
+        fallback = BASE_DIR / "sample_corpus"
+        if fallback.exists():
+            corpus_root = fallback
+        else:
+            raise HTTPException(status_code=404, detail=f"Corpus not found: {corpus_root}")
+    background_tasks.add_task(run_pipeline_task, corpus_root=corpus_root, output_dir=output_dir)
     return Response(
         status_code=202, content=json.dumps({"status": "starting"}), media_type="application/json"
     )
