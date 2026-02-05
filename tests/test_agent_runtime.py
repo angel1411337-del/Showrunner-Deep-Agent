@@ -34,6 +34,10 @@ def test_parse_runtime_mode_accepts_strings() -> None:
         parse_runtime_mode("unknown")
 
 
+def test_parse_runtime_mode_accepts_enum() -> None:
+    assert parse_runtime_mode(RuntimeMode.PIPELINE) is RuntimeMode.PIPELINE
+
+
 def test_agent_runtime_pipeline_runs_pipeline(tmp_path: Path) -> None:
     input_dir = tmp_path / "corpus"
     output_dir = tmp_path / "out"
