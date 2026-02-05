@@ -101,6 +101,23 @@ class AgentHarnessProtocol(Protocol):
     def read_artifact(self, output_dir: Path, relative_path: str) -> str: ...
 ```
 
+## Agent Runtime (planned)
+
+### AgentRuntimeProtocol
+**Provided by:** agent/runtime (planned)
+**Consumed by:** CLI/API/GUI entrypoints
+
+```python
+class AgentRuntimeProtocol(Protocol):
+    def run(self, input_source: Path, output_dir: Path) -> AgentRunResult: ...
+    def list_artifacts(self, output_dir: Path) -> list[str]: ...
+    def read_artifact(self, output_dir: Path, relative_path: str) -> str: ...
+    def capabilities(self) -> dict[str, bool]: ...
+```
+
+### Runtime Modes
+`pipeline` | `langchain` | `deepagents`
+
 ## Planning Modules (v0.2+)
 
 ### OutlinePlanner

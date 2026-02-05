@@ -77,6 +77,11 @@ Showrunner is a contract-driven LangGraph pipeline that ingests narrative corpor
 - Optional LangChain integrations for LLM providers
 - SQLite for canon index persistence
 
+## Agent Runtime Roadmap
+- See `docs/LANGGRAPH_LANGCHAIN_DEEPAGENTS_INTEGRATION_PLAN.md` for the
+  phased plan to integrate LangChain agent runtime and Deepagents while
+  preserving deterministic pipeline artifacts.
+
 ## Diagrams
 
 ### System Context

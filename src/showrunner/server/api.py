@@ -73,6 +73,18 @@ async def get_run_status():
     return PIPELINE_STATE
 
 
+@router.post("/agent/run", status_code=202)
+async def run_agent_alias(background_tasks: BackgroundTasks):
+    """Alias for /api/run to support external UI hooks."""
+    return await run_agent(background_tasks)
+
+
+@router.get("/agent/status")
+async def get_agent_status_alias():
+    """Alias for /api/run/status to support external UI hooks."""
+    return await get_run_status()
+
+
 BASE_DIR = Path(os.getcwd())
 
 
@@ -113,6 +125,21 @@ def read_text_file(subpath: str) -> str:
         raise HTTPException(status_code=404, detail=f"File not found: {subpath}")
 
     return file_path.read_text(encoding="utf-8")
+
+
+def list_artifacts() -> list[str]:
+    out_dir = get_latest_output_dir()
+    if not out_dir:
+        return []
+    files = [path for path in out_dir.rglob("*") if path.is_file()]
+    root = out_dir.resolve()
+    return sorted(path.resolve().relative_to(root).as_posix() for path in files)
+
+
+@router.get("/agent/artifacts")
+async def get_agent_artifacts() -> dict[str, list[str]]:
+    """List artifacts under the latest output directory."""
+    return {"artifacts": list_artifacts()}
 
 
 @router.get("/status")

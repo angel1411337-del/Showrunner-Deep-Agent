@@ -164,3 +164,147 @@
 - Pipeline output to `output_dir/wiki/events.json` and `output_dir/wiki/relationships.json`
 
 **Estimated:** 4h
+
+---
+
+## Unit 9: Agent Runtime Facade (LangGraph/LangChain/Deepagents)
+**Agent:** tdd-oop
+**Status:** Not Started
+**Branch:** unit-9-agent-runtime
+
+**Owns:**
+- `src/showrunner/agent/runtime.py`
+- `src/showrunner/agent/tools.py`
+- `tests/test_agent_runtime.py`
+
+**Dependencies:**
+- Existing `AgentHarness`
+- Provider interfaces
+
+**Provides:**
+- `AgentRuntimeProtocol`
+- Runtime mode routing (`pipeline` | `langchain` | `deepagents`)
+
+**Estimated:** 4h
+
+---
+
+## Unit 10: LangChain Runtime Adapter + API
+**Agent:** api-layer
+**Status:** Not Started
+**Branch:** unit-10-langchain-runtime
+
+**Owns:**
+- `src/showrunner/agent/langchain_runtime.py`
+- `src/showrunner/server/api.py`
+- `tests/test_agent_api.py`
+
+**Dependencies:**
+- Unit 9 runtime protocol + tools
+
+**Provides:**
+- LangChain runtime mode
+- `/api/agent/*` endpoints
+
+**Estimated:** 4h
+
+---
+
+## Unit 11: Deepagents Runtime Adapter (Scaffold)
+**Agent:** tdd-oop
+**Status:** Not Started
+**Branch:** unit-11-deepagents-runtime
+
+**Owns:**
+- `src/showrunner/agent/deepagents_runtime.py`
+- `tests/test_deepagents_runtime.py`
+
+**Dependencies:**
+- Unit 9 runtime protocol + tools
+
+**Provides:**
+- Deepagents runtime scaffold behind feature flag
+
+**Estimated:** 4h
+
+---
+
+## Unit 12: Graph + RLM Tooling Integration
+**Agent:** data-models
+**Status:** Not Started
+**Branch:** unit-12-graph-rlm-tools
+
+**Owns:**
+- `src/showrunner/graph/queries.py` (tool wrappers)
+- `src/showrunner/rlm/` (scaffold)
+- `tests/test_graph_tools.py`
+
+**Dependencies:**
+- Unit 9 runtime tools
+
+**Provides:**
+- Read-only graph query tools
+- RLM traversal scaffold
+
+**Estimated:** 4h
+
+---
+
+## Unit 13: CI Runtime Matrix + Parity Tests
+**Agent:** devops
+**Status:** Not Started
+**Branch:** unit-13-ci-matrix
+
+**Owns:**
+- `.github/workflows/*`
+- `tests/test_runtime_parity.py`
+
+**Dependencies:**
+- Units 9-12
+
+**Provides:**
+- CI runs by runtime mode
+- Parity checks across modes
+
+**Estimated:** 3h
+
+---
+
+## Unit 14: Code-OSS Extension (Writer UI)
+**Agent:** frontend
+**Status:** Not Started
+**Branch:** unit-14-code-oss-extension
+
+**Owns:**
+- `extensions/showrunner-agent/` (new extension workspace)
+- `docs/OSS_CODE_EXTENSION.md`
+
+**Dependencies:**
+- Unit 9 runtime protocol
+- Unit 10 agent API endpoints
+
+**Provides:**
+- Agent panel (webview)
+- Commands for run/status/export viewing
+
+**Estimated:** 4h
+
+---
+
+## Unit 15: Code-OSS Fork Packaging
+**Agent:** devops
+**Status:** Not Started
+**Branch:** unit-15-code-oss-fork
+
+**Owns:**
+- Fork build config
+- Distribution README
+
+**Dependencies:**
+- Unit 14 extension bundle
+
+**Provides:**
+- Forked Code-OSS distribution with bundled extension
+- Branding/defaults only, no editor core patches
+
+**Estimated:** 4h

@@ -98,3 +98,36 @@
 **Decision:** Treat the research-layered stack as post-V1 and evaluate it by layer. Prioritize layers that unlock new capabilities: RLM-style tool environment, GraphRAG with temporal memory, hierarchical outlining, and multi-agent evaluation. Treat hallucination detection and mind-map hardening as reliability improvements, and context caching/speculative decoding as performance-only (no new capabilities).
 
 **Consequences:** MVP remains contract-first with evidence gates. Future roadmap work must map each research layer to concrete new outputs or failure modes it fixes, and avoid spending on performance-only layers until scale demands it.
+
+---
+
+### 2026-02-05 - Agent Runtime Integration Sequencing
+**Status:** Accepted
+
+**Context:** We need to integrate LangChain and Deepagents while preserving deterministic
+pipeline outputs and evidence gates. The system already uses LangGraph as the pipeline runtime.
+
+**Decision:** Use a phased integration plan:
+1) Introduce a runtime facade with a strict tool contract.
+2) Add LangChain runtime mode using those tools.
+3) Add Deepagents runtime mode behind a feature flag.
+4) Integrate Graph/RLM tools and parity tests.
+
+**Consequences:** Pipeline remains the source of truth. Agent runtimes become wrappers over
+artifact outputs and gated tool calls, enabling gradual adoption without breaking CI or
+determinism.
+
+---
+
+### 2026-02-05 - Code-OSS Writer Interface Strategy
+**Status:** Accepted
+
+**Context:** Writers need a full-featured editor with formatting, while the product needs
+centralized agent interaction and distribution control.
+
+**Decision:** Use a VS Code extension as the primary integration surface and ship it inside
+a Code-OSS fork for distribution control. Avoid core editor changes; keep deltas to
+branding, defaults, and bundled extensions.
+
+**Consequences:** Editor functionality remains stable and maintained upstream. Agent UI
+and hooks live in the extension layer, reducing fork maintenance cost.
