@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from showrunner.agent.deepagents_runtime import DeepagentsRuntime
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class DummySession:

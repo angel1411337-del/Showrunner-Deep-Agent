@@ -1,6 +1,11 @@
-from pathlib import Path
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from showrunner.hooks.incremental_runner import resolve_corpus_root, resolve_output_dir
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_resolve_paths_default_repo_root(tmp_path: Path, monkeypatch):

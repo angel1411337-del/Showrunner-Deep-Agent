@@ -15,10 +15,8 @@ from showrunner.rlm.rlm_runner import RLMRunner
 if TYPE_CHECKING:
     from langchain_core.language_models.chat_models import BaseChatModel
 
-    from showrunner.agent.harness import AgentRunResult
     from showrunner.graph.queries import Neo4jQueryLayer, Neo4jSessionProtocol
     from showrunner.rlm.repl_executor import RLMRunResult
-    from langgraph.graph.state import CompiledStateGraph
 
 
 class DeepagentsRuntime:
@@ -43,7 +41,7 @@ class DeepagentsRuntime:
         self._environment_root = environment_root
         self._model = model or os.getenv("SHOWRUNNER_LLM_MODEL")
         self._system_prompt = system_prompt
-        self._agent: CompiledStateGraph | None = None
+        self._agent: Any | None = None
         self._rlm_runner = RLMRunner(
             tools=self._build_tools(),
             memory_store=self._memory_store,
@@ -99,15 +97,18 @@ class DeepagentsRuntime:
             "query_graph": self.query_graph,
         }
 
-    def _build_agent(self) -> CompiledStateGraph:
+    def _build_agent(self) -> Any:
         if self._environment_root is None:
             raise RuntimeError("Deepagents runtime requires environment_root to be set")
         if self._model is None:
             raise RuntimeError("Deepagents runtime requires SHOWRUNNER_LLM_MODEL or model")
 
-        from deepagents import create_deep_agent
+        import importlib
+
         from deepagents.backends import FilesystemBackend
 
+        module = importlib.import_module("deepagents")
+        create_deep_agent = module.create_deep_agent
         backend = FilesystemBackend(
             root_dir=self._environment_root,
             virtual_mode=True,
@@ -181,7 +182,9 @@ class DeepagentsRuntime:
             self._assert_within_environment(self._environment_root, output_path)
         return tools.read_artifact(output_dir=output_path, relative_path=relative_path)
 
-    def _tool_query_graph(self, query: str, parameters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    def _tool_query_graph(
+        self, query: str, parameters: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         return self.query_graph(query=query, parameters=parameters)
 
     def _assert_within_environment(self, env_root: Path, path: Path) -> None:

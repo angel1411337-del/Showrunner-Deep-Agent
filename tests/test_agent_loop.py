@@ -1,6 +1,11 @@
-from pathlib import Path
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from showrunner.agent.loop import AgentLoop
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def _write_sample_corpus(corpus_root: Path) -> None:

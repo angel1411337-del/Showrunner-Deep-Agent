@@ -158,13 +158,135 @@ async def get_agent_artifacts(environment_id: str | None = None) -> dict[str, li
     return {"artifacts": list_artifacts(environment_id=environment_id)}
 
 
+ENV_FILE = BASE_DIR / "environments.json"
+
+
+def _load_env_data() -> dict[str, Any]:
+    if not ENV_FILE.exists():
+        return {}
+    try:
+        return json.loads(ENV_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _save_env_data(data: dict[str, Any]) -> None:
+    ENV_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+def get_environment_name(environment_id: str | None) -> str:
+    data = _load_env_data()
+    # If no ID provided, we consider it the "root" or "default" environment
+    key = environment_id or "default"
+    return data.get(key, {}).get("name", "Showrunner Project")
+
+
+class SetNameRequest(BaseModel):
+    name: str
+    environment_id: str | None = None
+
+
+@router.post("/env/name")
+async def set_environment_name(request: SetNameRequest):
+    data = _load_env_data()
+    key = request.environment_id or "default"
+    if key not in data:
+        data[key] = {}
+    data[key]["name"] = request.name
+    _save_env_data(data)
+    return {"status": "updated", "name": request.name}
+
+
+@router.get("/environments")
+async def list_environments() -> list[dict[str, Any]]:
+    """List all available environments used for switching context."""
+    data = _load_env_data()
+    envs: list[dict[str, Any]] = []
+
+    # 1. Add Default/Root
+    root_name = data.get("default", {}).get("name", "Showrunner Project")
+    envs.append({"id": "default", "name": root_name, "is_default": True})
+
+    # 2. Scan environments/ directory
+    env_dir = BASE_DIR / "environments"
+    if env_dir.exists():
+        for path in env_dir.iterdir():
+            if path.is_dir():
+                env_id = path.name
+                name = data.get(env_id, {}).get("name", env_id.replace("_", " ").title())
+                envs.append({"id": env_id, "name": name, "is_default": False})
+
+    # 3. Mark global default
+    global_default = data.get("global_default_id", "default")
+    for env in envs:
+        env["is_global_default"] = env["id"] == global_default
+
+    return envs
+
+
+class CreateEnvRequest(BaseModel):
+    name: str
+
+
+@router.post("/environments")
+async def create_environment(request: CreateEnvRequest):
+    """Create a new environment directory and save its name."""
+    # Generate ID from name (slugify-ish)
+    env_id = request.name.lower().replace(" ", "_")
+    # Ensure it doesn't collide with "default" or reserved keywords if any
+    if env_id == "default":
+        raise HTTPException(status_code=400, detail="Cannot create environment with ID 'default'")
+
+    env_dir = BASE_DIR / "environments" / env_id
+    if env_dir.exists():
+        raise HTTPException(status_code=409, detail=f"Environment '{env_id}' already exists")
+
+    # Create directory
+    env_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save name mapping
+    data = _load_env_data()
+    if env_id not in data:
+        data[env_id] = {}
+    data[env_id]["name"] = request.name
+    _save_env_data(data)
+
+    return {"status": "created", "id": env_id, "name": request.name}
+
+
+class SetDefaultRequest(BaseModel):
+    environment_id: str
+
+
+@router.post("/environments/default")
+async def set_global_default(request: SetDefaultRequest):
+    data = _load_env_data()
+    data["global_default_id"] = request.environment_id
+    _save_env_data(data)
+    return {"status": "updated", "global_default_id": request.environment_id}
+
+
 @router.get("/status")
 async def get_status(environment_id: str | None = None):
-    out_dir = get_latest_output_dir(environment_id=environment_id)
+    # If no specific ID requested, use the global default
+    if not environment_id:
+        data = _load_env_data()
+        environment_id = data.get("global_default_id", "default")
+
+    # Access "default" (root) by either "default" ID or None in finding directory
+    # But for directory resolution, None = Root.
+    # So if ID is "default", we pass None to directory resolver.
+    resolve_id = None if environment_id == "default" else environment_id
+
+    out_dir = get_latest_output_dir(environment_id=resolve_id)
+
+    # We return the resolved ID so frontend knows what context it's in effectively
     return {
         "status": "online",
         "agent": "showrunner",
         "current_corpus": str(out_dir) if out_dir else None,
+        "environment_name": get_environment_name(environment_id),
+        "active_environment_id": environment_id,
     }
 
 

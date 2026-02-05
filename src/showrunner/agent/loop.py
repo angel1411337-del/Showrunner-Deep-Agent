@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from showrunner.contracts import Finding, FindingSeverity
 from showrunner.gates.quality_gates import QualityGates
 from showrunner.pipeline.orchestrator import ComponentFactory, PipelineConfig, ShowrunnerPipeline
-from showrunner.providers.base import LLMProviderProtocol
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from showrunner.providers.base import LLMProviderProtocol
 
 
 @dataclass(frozen=True)
@@ -31,7 +34,7 @@ class AgentLoopResult:
 
 
 class AgentLoop:
-    """Minimal deep-agent loop scaffold (plan → propose → validate → repair → persist)."""
+    """Minimal deep-agent loop scaffold (plan -> propose -> validate -> repair -> persist)."""
 
     def __init__(
         self,

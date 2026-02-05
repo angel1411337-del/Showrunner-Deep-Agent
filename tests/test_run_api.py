@@ -56,9 +56,11 @@ def test_run_agent_accepts_environment_id(tmp_path):
     corpus_root.mkdir()
     output_dir.mkdir()
 
-    with patch("showrunner.server.api.resolve_corpus_root") as mock_corpus, patch(
-        "showrunner.server.api.resolve_output_dir"
-    ) as mock_output, patch("showrunner.server.api.run_pipeline_task") as mock_task:
+    with (
+        patch("showrunner.server.api.resolve_corpus_root") as mock_corpus,
+        patch("showrunner.server.api.resolve_output_dir") as mock_output,
+        patch("showrunner.server.api.run_pipeline_task") as mock_task,
+    ):
         mock_corpus.return_value = corpus_root
         mock_output.return_value = output_dir
         response = client.post("/api/run", json={"environment_id": "winterfell"})
@@ -67,4 +69,4 @@ def test_run_agent_accepts_environment_id(tmp_path):
     assert response.json()["status"] == "starting"
     mock_corpus.assert_called_once_with(api.BASE_DIR, environment_id="winterfell")
     mock_output.assert_called_once_with(api.BASE_DIR, environment_id="winterfell")
-    mock_task.assert_called
+    mock_task.assert_called()
