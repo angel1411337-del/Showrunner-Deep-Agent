@@ -12,3 +12,6 @@ test_run_output*.txt
 test_run*.txt
 .agent/skills/
 .claude/skills/
+.agent/memory/
+environments.json
+src/environments.json
