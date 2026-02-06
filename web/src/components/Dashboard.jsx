@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Activity, Users, AlertCircle, CheckCircle } from 'lucide-react';
 
-export function Dashboard() {
+export function Dashboard({ environmentId }) {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/stats')
+        const query = environmentId && environmentId !== 'default' ? `?environment_id=${environmentId}` : '';
+        setLoading(true);
+        fetch(`http://localhost:8000/api/stats${query}`)
             .then(res => res.json())
             .then(data => {
                 setStats(data);
@@ -16,7 +18,7 @@ export function Dashboard() {
                 console.error("Failed to fetch stats", err);
                 setLoading(false);
             });
-    }, []);
+    }, [environmentId]);
 
     if (loading) return <div className="p-6 text-slate-400">Loading mission data...</div>;
     if (!stats) return <div className="p-6 text-red-400">System Offline: Cannot connect to Showrunner API</div>;

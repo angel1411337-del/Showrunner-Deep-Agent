@@ -52,19 +52,21 @@ function EvidenceChip({ id }) {
     );
 }
 
-export function Dossier({ filterResolved = false }) {
+export function Dossier({ filterResolved = false, environmentId }) {
     const [obligations, setObligations] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/obligations')
+        const query = environmentId && environmentId !== 'default' ? `?environment_id=${environmentId}` : '';
+        setLoading(true);
+        fetch(`http://localhost:8000/api/obligations${query}`)
             .then(res => res.json())
             .then(data => {
                 setObligations(data);
                 setLoading(false);
             })
             .catch(err => console.error(err));
-    }, []);
+    }, [environmentId]);
 
     if (loading) return <div className="p-6 text-slate-400">Decrypting dossier...</div>;
 

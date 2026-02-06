@@ -81,7 +81,7 @@ function SectionCard({ icon: Icon, title, children }) {
   );
 }
 
-export function PlanningOutputs() {
+export function PlanningOutputs({ environmentId }) {
   const [outline, setOutline] = useState('');
   const [revealsCsv, setRevealsCsv] = useState('');
   const [twists, setTwists] = useState('');
@@ -90,15 +90,18 @@ export function PlanningOutputs() {
 
   useEffect(() => {
     async function loadPlanningExports() {
+      const query = environmentId && environmentId !== 'default' ? `?environment_id=${environmentId}` : '';
+      setLoading(true);
       try {
         const [outlineText, revealsText, twistsText] = await Promise.all([
-          fetchText(OUTLINE_URL),
-          fetchText(REVEALS_URL),
-          fetchText(TWISTS_URL),
+          fetchText(`${OUTLINE_URL}${query}`),
+          fetchText(`${REVEALS_URL}${query}`),
+          fetchText(`${TWISTS_URL}${query}`),
         ]);
         setOutline(outlineText);
         setRevealsCsv(revealsText);
         setTwists(twistsText);
+        setError('');
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error loading planning exports.';
         setError(message);
@@ -108,7 +111,7 @@ export function PlanningOutputs() {
     }
 
     loadPlanningExports();
-  }, []);
+  }, [environmentId]);
 
   const reveals = useMemo(() => parseCsv(revealsCsv), [revealsCsv]);
 
