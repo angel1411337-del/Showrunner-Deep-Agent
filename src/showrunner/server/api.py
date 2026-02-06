@@ -3,13 +3,17 @@ import os
 from pathlib import Path
 from typing import Any, cast
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Response
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Response, UploadFile
 from pydantic import BaseModel
 
+from showrunner.adapters.input_adapter import SUPPORTED_EXTENSIONS
 from showrunner.hooks.incremental_runner import resolve_corpus_root, resolve_output_dir
 from showrunner.pipeline.orchestrator import PipelineConfig, ShowrunnerPipeline
 
 router = APIRouter()
+
+# Bugbear B008: avoid calling File() in argument defaults.
+UPLOAD_FILES = File(...)
 
 # Global state to track pipeline progress
 PIPELINE_STATE = {
@@ -186,6 +190,42 @@ class SetNameRequest(BaseModel):
     environment_id: str | None = None
 
 
+def _resolve_request_environment_id(environment_id: str | None) -> str:
+    if environment_id:
+        return environment_id
+    data = _load_env_data()
+    return data.get("global_default_id", "default")
+
+
+def _resolve_corpus_root_for_api(environment_id: str | None) -> Path:
+    if environment_id:
+        return BASE_DIR / "environments" / environment_id / "corpus"
+    return BASE_DIR / "corpus"
+
+
+def _normalize_upload_path(raw_path: str) -> Path:
+    cleaned = raw_path.replace("\\", "/").strip()
+    if not cleaned:
+        raise HTTPException(status_code=400, detail={"error": "invalid_path"})
+    path = Path(cleaned)
+    if path.is_absolute() or path.drive or ".." in path.parts:
+        raise HTTPException(status_code=400, detail={"error": "invalid_path"})
+    return path
+
+
+def _resolve_unique_path(path: Path, reserved: set[Path]) -> Path:
+    if path not in reserved and not path.exists():
+        return path
+    stem = path.stem
+    suffix = path.suffix
+    index = 2
+    while True:
+        candidate = path.with_name(f"{stem} ({index}){suffix}")
+        if candidate not in reserved and not candidate.exists():
+            return candidate
+        index += 1
+
+
 @router.post("/env/name")
 async def set_environment_name(request: SetNameRequest):
     data = _load_env_data()
@@ -195,6 +235,82 @@ async def set_environment_name(request: SetNameRequest):
     data[key]["name"] = request.name
     _save_env_data(data)
     return {"status": "updated", "name": request.name}
+
+
+@router.post("/corpus/upload")
+async def upload_corpus_files(
+    files: list[UploadFile] = UPLOAD_FILES,
+    environment_id: str | None = Form(None),
+    collision_mode: str | None = Form(None),
+) -> dict[str, Any]:
+    allowed_extensions = sorted(SUPPORTED_EXTENSIONS)
+    if collision_mode not in (None, "overwrite", "rename"):
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "invalid_collision_mode", "options": ["overwrite", "rename"]},
+        )
+
+    effective_env_id = _resolve_request_environment_id(environment_id)
+    resolve_id = None if effective_env_id == "default" else effective_env_id
+    corpus_root = _resolve_corpus_root_for_api(resolve_id)
+    corpus_root.mkdir(parents=True, exist_ok=True)
+
+    normalized: list[tuple[UploadFile, Path]] = []
+    unsupported: list[str] = []
+    for upload in files:
+        filename = upload.filename or ""
+        rel_path = _normalize_upload_path(filename)
+        if rel_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            unsupported.append(filename)
+        normalized.append((upload, rel_path))
+
+    if unsupported:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "unsupported_files",
+                "allowed_extensions": allowed_extensions,
+                "unsupported_files": unsupported,
+            },
+        )
+
+    conflicts: list[str] = []
+    seen: set[Path] = set()
+    for _, rel_path in normalized:
+        target = corpus_root / rel_path
+        if target.exists() or target in seen:
+            conflicts.append(rel_path.as_posix())
+        seen.add(target)
+
+    if conflicts and collision_mode is None:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": "file_conflict",
+                "conflicts": conflicts,
+                "options": ["overwrite", "rename"],
+            },
+        )
+
+    saved: list[str] = []
+    reserved: set[Path] = {path for path in corpus_root.rglob("*") if path.is_file()}
+    for upload, rel_path in normalized:
+        target = corpus_root / rel_path
+        if collision_mode == "rename":
+            target = _resolve_unique_path(target, reserved)
+        reserved.add(target)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        content = await upload.read()
+        target.write_bytes(content)
+        saved.append(target.relative_to(corpus_root).as_posix())
+        await upload.close()
+
+    return {
+        "status": "saved",
+        "environment_id": effective_env_id,
+        "collision_mode": collision_mode,
+        "saved": saved,
+    }
 
 
 @router.get("/environments")

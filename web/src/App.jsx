@@ -5,6 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { Entities } from './components/Entities';
 import { Dossier } from './components/Dossier';
 import { PlanningOutputs } from './components/PlanningOutputs';
+import { CorpusUpload } from './components/CorpusUpload';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -330,6 +331,11 @@ function App() {
                 className="bg-black/20 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 w-64 transition-all"
               />
             </div>
+
+            <CorpusUpload
+              environmentId={activeEnvId}
+              onUploadComplete={() => fetchData(activeEnvId)}
+            />
 
             {isRunning && (
               <div className="flex flex-col items-end mr-2">
